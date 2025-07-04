@@ -1,0 +1,50 @@
+{
+  "name": "saas-template-starter",
+  "version": "1.0.0",
+  "description": "Multi-organization SAAS template starter kit with advanced ABAC",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present && rimraf node_modules",
+    "install:all": "npm install",
+    "backend:dev": "npm run dev --workspace=apps/backend",
+    "admin:dev": "npm run dev --workspace=apps/admin-dashboard",
+    "frontend:dev": "npm run dev --workspace=apps/frontend"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.4.5",
+    "rimraf": "^5.0.5",
+    "prettier": "^3.2.5",
+    "eslint": "^8.57.0",
+    "@typescript-eslint/parser": "^7.10.0",
+    "@typescript-eslint/eslint-plugin": "^7.10.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/saas-template-starter.git"
+  },
+  "keywords": [
+    "saas",
+    "template",
+    "starter",
+    "nestjs",
+    "nextjs",
+    "abac",
+    "multi-tenant"
+  ],
+  "author": "",
+  "license": "MIT"
+}
