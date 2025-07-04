@@ -11,27 +11,27 @@
 - [x] Create root directory structure
 - [x] Initialize npm workspaces configuration
 - [x] Create `package.json` with workspace definitions
-- [ ] Set up TypeScript configuration for monorepo
-- [ ] Configure ESLint and Prettier for entire project
+- [x] Set up TypeScript configuration for monorepo
+- [x] Configure ESLint and Prettier for entire project
 - [x] Create `.gitignore` file
 - [x] Initialize git repository and create `develop` branch
 
 ### 1.2 Backend Setup (NestJS)
 - [x] Create `apps/backend` directory
 - [x] Initialize NestJS project with TypeScript
-- [ ] Install required dependencies:
-  - [ ] @nestjs/typeorm
-  - [ ] @nestjs/swagger
-  - [ ] @nestjs/config
-  - [ ] @nestjs/jwt
-  - [ ] @nestjs/passport
+- [x] Install required dependencies:
+  - [x] @nestjs/typeorm
+  - [x] @nestjs/swagger
+  - [x] @nestjs/config
+  - [x] @nestjs/jwt
+  - [x] @nestjs/passport
   - [ ] aws-sdk (for Cognito)
-  - [ ] typeorm
-  - [ ] pg (PostgreSQL driver)
-  - [ ] class-validator
-  - [ ] class-transformer
-- [ ] Configure TypeORM with PostgreSQL
-- [ ] Set up environment configuration (.env.example)
+  - [x] typeorm
+  - [x] pg (PostgreSQL driver)
+  - [x] class-validator
+  - [x] class-transformer
+- [x] Configure TypeORM with PostgreSQL
+- [x] Set up environment configuration (.env.example)
 - [ ] Create basic module structure:
   - [ ] auth module
   - [ ] organizations module
