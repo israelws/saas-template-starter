@@ -2,9 +2,12 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { useDispatch } from 'react-redux'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { logout } from '@/store/slices/authSlice'
+import { useToast } from '@/hooks/use-toast'
 import {
   Building2,
   Users,
@@ -41,6 +44,35 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
+  const dispatch = useDispatch()
+  const { toast } = useToast()
+
+  const handleLogout = async () => {
+    try {
+      // Clear tokens
+      localStorage.removeItem('authToken')
+      localStorage.removeItem('refreshToken')
+      document.cookie = 'authToken=; path=/; max-age=0'
+      
+      // Dispatch logout action
+      dispatch(logout())
+      
+      toast({
+        title: 'Logged out',
+        description: 'You have been successfully logged out.',
+      })
+      
+      // Redirect to login
+      router.push('/login')
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to logout. Please try again.',
+        variant: 'destructive',
+      })
+    }
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -99,6 +131,7 @@ export default function DashboardLayout({
             <Button
               variant="ghost"
               className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white"
+              onClick={handleLogout}
             >
               <LogOut className={cn('h-5 w-5', sidebarOpen && 'mr-3')} />
               {sidebarOpen && <span>Sign out</span>}

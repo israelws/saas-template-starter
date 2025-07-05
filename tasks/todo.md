@@ -102,7 +102,7 @@
 - [ ] Create database initialization scripts
 - [ ] Set up database migrations structure
 
-## Phase 2: Database and Core Models (30% Complete)
+## Phase 2: Database and Core Models (70% Complete)
 
 ### 2.1 Database Schema Implementation
 - [x] Create TypeORM entities for all tables:
@@ -116,8 +116,8 @@
   - [x] Customer entity
   - [x] Order and OrderItem entities
   - [x] Transaction entity
-- [ ] Create database migrations
-- [ ] Implement database indexes
+- [x] Create database migrations
+- [x] Implement database indexes
 - [ ] Create materialized view for organization hierarchy
 - [ ] Seed database with demo data
 

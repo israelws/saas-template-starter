@@ -39,11 +39,18 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // Validate user exists and is active
     const user = await this.authService.validateUser(cognitoId);
     
+    // Get user with their organization memberships
+    const userWithMemberships = await this.authService.getProfile(user.id);
+    
     return {
       id: user.id,
       cognitoId: user.cognitoId,
       email: user.email,
-      // Add any other user properties needed in requests
+      firstName: user.firstName,
+      lastName: user.lastName,
+      status: user.status,
+      memberships: userWithMemberships.memberships,
+      // This will be attached to request.user
     };
   }
 }

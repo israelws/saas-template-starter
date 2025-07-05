@@ -1,29 +1,38 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// This function can be marked `async` if using `await` inside
+// Public routes that don't require authentication
+const publicRoutes = ['/login', '/register', '/forgot-password', '/reset-password']
+
 export function middleware(request: NextRequest) {
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/login') ||
-                     request.nextUrl.pathname.startsWith('/register') ||
-                     request.nextUrl.pathname.startsWith('/forgot-password')
+  const path = request.nextUrl.pathname
+  const isPublicRoute = publicRoutes.some(route => path.startsWith(route))
+  const isDashboardRoute = path.startsWith('/dashboard')
   
-  const isDashboardRoute = request.nextUrl.pathname.startsWith('/dashboard')
+  // Check for auth token in cookies or Authorization header
+  const cookieToken = request.cookies.get('authToken')?.value
+  const headerToken = request.headers.get('authorization')?.replace('Bearer ', '')
+  const hasToken = cookieToken || headerToken
   
-  // For now, we'll just check if there's a token in cookies
-  // In production, you would validate this token
-  const token = request.cookies.get('auth-token')
-  
-  if (isDashboardRoute && !token) {
-    // Redirect to login if trying to access dashboard without auth
-    return NextResponse.redirect(new URL('/login', request.url))
+  // Protect dashboard routes
+  if (isDashboardRoute && !hasToken) {
+    const loginUrl = new URL('/login', request.url)
+    loginUrl.searchParams.set('redirect', path)
+    return NextResponse.redirect(loginUrl)
   }
   
-  if (isAuthRoute && token) {
-    // Redirect to dashboard if already authenticated
+  // Redirect authenticated users away from public routes
+  if (isPublicRoute && hasToken && path !== '/') {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
   
-  return NextResponse.next()
+  // Add security headers
+  const response = NextResponse.next()
+  response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  
+  return response
 }
 
 // See "Matching Paths" below to learn more

@@ -18,7 +18,13 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "typeorm": "typeorm-ts-node-commonjs",
+    "migration:generate": "npm run typeorm -- migration:generate -d ./typeorm.config.ts",
+    "migration:create": "npm run typeorm -- migration:create ./src/migrations/",
+    "migration:run": "npm run typeorm -- migration:run -d ./typeorm.config.ts",
+    "migration:revert": "npm run typeorm -- migration:revert -d ./typeorm.config.ts",
+    "migration:show": "npm run typeorm -- migration:show -d ./typeorm.config.ts"
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.840.0",

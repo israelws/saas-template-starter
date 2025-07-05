@@ -31,15 +31,21 @@ export default function LoginPage() {
 
       dispatch(loginSuccess({ user, token: accessToken }))
       
-      // Store refresh token in localStorage
+      // Store tokens
+      localStorage.setItem('authToken', accessToken)
       localStorage.setItem('refreshToken', refreshToken)
+      
+      // Set cookie for SSR
+      document.cookie = `authToken=${accessToken}; path=/; max-age=${60 * 60 * 24 * 7}` // 7 days
       
       toast({
         title: 'Login successful',
         description: 'Welcome back!',
       })
 
-      router.push('/dashboard')
+      // Redirect to dashboard or original destination
+      const redirect = new URLSearchParams(window.location.search).get('redirect')
+      router.push(redirect || '/dashboard')
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Invalid email or password'
       dispatch(loginFailure(errorMessage))
