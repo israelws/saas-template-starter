@@ -75,7 +75,8 @@ export class CognitoService {
         expiresIn: response.AuthenticationResult.ExpiresIn,
       };
     } catch (error) {
-      throw new BadRequestException('Invalid credentials');
+      console.error('Cognito authentication error:', error);
+      throw new BadRequestException(`Invalid credentials: ${error.message}`);
     }
   }
 
@@ -104,10 +105,11 @@ export class CognitoService {
         confirmed: response.UserConfirmed,
       };
     } catch (error) {
+      console.error('Cognito registration error:', error);
       if (error.name === 'UsernameExistsException') {
         throw new BadRequestException('User already exists');
       }
-      throw new BadRequestException('Registration failed');
+      throw new BadRequestException(`Registration failed: ${error.message}`);
     }
   }
 

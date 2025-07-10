@@ -47,7 +47,7 @@ export class UsersService {
         },
       });
 
-      const savedUser = await queryRunner.manager.save(user);
+      const savedUser = await queryRunner.manager.save(User, user);
 
       // If organizationId provided, create membership
       if (createUserDto.organizationId) {

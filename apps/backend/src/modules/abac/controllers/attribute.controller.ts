@@ -3,14 +3,19 @@ import {
   Get,
   Post,
   Body,
+  Put,
   Patch,
   Param,
   Delete,
   Query,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { AttributeService } from '../services/attribute.service';
+import { CreateAttributeDto } from '../dto/create-attribute.dto';
+import { UpdateAttributeDto } from '../dto/update-attribute.dto';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import {
   AttributeCategory,
   AttributeType,
@@ -19,7 +24,8 @@ import {
 import { RequirePermission } from '../decorators/require-permission.decorator';
 
 @ApiTags('Attributes')
-@Controller('attributes')
+@Controller('abac/attributes')
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class AttributeController {
   constructor(private readonly attributeService: AttributeService) {}
@@ -27,34 +33,39 @@ export class AttributeController {
   @Post()
   @RequirePermission('attribute', 'create')
   @ApiOperation({ summary: 'Create a new attribute definition' })
-  create(
-    @Body() body: {
-      name: string;
-      category: AttributeCategory;
-      type: AttributeType;
-      description?: string;
-      organizationId?: string;
-    },
-  ) {
-    return this.attributeService.create(
-      body.name,
-      body.category,
-      body.type,
-      body.description,
-      body.organizationId,
-    );
+  @ApiResponse({
+    status: 201,
+    description: 'The attribute has been successfully created.',
+  })
+  async create(@Body() createAttributeDto: CreateAttributeDto) {
+    return this.attributeService.create(createAttributeDto);
   }
 
   @Get()
   @RequirePermission('attribute', 'list')
   @ApiOperation({ summary: 'Get all attribute definitions' })
-  findAll(
-    @Query() params: PaginationParams & {
-      category?: AttributeCategory;
-      organizationId?: string;
-    },
+  @ApiQuery({ name: 'category', required: false, enum: ['subject', 'resource', 'environment', 'custom'] })
+  @ApiQuery({ name: 'type', required: false, enum: ['string', 'number', 'boolean', 'array', 'object'] })
+  @ApiQuery({ name: 'search', required: false, description: 'Search by key or name' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return all attribute definitions.',
+  })
+  async findAll(
+    @Query('category') category?: string,
+    @Query('type') type?: string,
+    @Query('search') search?: string,
   ) {
-    return this.attributeService.findAll(params);
+    const attributes = await this.attributeService.findAll({
+      category,
+      type,
+      search,
+    });
+    
+    return {
+      data: attributes,
+      total: attributes.length,
+    };
   }
 
   @Get('by-category/:category')
@@ -77,30 +88,38 @@ export class AttributeController {
   @Get(':id')
   @RequirePermission('attribute', 'read')
   @ApiOperation({ summary: 'Get attribute by ID' })
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.attributeService.findOne(id);
+  @ApiResponse({
+    status: 200,
+    description: 'Return the attribute definition.',
+  })
+  async findOne(@Param('id') id: string) {
+    const attribute = await this.attributeService.findOne(id);
+    return { data: attribute };
   }
 
-  @Patch(':id')
+  @Put(':id')
   @RequirePermission('attribute', 'update')
   @ApiOperation({ summary: 'Update attribute definition' })
-  update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updates: Partial<{
-      description: string;
-      possibleValues: any[];
-      defaultValue: any;
-      isRequired: boolean;
-    }>,
+  @ApiResponse({
+    status: 200,
+    description: 'The attribute has been successfully updated.',
+  })
+  async update(
+    @Param('id') id: string,
+    @Body() updateAttributeDto: UpdateAttributeDto,
   ) {
-    return this.attributeService.update(id, updates);
+    return this.attributeService.update(id, updateAttributeDto);
   }
 
   @Delete(':id')
   @RequirePermission('attribute', 'delete')
   @ApiOperation({ summary: 'Delete attribute definition' })
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.attributeService.remove(id);
+  @ApiResponse({
+    status: 204,
+    description: 'The attribute has been successfully deleted.',
+  })
+  async remove(@Param('id') id: string) {
+    await this.attributeService.remove(id);
   }
 
   @Post('seed-system')

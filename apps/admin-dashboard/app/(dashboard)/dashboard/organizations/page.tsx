@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -11,70 +11,116 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
+} from '@/components/ui/table';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { organizationAPI } from '@/lib/api';
+import { Organization } from '@saas-template/shared';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { useToast } from '@/hooks/use-toast'
-import { organizationAPI } from '@/lib/api'
-import { Organization } from '@saas-template/shared'
-import { Plus, Search, Edit, Trash2, Users, ChevronRight } from 'lucide-react'
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Users,
+  ChevronRight,
+  TreePine,
+  List,
+  Building2,
+} from 'lucide-react';
+import { OrganizationTree } from '@/components/organizations/organization-tree';
+import { useBreadcrumb } from '@/hooks/use-breadcrumb';
+
+interface OrganizationNode extends Organization {
+  children?: OrganizationNode[];
+}
+
+// Build tree structure from flat list
+function buildOrganizationTree(organizations: Organization[]): OrganizationNode[] {
+  const orgMap = new Map<string, OrganizationNode>();
+  const rootOrgs: OrganizationNode[] = [];
+
+  // First pass: create map
+  organizations.forEach((org) => {
+    orgMap.set(org.id, { ...org, children: [] });
+  });
+
+  // Second pass: build tree
+  organizations.forEach((org) => {
+    const node = orgMap.get(org.id)!;
+    if (org.parentId && orgMap.has(org.parentId)) {
+      const parent = orgMap.get(org.parentId)!;
+      parent.children = parent.children || [];
+      parent.children.push(node);
+    } else {
+      rootOrgs.push(node);
+    }
+  });
+
+  return rootOrgs;
+}
 
 export default function OrganizationsPage() {
-  const [organizations, setOrganizations] = useState<Organization[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const router = useRouter()
-  const { toast } = useToast()
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'tree' | 'list'>('tree');
+  const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
+  const router = useRouter();
+  const { toast } = useToast();
 
-  useEffect(() => {
-    fetchOrganizations()
-  }, [])
+  useBreadcrumb([
+    { label: 'Dashboard', href: '/dashboard' },
+    { label: 'Organizations', icon: <Building2 className="h-4 w-4" /> },
+  ]);
 
-  const fetchOrganizations = async () => {
+  const fetchOrganizations = useCallback(async () => {
     try {
-      const response = await organizationAPI.getAll()
-      setOrganizations(response.data)
+      const response = await organizationAPI.getAll();
+      setOrganizations(response.data);
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to fetch organizations',
         variant: 'destructive',
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  }, [toast]);
+
+  useEffect(() => {
+    fetchOrganizations();
+  }, [fetchOrganizations]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this organization?')) {
-      return
+      return;
     }
 
     try {
-      await organizationAPI.delete(id)
+      await organizationAPI.delete(id);
       toast({
         title: 'Success',
         description: 'Organization deleted successfully',
-      })
-      fetchOrganizations()
+      });
+      fetchOrganizations();
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to delete organization',
         variant: 'destructive',
-      })
+      });
     }
-  }
+  };
 
-  const filteredOrganizations = organizations.filter((org) =>
-    org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    org.code.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredOrganizations = organizations.filter(
+    (org) =>
+      org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      org.code?.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
+  const treeOrganizations = buildOrganizationTree(filteredOrganizations);
 
   const getTypeColor = (type: string) => {
     const colors: Record<string, string> = {
@@ -82,9 +128,29 @@ export default function OrganizationsPage() {
       division: 'bg-green-100 text-green-800',
       department: 'bg-purple-100 text-purple-800',
       team: 'bg-yellow-100 text-yellow-800',
+    };
+    return colors[type] || 'bg-gray-100 text-gray-800';
+  };
+
+  const handleSelectOrganization = (org: Organization) => {
+    setSelectedOrganization(org);
+  };
+
+  const handleAddOrganization = (parentId: string | null) => {
+    if (parentId) {
+      router.push(`/dashboard/organizations/new?parentId=${parentId}`);
+    } else {
+      router.push('/dashboard/organizations/new');
     }
-    return colors[type] || 'bg-gray-100 text-gray-800'
-  }
+  };
+
+  const handleEditOrganization = (org: Organization) => {
+    router.push(`/dashboard/organizations/${org.id}/edit`);
+  };
+
+  const handleViewDetails = (org: Organization) => {
+    router.push(`/dashboard/organizations/${org.id}`);
+  };
 
   return (
     <div>
@@ -101,10 +167,24 @@ export default function OrganizationsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>All Organizations</CardTitle>
-          <CardDescription>
-            View and manage all organizations in your system
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>All Organizations</CardTitle>
+              <CardDescription>View and manage all organizations in your system</CardDescription>
+            </div>
+            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'tree' | 'list')}>
+              <TabsList>
+                <TabsTrigger value="tree">
+                  <TreePine className="mr-1 h-4 w-4" />
+                  Tree View
+                </TabsTrigger>
+                <TabsTrigger value="list">
+                  <List className="mr-1 h-4 w-4" />
+                  List View
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="mb-4">
@@ -121,10 +201,18 @@ export default function OrganizationsPage() {
 
           {isLoading ? (
             <div className="py-10 text-center">Loading...</div>
+          ) : viewMode === 'tree' ? (
+            <OrganizationTree
+              organizations={treeOrganizations}
+              selectedOrganizationId={selectedOrganization?.id}
+              onSelectOrganization={handleSelectOrganization}
+              onAddOrganization={handleAddOrganization}
+              onEditOrganization={handleEditOrganization}
+              onDeleteOrganization={handleDelete}
+              onViewDetails={handleViewDetails}
+            />
           ) : filteredOrganizations.length === 0 ? (
-            <div className="py-10 text-center text-gray-500">
-              No organizations found
-            </div>
+            <div className="py-10 text-center text-gray-500">No organizations found</div>
           ) : (
             <Table>
               <TableHeader>
@@ -149,7 +237,7 @@ export default function OrganizationsPage() {
                     <TableCell>
                       <span
                         className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getTypeColor(
-                          org.type
+                          org.type,
                         )}`}
                       >
                         {org.type}
@@ -158,18 +246,16 @@ export default function OrganizationsPage() {
                     <TableCell>
                       <span
                         className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                          org.status === 'active'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
+                          org.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                         }`}
                       >
-                        {org.status}
+                        {org.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center">
                         <Users className="mr-1 h-4 w-4 text-gray-400" />
-                        <span>{org.memberships?.length || 0}</span>
+                        <span>0</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
@@ -178,8 +264,8 @@ export default function OrganizationsPage() {
                           variant="ghost"
                           size="sm"
                           onClick={(e) => {
-                            e.stopPropagation()
-                            router.push(`/dashboard/organizations/${org.id}/edit`)
+                            e.stopPropagation();
+                            router.push(`/dashboard/organizations/${org.id}/edit`);
                           }}
                         >
                           <Edit className="h-4 w-4" />
@@ -188,8 +274,8 @@ export default function OrganizationsPage() {
                           variant="ghost"
                           size="sm"
                           onClick={(e) => {
-                            e.stopPropagation()
-                            handleDelete(org.id)
+                            e.stopPropagation();
+                            handleDelete(org.id);
                           }}
                         >
                           <Trash2 className="h-4 w-4 text-red-600" />
@@ -205,5 +291,5 @@ export default function OrganizationsPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

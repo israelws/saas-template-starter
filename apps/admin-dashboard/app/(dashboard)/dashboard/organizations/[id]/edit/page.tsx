@@ -1,18 +1,18 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { useEffect, useState, useCallback } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from '@/components/ui/select';
 import {
   Card,
   CardContent,
@@ -20,90 +20,89 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { useToast } from '@/hooks/use-toast'
-import { organizationAPI } from '@/lib/api'
-import { Organization } from '@saas-template/shared'
-import { ArrowLeft } from 'lucide-react'
+} from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { organizationAPI } from '@/lib/api';
+import { ArrowLeft } from 'lucide-react';
 
 const organizationTypes = [
   { value: 'company', label: 'Company' },
   { value: 'division', label: 'Division' },
   { value: 'department', label: 'Department' },
   { value: 'team', label: 'Team' },
-]
+];
 
 export default function EditOrganizationPage() {
-  const params = useParams()
-  const router = useRouter()
-  const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
-  const [isFetching, setIsFetching] = useState(true)
+  const params = useParams();
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
     code: '',
     description: '',
     type: 'company',
     status: 'active',
-  })
+  });
 
-  useEffect(() => {
-    if (params.id) {
-      fetchOrganization()
-    }
-  }, [params.id])
-
-  const fetchOrganization = async () => {
+  const fetchOrganization = useCallback(async () => {
     try {
-      const response = await organizationAPI.getById(params.id as string)
-      const org = response.data
+      const response = await organizationAPI.getById(params.id as string);
+      const org = response.data;
       setFormData({
         name: org.name,
         code: org.code,
         description: org.description || '',
         type: org.type,
         status: org.status,
-      })
+      });
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to fetch organization details',
         variant: 'destructive',
-      })
-      router.push('/dashboard/organizations')
+      });
+      router.push('/dashboard/organizations');
     } finally {
-      setIsFetching(false)
+      setIsFetching(false);
     }
-  }
+  }, [params.id, toast, router]);
+
+  useEffect(() => {
+    if (params.id) {
+      fetchOrganization();
+    }
+  }, [params.id, fetchOrganization]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
-      await organizationAPI.update(params.id as string, formData)
+      await organizationAPI.update(params.id as string, formData);
       toast({
         title: 'Success',
         description: 'Organization updated successfully',
-      })
-      router.push(`/dashboard/organizations/${params.id}`)
+      });
+      router.push(`/dashboard/organizations/${params.id}`);
     } catch (error: any) {
       toast({
         title: 'Error',
         description: error.response?.data?.message || 'Failed to update organization',
         variant: 'destructive',
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleChange = (field: string, value: string) => {
-    setFormData({ ...formData, [field]: value })
-  }
+    setFormData({ ...formData, [field]: value });
+  };
 
   if (isFetching) {
-    return <div className="py-10 text-center">Loading...</div>
+    return <div className="py-10 text-center">Loading...</div>;
   }
 
   return (
@@ -125,9 +124,7 @@ export default function EditOrganizationPage() {
         <Card>
           <CardHeader>
             <CardTitle>Organization Details</CardTitle>
-            <CardDescription>
-              Update the organization information
-            </CardDescription>
+            <CardDescription>Update the organization information</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid gap-6 md:grid-cols-2">
@@ -224,5 +221,5 @@ export default function EditOrganizationPage() {
         </Card>
       </form>
     </div>
-  )
+  );
 }

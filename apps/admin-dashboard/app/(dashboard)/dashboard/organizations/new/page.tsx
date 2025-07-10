@@ -1,18 +1,18 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from '@/components/ui/select';
 import {
   Card,
   CardContent,
@@ -20,55 +20,55 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { useToast } from '@/hooks/use-toast'
-import { organizationAPI } from '@/lib/api'
-import { ArrowLeft } from 'lucide-react'
+} from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { organizationAPI } from '@/lib/api';
+import { ArrowLeft } from 'lucide-react';
 
 const organizationTypes = [
   { value: 'company', label: 'Company' },
   { value: 'division', label: 'Division' },
   { value: 'department', label: 'Department' },
   { value: 'team', label: 'Team' },
-]
+];
 
 export default function NewOrganizationPage() {
-  const router = useRouter()
-  const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     code: '',
     description: '',
     type: 'company',
     status: 'active',
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
-      await organizationAPI.create(formData)
+      await organizationAPI.create(formData);
       toast({
         title: 'Success',
         description: 'Organization created successfully',
-      })
-      router.push('/dashboard/organizations')
+      });
+      router.push('/dashboard/organizations');
     } catch (error: any) {
       toast({
         title: 'Error',
         description: error.response?.data?.message || 'Failed to create organization',
         variant: 'destructive',
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleChange = (field: string, value: string) => {
-    setFormData({ ...formData, [field]: value })
-  }
+    setFormData({ ...formData, [field]: value });
+  };
 
   return (
     <div>
@@ -89,9 +89,7 @@ export default function NewOrganizationPage() {
         <Card>
           <CardHeader>
             <CardTitle>Organization Details</CardTitle>
-            <CardDescription>
-              Enter the details for the new organization
-            </CardDescription>
+            <CardDescription>Enter the details for the new organization</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid gap-6 md:grid-cols-2">
@@ -188,5 +186,5 @@ export default function NewOrganizationPage() {
         </Card>
       </form>
     </div>
-  )
+  );
 }

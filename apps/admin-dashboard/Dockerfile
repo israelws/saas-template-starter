@@ -1,57 +1,63 @@
-# Development stage
-FROM node:18-alpine AS development
+# Admin Dashboard Dockerfile
+FROM node:20-alpine AS base
 
+# Install dependencies only when needed
+FROM base AS deps
+# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY apps/admin-dashboard/package*.json ./apps/admin-dashboard/
-
-# Install dependencies
+# Install dependencies based on the preferred package manager
+COPY package.json package-lock.json* ./
+COPY apps/admin-dashboard/package.json ./apps/admin-dashboard/
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/ui/package.json ./packages/ui/
 RUN npm ci
 
-# Copy source code
+# Development stage
+FROM base AS development
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Expose port
+# Build the shared packages
+RUN npm run build --workspace=@saas-template/shared
+RUN npm run build --workspace=@saas-template/ui || true
+
 EXPOSE 3000
 
-# Start development server
-CMD ["npm", "run", "dev", "--workspace=apps/admin-dashboard"]
+WORKDIR /app/apps/admin-dashboard
+CMD ["npm", "run", "dev"]
 
 # Builder stage
-FROM node:18-alpine AS builder
-
+FROM base AS builder
 WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-COPY apps/admin-dashboard/package*.json ./apps/admin-dashboard/
-
-# Install dependencies
-RUN npm ci
-
-# Copy source code
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build the application
-RUN npm run build --workspace=apps/admin-dashboard
+ENV NEXT_TELEMETRY_DISABLED 1
+
+RUN npm run build --workspace=@saas-template/admin-dashboard
 
 # Production stage
-FROM node:18-alpine AS production
-
+FROM base AS production
 WORKDIR /app
 
-# Install serve to run the application
-RUN npm install -g serve
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
 
-# Copy built application
-COPY --from=builder /app/apps/admin-dashboard/.next ./apps/admin-dashboard/.next
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy necessary files
+COPY --from=builder /app/apps/admin-dashboard/.next/standalone ./
+COPY --from=builder /app/apps/admin-dashboard/.next/static ./apps/admin-dashboard/.next/static
 COPY --from=builder /app/apps/admin-dashboard/public ./apps/admin-dashboard/public
-COPY --from=builder /app/apps/admin-dashboard/package*.json ./apps/admin-dashboard/
 
-# Expose port
+USER nextjs
+
 EXPOSE 3000
 
-# Start the application
-CMD ["npm", "start", "--workspace=apps/admin-dashboard"]
+ENV PORT 3000
+
+CMD ["node", "apps/admin-dashboard/server.js"]

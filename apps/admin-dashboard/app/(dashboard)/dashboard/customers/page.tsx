@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -11,91 +11,100 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { useToast } from '@/hooks/use-toast'
-import { api } from '@/lib/api'
-import { Customer } from '@saas-template/shared'
-import { Plus, Search, Edit, Trash2, Mail, Phone, CreditCard, ShoppingBag } from 'lucide-react'
+} from '@/components/ui/table';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { api } from '@/lib/api';
+import { Customer } from '@saas-template/shared';
+import { Plus, Search, Edit, Trash2, Mail, Phone, CreditCard, ShoppingBag } from 'lucide-react';
 
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState<Customer[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const router = useRouter()
-  const { toast } = useToast()
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const router = useRouter();
+  const { toast } = useToast();
 
-  useEffect(() => {
-    fetchCustomers()
-  }, [])
-
-  const fetchCustomers = async () => {
+  const fetchCustomers = useCallback(async () => {
     try {
-      const response = await api.get('/customers')
-      setCustomers(response.data)
+      const response = await api.get('/customers');
+      setCustomers(response.data);
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to fetch customers',
         variant: 'destructive',
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  }, [toast]);
+
+  useEffect(() => {
+    fetchCustomers();
+  }, [fetchCustomers]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this customer?')) {
-      return
+      return;
     }
 
     try {
-      await api.delete(`/customers/${id}`)
+      await api.delete(`/customers/${id}`);
       toast({
         title: 'Success',
         description: 'Customer deleted successfully',
-      })
-      fetchCustomers()
+      });
+      fetchCustomers();
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to delete customer',
         variant: 'destructive',
-      })
+      });
     }
-  }
+  };
 
-  const filteredCustomers = customers.filter((customer) =>
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.phone?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredCustomers = customers.filter((customer) => {
+    const name = getCustomerName(customer);
+    const phone = getCustomerPhone(customer);
+    return (
+      name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      phone.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
+  const getCustomerName = (customer: Customer) => {
+    if (customer.type === 'individual') {
+      return `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Unknown';
+    }
+    return customer.companyName || 'Unknown';
+  };
+
+  const getCustomerPhone = (customer: Customer) => {
+    return customer.contactInfo?.phone || '';
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-    }).format(amount)
-  }
+    }).format(amount);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-100 text-green-800';
       case 'inactive':
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800';
       case 'suspended':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-100 text-red-800';
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800';
     }
-  }
+  };
 
   return (
     <div>
@@ -113,9 +122,7 @@ export default function CustomersPage() {
       <Card>
         <CardHeader>
           <CardTitle>All Customers</CardTitle>
-          <CardDescription>
-            View and manage customers in your system
-          </CardDescription>
+          <CardDescription>View and manage customers in your system</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="mb-4">
@@ -133,9 +140,7 @@ export default function CustomersPage() {
           {isLoading ? (
             <div className="py-10 text-center">Loading...</div>
           ) : filteredCustomers.length === 0 ? (
-            <div className="py-10 text-center text-gray-500">
-              No customers found
-            </div>
+            <div className="py-10 text-center text-gray-500">No customers found</div>
           ) : (
             <Table>
               <TableHeader>
@@ -156,7 +161,7 @@ export default function CustomersPage() {
                     onClick={() => router.push(`/dashboard/customers/${customer.id}`)}
                   >
                     <TableCell>
-                      <div className="font-medium">{customer.name}</div>
+                      <div className="font-medium">{getCustomerName(customer)}</div>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
@@ -164,10 +169,10 @@ export default function CustomersPage() {
                           <Mail className="mr-2 h-3 w-3 text-gray-400" />
                           {customer.email}
                         </div>
-                        {customer.phone && (
+                        {getCustomerPhone(customer) && (
                           <div className="flex items-center text-sm text-gray-500">
                             <Phone className="mr-2 h-3 w-3 text-gray-400" />
-                            {customer.phone}
+                            {getCustomerPhone(customer)}
                           </div>
                         )}
                       </div>
@@ -175,19 +180,19 @@ export default function CustomersPage() {
                     <TableCell>
                       <div className="flex items-center">
                         <CreditCard className="mr-1 h-3 w-3 text-gray-400" />
-                        {formatCurrency(customer.balance)}
+                        {formatCurrency(customer.balance ?? 0)}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center">
                         <ShoppingBag className="mr-1 h-4 w-4 text-gray-400" />
-                        <span>{customer.orders?.length || 0}</span>
+                        <span>0</span>
                       </div>
                     </TableCell>
                     <TableCell>
                       <span
                         className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusColor(
-                          customer.status
+                          customer.status,
                         )}`}
                       >
                         {customer.status}
@@ -199,8 +204,8 @@ export default function CustomersPage() {
                           variant="ghost"
                           size="sm"
                           onClick={(e) => {
-                            e.stopPropagation()
-                            router.push(`/dashboard/customers/${customer.id}/edit`)
+                            e.stopPropagation();
+                            router.push(`/dashboard/customers/${customer.id}/edit`);
                           }}
                         >
                           <Edit className="h-4 w-4" />
@@ -209,8 +214,8 @@ export default function CustomersPage() {
                           variant="ghost"
                           size="sm"
                           onClick={(e) => {
-                            e.stopPropagation()
-                            handleDelete(customer.id)
+                            e.stopPropagation();
+                            handleDelete(customer.id);
                           }}
                         >
                           <Trash2 className="h-4 w-4 text-red-600" />
@@ -225,5 +230,5 @@ export default function CustomersPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

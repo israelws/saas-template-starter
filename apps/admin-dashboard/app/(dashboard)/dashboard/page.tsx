@@ -1,5 +1,5 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Building2, Users, Shield, Package, ShoppingCart, CreditCard } from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Building2, Users, Shield, Package, ShoppingCart, CreditCard } from 'lucide-react';
 
 const stats = [
   { name: 'Total Organizations', value: '12', icon: Building2, color: 'text-blue-600' },
@@ -8,7 +8,7 @@ const stats = [
   { name: 'Products', value: '156', icon: Package, color: 'text-yellow-600' },
   { name: 'Orders Today', value: '24', icon: ShoppingCart, color: 'text-pink-600' },
   { name: 'Revenue Today', value: '$12,450', icon: CreditCard, color: 'text-indigo-600' },
-]
+];
 
 export default function DashboardPage() {
   return (
@@ -104,5 +104,5 @@ export default function DashboardPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

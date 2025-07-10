@@ -12,7 +12,15 @@ import {
   HttpStatus,
   Request,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { 
+  ApiTags, 
+  ApiOperation, 
+  ApiBearerAuth,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+  ApiBody,
+} from '@nestjs/swagger';
 import { PolicyService } from '../services/policy.service';
 import { PolicyEvaluatorService } from '../services/policy-evaluator.service';
 import { HierarchicalAbacService } from '../services/hierarchical-abac.service';
@@ -22,11 +30,12 @@ import {
   PaginationParams,
   PolicyEvaluationContext,
 } from '@saas-template/shared';
+import { PolicyEvaluationContextDto } from '../dto/policy-evaluation.dto';
 import { RequirePermission } from '../decorators/require-permission.decorator';
 
-@ApiTags('Policies')
-@Controller('policies')
-@ApiBearerAuth()
+@ApiTags('ABAC')
+@Controller('abac/policies')
+@ApiBearerAuth('JWT-auth')
 export class PolicyController {
   constructor(
     private readonly policyService: PolicyService,
@@ -99,7 +108,52 @@ export class PolicyController {
 
   @Post('evaluate')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Evaluate policies for a given context' })
+  @ApiOperation({ 
+    summary: 'Evaluate policies for a given context',
+    description: 'Evaluate ABAC policies with hierarchical inheritance for authorization decisions'
+  })
+  @ApiBody({ 
+    type: PolicyEvaluationContextDto,
+    description: 'Policy evaluation context',
+    examples: {
+      example1: {
+        summary: 'Basic evaluation',
+        value: {
+          subject: {
+            id: 'user-123',
+            roles: ['admin'],
+            groups: [],
+            attributes: { department: 'IT' }
+          },
+          resource: {
+            type: 'organization',
+            id: 'org-456',
+            attributes: { owner: 'user-123' }
+          },
+          action: 'read',
+          environment: {
+            timestamp: new Date().toISOString(),
+            ipAddress: '192.168.1.1',
+            attributes: {}
+          },
+          organizationId: 'org-456'
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Policy evaluation result',
+    schema: {
+      example: {
+        allowed: true,
+        reason: 'Policy "Admin Full Access" allowed the action',
+        policiesEvaluated: ['Admin Full Access', 'Default Deny'],
+        evaluationTime: 23,
+        cacheHit: false
+      }
+    }
+  })
   async evaluate(@Body() context: PolicyEvaluationContext, @Request() req) {
     // Add current user information to context if not provided
     if (!context.subject.id) {

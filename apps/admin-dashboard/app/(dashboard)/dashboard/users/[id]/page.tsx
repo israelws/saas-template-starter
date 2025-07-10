@@ -1,97 +1,77 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useToast } from '@/hooks/use-toast'
-import { userAPI } from '@/lib/api'
-import { User } from '@saas-template/shared'
-import {
-  ArrowLeft,
-  Mail,
-  Phone,
-  Calendar,
-  Shield,
-  Building2,
-  Edit,
-  Trash2,
-  UserCircle,
-} from 'lucide-react'
+import { useEffect, useState, useCallback } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { userAPI } from '@/lib/api';
+import { User } from '@saas-template/shared';
+import { ArrowLeft, Calendar, Shield, Building2, Edit, Trash2, UserCircle } from 'lucide-react';
 
 export default function UserDetailsPage() {
-  const params = useParams()
-  const router = useRouter()
-  const { toast } = useToast()
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const params = useParams();
+  const router = useRouter();
+  const { toast } = useToast();
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    if (params.id) {
-      fetchUser()
-    }
-  }, [params.id])
-
-  const fetchUser = async () => {
+  const fetchUser = useCallback(async () => {
     try {
-      const response = await userAPI.getById(params.id as string)
-      setUser(response.data)
+      const response = await userAPI.getById(params.id as string);
+      setUser(response.data);
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to fetch user details',
         variant: 'destructive',
-      })
-      router.push('/dashboard/users')
+      });
+      router.push('/dashboard/users');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  }, [params.id, toast, router]);
+
+  useEffect(() => {
+    if (params.id) {
+      fetchUser();
+    }
+  }, [params.id, fetchUser]);
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this user?')) {
-      return
+      return;
     }
 
     try {
-      await userAPI.delete(params.id as string)
+      await userAPI.delete(params.id as string);
       toast({
         title: 'Success',
         description: 'User deleted successfully',
-      })
-      router.push('/dashboard/users')
+      });
+      router.push('/dashboard/users');
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to delete user',
         variant: 'destructive',
-      })
+      });
     }
-  }
+  };
 
   if (isLoading) {
-    return <div className="py-10 text-center">Loading...</div>
+    return <div className="py-10 text-center">Loading...</div>;
   }
 
   if (!user) {
-    return <div className="py-10 text-center">User not found</div>
+    return <div className="py-10 text-center">User not found</div>;
   }
 
   return (
     <div>
       <div className="mb-8">
-        <Button
-          variant="ghost"
-          onClick={() => router.push('/dashboard/users')}
-          className="mb-4"
-        >
+        <Button variant="ghost" onClick={() => router.push('/dashboard/users')} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Users
         </Button>
@@ -110,9 +90,7 @@ export default function UserDetailsPage() {
           <div className="flex space-x-2">
             <Button
               variant="outline"
-              onClick={() =>
-                router.push(`/dashboard/users/${user.id}/edit`)
-              }
+              onClick={() => router.push(`/dashboard/users/${user.id}/edit`)}
             >
               <Edit className="mr-2 h-4 w-4" />
               Edit
@@ -132,9 +110,7 @@ export default function UserDetailsPage() {
             <CardTitle className="text-sm font-medium">Status</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold capitalize">
-              {user.status}
-            </div>
+            <div className="text-2xl font-bold capitalize">{user.status}</div>
           </CardContent>
         </Card>
         <Card>
@@ -143,9 +119,7 @@ export default function UserDetailsPage() {
             <CardTitle className="text-sm font-medium">Organizations</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {user.memberships?.length || 0}
-            </div>
+            <div className="text-2xl font-bold">0</div>
           </CardContent>
         </Card>
         <Card>
@@ -173,48 +147,34 @@ export default function UserDetailsPage() {
           <Card>
             <CardHeader>
               <CardTitle>User Profile</CardTitle>
-              <CardDescription>
-                Personal information and contact details
-              </CardDescription>
+              <CardDescription>Personal information and contact details</CardDescription>
             </CardHeader>
             <CardContent>
               <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <dt className="text-sm font-medium text-gray-500">First Name</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
-                    {user.firstName || '-'}
-                  </dd>
+                  <dd className="mt-1 text-sm text-gray-900">{user.firstName || '-'}</dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Last Name</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
-                    {user.lastName || '-'}
-                  </dd>
+                  <dd className="mt-1 text-sm text-gray-900">{user.lastName || '-'}</dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Email</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
-                    {user.email}
-                  </dd>
+                  <dd className="mt-1 text-sm text-gray-900">{user.email}</dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Status</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
-                    {user.status}
-                  </dd>
+                  <dd className="mt-1 text-sm text-gray-900">{user.status}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">
-                    Created At
-                  </dt>
+                  <dt className="text-sm font-medium text-gray-500">Created At</dt>
                   <dd className="mt-1 text-sm text-gray-900">
                     {new Date(user.createdAt).toLocaleString()}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">
-                    Last Updated
-                  </dt>
+                  <dt className="text-sm font-medium text-gray-500">Last Updated</dt>
                   <dd className="mt-1 text-sm text-gray-900">
                     {new Date(user.updatedAt).toLocaleString()}
                   </dd>
@@ -222,9 +182,7 @@ export default function UserDetailsPage() {
               </dl>
               {user.attributes && Object.keys(user.attributes).length > 0 && (
                 <div className="mt-6">
-                  <h3 className="text-sm font-medium text-gray-500">
-                    Custom Attributes
-                  </h3>
+                  <h3 className="text-sm font-medium text-gray-500">Custom Attributes</h3>
                   <pre className="mt-2 rounded bg-gray-100 p-2 text-xs">
                     {JSON.stringify(user.attributes, null, 2)}
                   </pre>
@@ -238,14 +196,10 @@ export default function UserDetailsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Organization Memberships</CardTitle>
-              <CardDescription>
-                Organizations this user belongs to
-              </CardDescription>
+              <CardDescription>Organizations this user belongs to</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-500">
-                Organization memberships coming soon...
-              </p>
+              <p className="text-sm text-gray-500">Organization memberships coming soon...</p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -254,14 +208,10 @@ export default function UserDetailsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Permissions</CardTitle>
-              <CardDescription>
-                User permissions and access rights
-              </CardDescription>
+              <CardDescription>User permissions and access rights</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-500">
-                Permission management coming soon...
-              </p>
+              <p className="text-sm text-gray-500">Permission management coming soon...</p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -270,18 +220,14 @@ export default function UserDetailsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Activity Log</CardTitle>
-              <CardDescription>
-                Recent activity and audit trail
-              </CardDescription>
+              <CardDescription>Recent activity and audit trail</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-500">
-                Activity log coming soon...
-              </p>
+              <p className="text-sm text-gray-500">Activity log coming soon...</p>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

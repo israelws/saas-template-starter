@@ -16,9 +16,9 @@ export abstract class BaseEntity extends TypeOrmBaseEntity {
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: Date;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true, insert: false, update: false })
   createdBy?: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true, insert: false, update: false })
   updatedBy?: string;
 }

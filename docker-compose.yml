@@ -6,15 +6,16 @@ services:
     container_name: saas-template-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: saas_user
-      POSTGRES_PASSWORD: saas_password
-      POSTGRES_DB: saas_template_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: saas_template
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./apps/backend/src/database/init:/docker-entrypoint-initdb.d
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U saas_user -d saas_template_db"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d saas_template"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -47,23 +48,27 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: development
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      DATABASE_USER: saas_user
-      DATABASE_PASSWORD: saas_password
-      DATABASE_NAME: saas_template_db
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_DATABASE: saas_template
       REDIS_HOST: redis
       REDIS_PORT: 6379
       JWT_SECRET: your-development-jwt-secret
       AWS_REGION: us-east-1
-      COGNITO_USER_POOL_ID: your-cognito-user-pool-id
-      COGNITO_CLIENT_ID: your-cognito-client-id
+      COGNITO_USER_POOL_ID: ${COGNITO_USER_POOL_ID:-your-cognito-user-pool-id}
+      COGNITO_CLIENT_ID: ${COGNITO_CLIENT_ID:-your-cognito-client-id}
+      CORS_ORIGIN: http://localhost:3001
     volumes:
-      - ./apps/backend:/app
+      - ./apps/backend:/app/apps/backend
+      - ./packages:/app/packages
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
       - /app/node_modules
+      - /app/packages/shared/node_modules
     ports:
       - "3000:3000"
-    command: npm run dev
 
   admin-dashboard:
     build:
@@ -78,15 +83,18 @@ services:
       NODE_ENV: development
       NEXT_PUBLIC_API_URL: http://localhost:3000
       NEXT_PUBLIC_AWS_REGION: us-east-1
-      NEXT_PUBLIC_COGNITO_USER_POOL_ID: your-cognito-user-pool-id
-      NEXT_PUBLIC_COGNITO_CLIENT_ID: your-cognito-client-id
+      NEXT_PUBLIC_AWS_USER_POOL_ID: ${COGNITO_USER_POOL_ID:-your-cognito-user-pool-id}
+      NEXT_PUBLIC_AWS_CLIENT_ID: ${COGNITO_CLIENT_ID:-your-cognito-client-id}
     volumes:
-      - ./apps/admin-dashboard:/app
+      - ./apps/admin-dashboard:/app/apps/admin-dashboard
+      - ./packages:/app/packages
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
       - /app/node_modules
-      - /app/.next
+      - /app/packages/shared/node_modules
+      - /app/apps/admin-dashboard/.next
     ports:
       - "3001:3000"
-    command: npm run dev
 
 volumes:
   postgres_data:

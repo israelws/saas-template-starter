@@ -6,7 +6,11 @@ import { Organization } from '@/modules/organizations/entities/organization.enti
 @Entity('attribute_definitions')
 @Index(['category', 'isSystem'])
 @Index(['organizationId', 'name'], { unique: true, where: 'organization_id IS NOT NULL' })
+@Index(['key'], { unique: true })
 export class AttributeDefinition extends BaseEntity {
+  @Column({ type: 'varchar', length: 255, unique: true })
+  key: string;
+
   @Column({ type: 'varchar', length: 255 })
   name: string;
 
@@ -22,11 +26,21 @@ export class AttributeDefinition extends BaseEntity {
   })
   type: AttributeType;
 
+  @Column({
+    type: 'enum',
+    enum: AttributeType,
+    name: 'data_type',
+  })
+  dataType: AttributeType;
+
   @Column({ type: 'text', nullable: true })
   description?: string;
 
   @Column({ type: 'jsonb', nullable: true })
   possibleValues?: any[];
+
+  @Column({ type: 'jsonb', nullable: true })
+  allowedValues?: string[];
 
   @Column({ type: 'jsonb', nullable: true })
   defaultValue?: any;

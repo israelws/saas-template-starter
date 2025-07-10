@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -11,88 +11,93 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { useToast } from '@/hooks/use-toast'
-import { api } from '@/lib/api'
-import { Order } from '@saas-template/shared'
-import { Search, Eye, Calendar, User, DollarSign, Package } from 'lucide-react'
+} from '@/components/ui/table';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { api } from '@/lib/api';
+import { Order, Customer } from '@saas-template/shared';
+import { Search, Eye, Calendar, User, DollarSign, Package } from 'lucide-react';
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const router = useRouter()
-  const { toast } = useToast()
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const router = useRouter();
+  const { toast } = useToast();
 
-  useEffect(() => {
-    fetchOrders()
-  }, [])
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
-      const response = await api.get('/orders')
-      setOrders(response.data)
+      const response = await api.get('/orders');
+      setOrders(response.data);
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to fetch orders',
         variant: 'destructive',
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  }, [toast]);
 
-  const filteredOrders = orders.filter((order) =>
-    order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  const filteredOrders = orders.filter((order) => {
+    const customerName = getCustomerName(order.customer);
+    return (
+      order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customerName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
+  const getCustomerName = (customer?: Customer) => {
+    if (!customer) return 'Unknown';
+    if (customer.type === 'individual') {
+      return `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Unknown';
+    }
+    return customer.companyName || 'Unknown';
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-    }).format(amount)
-  }
+    }).format(amount);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-100 text-yellow-800';
       case 'processing':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-100 text-blue-800';
       case 'shipped':
-        return 'bg-purple-100 text-purple-800'
+        return 'bg-purple-100 text-purple-800';
       case 'delivered':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-100 text-green-800';
       case 'cancelled':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-100 text-red-800';
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800';
     }
-  }
+  };
 
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
       case 'paid':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-100 text-green-800';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-100 text-yellow-800';
       case 'failed':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-100 text-red-800';
       case 'refunded':
-        return 'bg-purple-100 text-purple-800'
+        return 'bg-purple-100 text-purple-800';
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800';
     }
-  }
+  };
 
   return (
     <div>
@@ -118,7 +123,7 @@ export default function OrdersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {orders.filter(o => o.status === 'pending').length}
+              {orders.filter((o) => o.status === 'pending').length}
             </div>
           </CardContent>
         </Card>
@@ -129,7 +134,7 @@ export default function OrdersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {orders.filter(o => o.status === 'processing').length}
+              {orders.filter((o) => o.status === 'processing').length}
             </div>
           </CardContent>
         </Card>
@@ -140,7 +145,7 @@ export default function OrdersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(orders.reduce((sum, order) => sum + order.totalAmount, 0))}
+              {formatCurrency(orders.reduce((sum, order) => sum + order.total, 0))}
             </div>
           </CardContent>
         </Card>
@@ -149,9 +154,7 @@ export default function OrdersPage() {
       <Card>
         <CardHeader>
           <CardTitle>All Orders</CardTitle>
-          <CardDescription>
-            View and manage all orders in your system
-          </CardDescription>
+          <CardDescription>View and manage all orders in your system</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="mb-4">
@@ -169,9 +172,7 @@ export default function OrdersPage() {
           {isLoading ? (
             <div className="py-10 text-center">Loading...</div>
           ) : filteredOrders.length === 0 ? (
-            <div className="py-10 text-center text-gray-500">
-              No orders found
-            </div>
+            <div className="py-10 text-center text-gray-500">No orders found</div>
           ) : (
             <Table>
               <TableHeader>
@@ -193,13 +194,11 @@ export default function OrdersPage() {
                     className="cursor-pointer hover:bg-gray-50"
                     onClick={() => router.push(`/dashboard/orders/${order.id}`)}
                   >
-                    <TableCell className="font-medium">
-                      #{order.orderNumber}
-                    </TableCell>
+                    <TableCell className="font-medium">#{order.orderNumber}</TableCell>
                     <TableCell>
                       <div className="flex items-center">
                         <User className="mr-2 h-4 w-4 text-gray-400" />
-                        {order.customer?.name || 'Unknown'}
+                        {getCustomerName(order.customer)}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -208,18 +207,14 @@ export default function OrdersPage() {
                         {new Date(order.createdAt).toLocaleDateString()}
                       </div>
                     </TableCell>
+                    <TableCell>{order.items?.length || 0} items</TableCell>
                     <TableCell>
-                      {order.items?.length || 0} items
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-semibold">
-                        {formatCurrency(order.totalAmount)}
-                      </div>
+                      <div className="font-semibold">{formatCurrency(order.total)}</div>
                     </TableCell>
                     <TableCell>
                       <span
                         className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusColor(
-                          order.status
+                          order.status,
                         )}`}
                       >
                         {order.status}
@@ -228,7 +223,7 @@ export default function OrdersPage() {
                     <TableCell>
                       <span
                         className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getPaymentStatusColor(
-                          order.paymentStatus
+                          order.paymentStatus,
                         )}`}
                       >
                         {order.paymentStatus}
@@ -239,8 +234,8 @@ export default function OrdersPage() {
                         variant="ghost"
                         size="sm"
                         onClick={(e) => {
-                          e.stopPropagation()
-                          router.push(`/dashboard/orders/${order.id}`)
+                          e.stopPropagation();
+                          router.push(`/dashboard/orders/${order.id}`);
                         }}
                       >
                         <Eye className="h-4 w-4" />
@@ -254,5 +249,5 @@ export default function OrdersPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

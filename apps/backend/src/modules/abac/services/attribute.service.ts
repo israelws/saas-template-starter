@@ -1,12 +1,14 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { AttributeDefinition } from '../entities/attribute-definition.entity';
+import { CreateAttributeDto } from '../dto/create-attribute.dto';
+import { UpdateAttributeDto } from '../dto/update-attribute.dto';
 import {
-  AttributeCategory,
-  AttributeType,
   PaginationParams,
   PaginatedResponse,
+  AttributeCategory,
+  AttributeType,
 } from '@saas-template/shared';
 
 @Injectable()
@@ -16,27 +18,28 @@ export class AttributeService {
     private readonly attributeRepository: Repository<AttributeDefinition>,
   ) {}
 
-  async create(
-    name: string,
-    category: AttributeCategory,
-    type: AttributeType,
-    description?: string,
-    organizationId?: string,
-  ): Promise<AttributeDefinition> {
-    // Check if attribute already exists
+  async create(createAttributeDto: CreateAttributeDto): Promise<AttributeDefinition> {
+    const { key, name, description, category, type, dataType, isRequired, defaultValue, allowedValues, organizationId } = createAttributeDto;
+    
+    // Check if attribute key already exists
     const existing = await this.attributeRepository.findOne({
-      where: { name, organizationId },
+      where: { key },
     });
 
     if (existing) {
-      throw new BadRequestException('Attribute with this name already exists');
+      throw new ConflictException('Attribute with this key already exists');
     }
 
     const attribute = this.attributeRepository.create({
+      key,
       name,
-      category,
-      type,
       description,
+      category,
+      type: dataType || type,
+      dataType: dataType || type,
+      isRequired: isRequired || false,
+      defaultValue,
+      allowedValues,
       organizationId,
       isSystem: false,
     });
@@ -44,40 +47,33 @@ export class AttributeService {
     return this.attributeRepository.save(attribute);
   }
 
-  async findAll(
-    params: PaginationParams & { category?: AttributeCategory; organizationId?: string },
-  ): Promise<PaginatedResponse<AttributeDefinition>> {
-    const { page, limit, sortBy = 'name', sortOrder = 'ASC', category, organizationId } = params;
+  async findAll(params: {
+    category?: string;
+    type?: string;
+    search?: string;
+  }): Promise<AttributeDefinition[]> {
+    const { category, type, search } = params;
 
     const query = this.attributeRepository.createQueryBuilder('attribute');
 
-    if (category) {
+    if (category && category !== 'all') {
       query.andWhere('attribute.category = :category', { category });
     }
 
-    if (organizationId) {
-      query.andWhere(
-        '(attribute.organizationId = :organizationId OR attribute.organizationId IS NULL)',
-        { organizationId },
-      );
-    } else {
-      query.andWhere('attribute.organizationId IS NULL');
+    if (type && type !== 'all') {
+      query.andWhere('attribute.type = :type', { type });
     }
 
-    query
-      .orderBy(`attribute.${sortBy}`, sortOrder)
-      .skip((page - 1) * limit)
-      .take(limit);
+    if (search) {
+      query.andWhere(
+        '(attribute.key ILIKE :search OR attribute.name ILIKE :search OR attribute.description ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
 
-    const [attributes, total] = await query.getManyAndCount();
+    query.orderBy('attribute.name', 'ASC');
 
-    return {
-      data: attributes,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return query.getMany();
   }
 
   async findOne(id: string): Promise<AttributeDefinition> {
@@ -115,7 +111,7 @@ export class AttributeService {
 
   async update(
     id: string,
-    updates: Partial<AttributeDefinition>,
+    updateAttributeDto: UpdateAttributeDto,
   ): Promise<AttributeDefinition> {
     const attribute = await this.findOne(id);
 
@@ -123,7 +119,23 @@ export class AttributeService {
       throw new BadRequestException('Cannot modify system attributes');
     }
 
-    Object.assign(attribute, updates);
+    // Update only provided fields
+    if (updateAttributeDto.name !== undefined) {
+      attribute.name = updateAttributeDto.name;
+    }
+    if (updateAttributeDto.description !== undefined) {
+      attribute.description = updateAttributeDto.description;
+    }
+    if (updateAttributeDto.isRequired !== undefined) {
+      attribute.isRequired = updateAttributeDto.isRequired;
+    }
+    if (updateAttributeDto.defaultValue !== undefined) {
+      attribute.defaultValue = updateAttributeDto.defaultValue;
+    }
+    if (updateAttributeDto.allowedValues !== undefined) {
+      attribute.allowedValues = updateAttributeDto.allowedValues;
+    }
+    
     attribute.updatedAt = new Date();
 
     return this.attributeRepository.save(attribute);
@@ -283,5 +295,58 @@ export class AttributeService {
     ]);
 
     return { user, resource, environment };
+  }
+
+  async createBulk(createAttributeDtos: CreateAttributeDto[]): Promise<AttributeDefinition[]> {
+    const createdAttributes: AttributeDefinition[] = [];
+    
+    for (const dto of createAttributeDtos) {
+      try {
+        const attribute = await this.create(dto);
+        createdAttributes.push(attribute);
+      } catch (error) {
+        // Continue with other attributes if one fails
+        console.error(`Failed to create attribute ${dto.key}:`, error);
+      }
+    }
+    
+    return createdAttributes;
+  }
+
+  async validateValue(attributeKey: string, value: any): Promise<{ valid: boolean; errors?: string[] }> {
+    const attribute = await this.attributeRepository.findOne({
+      where: { key: attributeKey },
+    });
+
+    if (!attribute) {
+      return { valid: false, errors: ['Attribute not found'] };
+    }
+
+    const errors: string[] = [];
+
+    // Type validation
+    const actualType = Array.isArray(value) ? 'array' : typeof value;
+    if (attribute.type === 'object' && actualType !== 'object') {
+      errors.push(`Expected type ${attribute.type}, got ${actualType}`);
+    } else if (attribute.type !== 'object' && attribute.type !== 'array' && actualType !== attribute.type) {
+      errors.push(`Expected type ${attribute.type}, got ${actualType}`);
+    }
+
+    // Required validation
+    if (attribute.isRequired && (value === null || value === undefined || value === '')) {
+      errors.push('Value is required');
+    }
+
+    // Allowed values validation
+    if (attribute.allowedValues && attribute.allowedValues.length > 0) {
+      if (!attribute.allowedValues.includes(value)) {
+        errors.push(`Value must be one of: ${attribute.allowedValues.join(', ')}`);
+      }
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors: errors.length > 0 ? errors : undefined,
+    };
   }
 }

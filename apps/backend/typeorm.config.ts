@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import { config } from 'dotenv';
+import 'tsconfig-paths/register';
 
 // Load environment variables
 config({ path: `.env.${process.env.NODE_ENV || 'dev'}` });

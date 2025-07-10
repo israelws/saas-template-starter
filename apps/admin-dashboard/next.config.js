@@ -2,9 +2,6 @@
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@saas-template/shared'],
-  experimental: {
-    serverActions: true,
-  },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

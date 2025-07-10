@@ -12,6 +12,8 @@ import {
 import { PolicyService } from './policy.service';
 import { AttributeService } from './attribute.service';
 import { isTimeInWindow, getDayOfWeek } from '@saas-template/shared';
+import { LoggerService } from '../../../common/logger/logger.service';
+import { LogPerformance } from '../../../common/decorators/log.decorator';
 
 @Injectable()
 export class PolicyEvaluatorService {
@@ -19,10 +21,18 @@ export class PolicyEvaluatorService {
     private readonly policyService: PolicyService,
     private readonly attributeService: AttributeService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
-  ) {}
+    private readonly logger: LoggerService,
+  ) {
+    this.logger.setContext('PolicyEvaluatorService');
+  }
 
+  @LogPerformance(100) // Log if evaluation takes more than 100ms
   async evaluate(context: PolicyEvaluationContext): Promise<PolicyEvaluationResult> {
     const startTime = Date.now();
+    
+    this.logger.debug({ message: "Starting policy evaluation", userId: context.subject.id,
+      resource: context.resource,
+      action: context.action,});
     
     // Check cache first
     const cacheKey = this.generateCacheKey(context);
@@ -70,6 +80,28 @@ export class PolicyEvaluatorService {
       reasons,
       evaluationTime: Date.now() - startTime,
     };
+
+    // Log evaluation result
+    this.logger.logPolicyEvaluation({
+      userId: context.subject.id,
+      resource: `${context.resource.type}:${context.resource.id || '*'}`,
+      action: context.action,
+      result: allowed ? 'allow' : 'deny',
+      duration: result.evaluationTime,
+      conditions: context,
+    });
+
+    // Log detailed info for denials
+    if (!allowed && deniedPolicies.length > 0) {
+      this.logger.warn({ 
+        message: "Access denied by policy",
+        userId: context.subject.id,
+        resource: context.resource,
+        action: context.action,
+        deniedPolicies: deniedPolicies.map(p => ({ id: p.id, name: p.name })),
+        reasons,
+      });
+    }
 
     // Cache the result
     await this.cacheManager.set(cacheKey, result, POLICY_EVALUATION_CACHE_TTL * 1000);
@@ -360,12 +392,12 @@ export class PolicyEvaluatorService {
   }
 
   async clearCache(): Promise<void> {
-    await this.cacheManager.reset();
+    await this.cacheManager.clear();
   }
 
   async clearCacheForOrganization(organizationId: string): Promise<void> {
     // In a production system, you might want to use Redis with pattern matching
     // For now, we'll clear the entire cache
-    await this.cacheManager.reset();
+    await this.cacheManager.clear();
   }
 }

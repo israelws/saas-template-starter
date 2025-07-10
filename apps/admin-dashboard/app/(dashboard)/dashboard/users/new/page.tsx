@@ -1,17 +1,17 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from '@/components/ui/select';
 import {
   Card,
   CardContent,
@@ -19,15 +19,15 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { useToast } from '@/hooks/use-toast'
-import { userAPI } from '@/lib/api'
-import { ArrowLeft } from 'lucide-react'
+} from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { userAPI } from '@/lib/api';
+import { ArrowLeft } from 'lucide-react';
 
 export default function NewUserPage() {
-  const router = useRouter()
-  const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -35,21 +35,21 @@ export default function NewUserPage() {
     firstName: '',
     lastName: '',
     status: 'active',
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: 'Error',
         description: 'Passwords do not match',
         variant: 'destructive',
-      })
-      return
+      });
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
       await userAPI.create({
@@ -58,35 +58,31 @@ export default function NewUserPage() {
         firstName: formData.firstName,
         lastName: formData.lastName,
         status: formData.status,
-      })
+      });
       toast({
         title: 'Success',
         description: 'User created successfully',
-      })
-      router.push('/dashboard/users')
+      });
+      router.push('/dashboard/users');
     } catch (error: any) {
       toast({
         title: 'Error',
         description: error.response?.data?.message || 'Failed to create user',
         variant: 'destructive',
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleChange = (field: string, value: string) => {
-    setFormData({ ...formData, [field]: value })
-  }
+    setFormData({ ...formData, [field]: value });
+  };
 
   return (
     <div>
       <div className="mb-8">
-        <Button
-          variant="ghost"
-          onClick={() => router.push('/dashboard/users')}
-          className="mb-4"
-        >
+        <Button variant="ghost" onClick={() => router.push('/dashboard/users')} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Users
         </Button>
@@ -98,9 +94,7 @@ export default function NewUserPage() {
         <Card>
           <CardHeader>
             <CardTitle>User Details</CardTitle>
-            <CardDescription>
-              Enter the details for the new user
-            </CardDescription>
+            <CardDescription>Enter the details for the new user</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid gap-6 md:grid-cols-2">
@@ -153,9 +147,7 @@ export default function NewUserPage() {
                   required
                   disabled={isLoading}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Must be at least 8 characters
-                </p>
+                <p className="text-xs text-muted-foreground">Must be at least 8 characters</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password *</Label>
@@ -205,5 +197,5 @@ export default function NewUserPage() {
         </Card>
       </form>
     </div>
-  )
+  );
 }

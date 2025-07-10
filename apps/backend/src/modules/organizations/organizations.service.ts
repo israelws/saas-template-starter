@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, TreeRepository, IsNull } from 'typeorm';
+import { Repository, TreeRepository, IsNull, DataSource, QueryRunner } from 'typeorm';
 import { Organization } from './entities/organization.entity';
 import {
   CreateOrganizationDto,
@@ -17,6 +17,9 @@ export class OrganizationsService {
   constructor(
     @InjectRepository(Organization)
     private readonly organizationRepository: TreeRepository<Organization>,
+    private readonly dataSource: DataSource,
+    // @Inject(forwardRef(() => 'EventsGateway'))
+    // private readonly eventsGateway?: any,
   ) {}
 
   async create(createOrganizationDto: CreateOrganizationDto): Promise<Organization> {
@@ -52,6 +55,30 @@ export class OrganizationsService {
 
     // Update materialized path
     await this.updateMaterializedPath(savedOrg);
+
+    // TODO: Emit real-time event when EventsGateway is implemented
+    // if (this.eventsGateway) {
+    //   this.eventsGateway.broadcastOrganizationEvent(
+    //     savedOrg.id,
+    //     'organization_created',
+    //     {
+    //       organization: savedOrg,
+    //       parentId: savedOrg.parent?.id,
+    //     }
+    //   );
+
+    //   // Also emit to parent organization if exists
+    //   if (savedOrg.parent) {
+    //     this.eventsGateway.broadcastHierarchyEvent(
+    //       savedOrg.parent.id,
+    //       'child_organization_added',
+    //       {
+    //         newChild: savedOrg,
+    //         parentId: savedOrg.parent.id,
+    //       }
+    //     );
+    //   }
+    // }
 
     return savedOrg;
   }
@@ -196,10 +223,11 @@ export class OrganizationsService {
   private buildTree(organizations: Organization[], parentId: string): Organization[] {
     const children = organizations.filter(org => org.parent?.id === parentId);
     
-    return children.map(child => ({
-      ...child,
-      children: this.buildTree(organizations, child.id),
-    }));
+    return children.map(child => {
+      // Set children on the existing entity instance
+      child.children = this.buildTree(organizations, child.id);
+      return child;
+    });
   }
 
   private mapToHierarchy(organization: Organization): OrganizationHierarchy {
@@ -235,6 +263,297 @@ export class OrganizationsService {
     
     for (const descendant of descendants) {
       await this.updateMaterializedPath(descendant);
+    }
+  }
+
+  // Bulk Operations
+  async bulkCreate(createDtos: CreateOrganizationDto[]): Promise<{
+    successful: Organization[];
+    failed: Array<{ dto: CreateOrganizationDto; error: string }>;
+  }> {
+    const successful: Organization[] = [];
+    const failed: Array<{ dto: CreateOrganizationDto; error: string }> = [];
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      for (const dto of createDtos) {
+        try {
+          // Validate parent-child relationship if parent is provided
+          if (dto.parentId) {
+            const parent = await queryRunner.manager.findOne(Organization, { 
+              where: { id: dto.parentId } 
+            });
+            
+            if (!parent) {
+              throw new Error('Parent organization not found');
+            }
+
+            const allowedChildTypes = ORGANIZATION_TYPE_HIERARCHY[parent.type];
+            if (!allowedChildTypes.includes(dto.type)) {
+              throw new Error(
+                `Organization of type ${parent.type} cannot have children of type ${dto.type}`,
+              );
+            }
+          }
+
+          const organization = queryRunner.manager.create(Organization, {
+            ...dto,
+            settings: {
+              allowSubOrganizations: true,
+              maxDepth: 4,
+              features: ['basic'],
+              ...dto.settings,
+            },
+          });
+
+          if (dto.parentId) {
+            const parent = await queryRunner.manager.findOne(Organization, { 
+              where: { id: dto.parentId } 
+            });
+            organization.parent = parent;
+          }
+
+          const saved = await queryRunner.manager.save(organization);
+          successful.push(saved);
+        } catch (error) {
+          failed.push({ dto, error: error.message });
+        }
+      }
+
+      await queryRunner.commitTransaction();
+      return { successful, failed };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async bulkUpdate(updates: Array<{id: string, data: UpdateOrganizationDto}>): Promise<{
+    successful: Organization[];
+    failed: Array<{ id: string; error: string }>;
+  }> {
+    const successful: Organization[] = [];
+    const failed: Array<{ id: string; error: string }> = [];
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      for (const update of updates) {
+        try {
+          const organization = await queryRunner.manager.findOne(Organization, { 
+            where: { id: update.id } 
+          });
+          
+          if (!organization) {
+            throw new Error('Organization not found');
+          }
+
+          Object.assign(organization, update.data);
+          const saved = await queryRunner.manager.save(organization);
+          successful.push(saved);
+        } catch (error) {
+          failed.push({ id: update.id, error: error.message });
+        }
+      }
+
+      await queryRunner.commitTransaction();
+      return { successful, failed };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async bulkMove(moves: Array<{organizationId: string, newParentId: string | null}>): Promise<{
+    successful: Array<{ organizationId: string; message: string }>;
+    failed: Array<{ organizationId: string; error: string }>;
+  }> {
+    const successful: Array<{ organizationId: string; message: string }> = [];
+    const failed: Array<{ organizationId: string; error: string }> = [];
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      for (const move of moves) {
+        try {
+          const organization = await queryRunner.manager.findOne(Organization, { 
+            where: { id: move.organizationId },
+            relations: ['parent'] 
+          });
+          
+          if (!organization) {
+            throw new Error('Organization not found');
+          }
+
+          if (move.newParentId) {
+            const newParent = await queryRunner.manager.findOne(Organization, { 
+              where: { id: move.newParentId } 
+            });
+            
+            if (!newParent) {
+              throw new Error('New parent organization not found');
+            }
+
+            // Check for circular reference
+            const ancestors = await this.organizationRepository.findAncestors(newParent);
+            if (ancestors.some(a => a.id === move.organizationId)) {
+              throw new Error('Cannot move organization to its own descendant');
+            }
+
+            // Validate parent-child relationship
+            const allowedChildTypes = ORGANIZATION_TYPE_HIERARCHY[newParent.type];
+            if (!allowedChildTypes.includes(organization.type)) {
+              throw new Error(
+                `Organization of type ${newParent.type} cannot have children of type ${organization.type}`,
+              );
+            }
+
+            organization.parent = newParent;
+          } else {
+            organization.parent = null;
+          }
+
+          await queryRunner.manager.save(organization);
+          successful.push({ 
+            organizationId: move.organizationId, 
+            message: 'Organization moved successfully' 
+          });
+        } catch (error) {
+          failed.push({ organizationId: move.organizationId, error: error.message });
+        }
+      }
+
+      await queryRunner.commitTransaction();
+      return { successful, failed };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async bulkArchive(organizationIds: string[], archiveChildren = false): Promise<{
+    archived: string[];
+    failed: Array<{ id: string; error: string }>;
+  }> {
+    const archived: string[] = [];
+    const failed: Array<{ id: string; error: string }> = [];
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      for (const id of organizationIds) {
+        try {
+          const organization = await queryRunner.manager.findOne(Organization, { 
+            where: { id } 
+          });
+          
+          if (!organization) {
+            throw new Error('Organization not found');
+          }
+
+          if (!archiveChildren) {
+            // Check if organization has active children
+            const activeChildrenCount = await queryRunner.manager.count(Organization, {
+              where: { parent: { id }, isActive: true }
+            });
+
+            if (activeChildrenCount > 0) {
+              throw new Error('Cannot archive organization with active children. Use archiveChildren=true to archive children as well.');
+            }
+          }
+
+          // Archive the organization
+          organization.isActive = false;
+          // organization.status = 'archived'; // Status field doesn't exist, using isActive instead
+          await queryRunner.manager.save(organization);
+          archived.push(id);
+
+          // Archive children if requested
+          if (archiveChildren) {
+            const descendants = await this.organizationRepository.findDescendants(organization);
+            for (const descendant of descendants) {
+              if (descendant.id !== organization.id) {
+                descendant.isActive = false;
+                // descendant.status = 'archived'; // Status field doesn't exist, using isActive instead
+                await queryRunner.manager.save(descendant);
+                archived.push(descendant.id);
+              }
+            }
+          }
+        } catch (error) {
+          failed.push({ id, error: error.message });
+        }
+      }
+
+      await queryRunner.commitTransaction();
+      return { archived, failed };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async bulkActivate(organizationIds: string[]): Promise<{
+    activated: string[];
+    failed: Array<{ id: string; error: string }>;
+  }> {
+    const activated: string[] = [];
+    const failed: Array<{ id: string; error: string }> = [];
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      for (const id of organizationIds) {
+        try {
+          const organization = await queryRunner.manager.findOne(Organization, { 
+            where: { id },
+            relations: ['parent']
+          });
+          
+          if (!organization) {
+            throw new Error('Organization not found');
+          }
+
+          // Check if parent is active (if organization has a parent)
+          if (organization.parent && !organization.parent.isActive) {
+            throw new Error('Cannot activate organization with inactive parent');
+          }
+
+          organization.isActive = true;
+          // organization.status = 'active'; // Status field doesn't exist, using isActive instead
+          await queryRunner.manager.save(organization);
+          activated.push(id);
+        } catch (error) {
+          failed.push({ id, error: error.message });
+        }
+      }
+
+      await queryRunner.commitTransaction();
+      return { activated, failed };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
   }
 }

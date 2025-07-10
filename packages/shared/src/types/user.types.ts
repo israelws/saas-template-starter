@@ -1,4 +1,5 @@
 import { BaseEntity, ContactInfo } from './common.types';
+import type { Organization } from './organization.types';
 
 export enum UserStatus {
   ACTIVE = 'active',

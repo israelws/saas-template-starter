@@ -12,6 +12,8 @@ import {
   ChangePasswordDto,
 } from './dto';
 import { CreateUserDto } from '@saas-template/shared';
+import { LoggerService } from '../../common/logger/logger.service';
+import { Log, LogPerformance } from '../../common/decorators/log.decorator';
 
 @Injectable()
 export class AuthService {
@@ -20,10 +22,16 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-  ) {}
+    private readonly logger: LoggerService,
+  ) {
+    this.logger.setContext('AuthService');
+  }
 
+  @LogPerformance(500) // Log if takes more than 500ms
   async login(loginDto: LoginDto) {
     try {
+      this.logger.log({ message: "Login attempt", email: loginDto.email});
+      
       // Authenticate with Cognito
       const cognitoAuth = await this.cognitoService.authenticateUser(
         loginDto.email,
@@ -35,6 +43,9 @@ export class AuthService {
       
       if (!user) {
         // User exists in Cognito but not in our DB, create them
+        this.logger.warn({ message: "User exists in Cognito but not in database", email: loginDto.email,
+          cognitoId: cognitoAuth.cognitoId,});
+        
         const cognitoUser = await this.cognitoService.getUserByEmail(loginDto.email);
         user = await this.usersService.create({
           cognitoId: cognitoAuth.cognitoId,
@@ -42,7 +53,13 @@ export class AuthService {
           firstName: cognitoUser.firstName || '',
           lastName: cognitoUser.lastName || '',
         });
+        
+        this.logger.log({ message: "Created user from Cognito", userId: user.id, email: user.email});
       }
+
+      const accessToken = cognitoAuth.accessToken;
+      const refreshToken = cognitoAuth.refreshToken;
+      const expiresIn = cognitoAuth.expiresIn;
 
       // Update last login
       await this.usersService.updateLastLogin(user.id);
@@ -50,13 +67,25 @@ export class AuthService {
       // Get user with memberships
       const userWithMemberships = await this.usersService.findOneWithMemberships(user.id);
 
+      // Log successful login
+      this.logger.logAuth({
+        type: 'login',
+        userId: user.id,
+        email: user.email,
+      });
+
       return {
         user: userWithMemberships,
-        accessToken: cognitoAuth.accessToken,
-        refreshToken: cognitoAuth.refreshToken,
-        expiresIn: cognitoAuth.expiresIn,
+        accessToken,
+        refreshToken,
+        expiresIn,
       };
     } catch (error) {
+      this.logger.logAuth({
+        type: 'failed_login',
+        email: loginDto.email,
+        reason: error.message,
+      });
       throw new UnauthorizedException('Invalid credentials');
     }
   }
@@ -71,6 +100,7 @@ export class AuthService {
 
       // Register with Cognito
       const cognitoUser = await this.cognitoService.registerUser(registerDto);
+      const cognitoId = cognitoUser.cognitoId;
 
       // Create user in our database
       const createUserDto: CreateUserDto = {
@@ -82,7 +112,7 @@ export class AuthService {
 
       const user = await this.usersService.create({
         ...createUserDto,
-        cognitoId: cognitoUser.cognitoId,
+        cognitoId,
       });
 
       return {

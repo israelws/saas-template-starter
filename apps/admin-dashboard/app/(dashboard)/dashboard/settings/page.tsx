@@ -1,6 +1,6 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Settings, Bell, Shield, Database, Globe } from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Settings, Bell, Shield, Database, Globe } from 'lucide-react';
 
 export default function SettingsPage() {
   return (
@@ -23,9 +23,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>General Settings</CardTitle>
-              <CardDescription>
-                Configure general application settings
-              </CardDescription>
+              <CardDescription>Configure general application settings</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -42,9 +40,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Notification Settings</CardTitle>
-              <CardDescription>
-                Manage notification preferences
-              </CardDescription>
+              <CardDescription>Manage notification preferences</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -61,9 +57,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Security Settings</CardTitle>
-              <CardDescription>
-                Configure security and access control
-              </CardDescription>
+              <CardDescription>Configure security and access control</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -80,9 +74,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Database Settings</CardTitle>
-              <CardDescription>
-                Database configuration and maintenance
-              </CardDescription>
+              <CardDescription>Database configuration and maintenance</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -99,9 +91,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Integrations</CardTitle>
-              <CardDescription>
-                Third-party integrations and APIs
-              </CardDescription>
+              <CardDescription>Third-party integrations and APIs</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -115,5 +105,5 @@ export default function SettingsPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

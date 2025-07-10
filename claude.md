@@ -111,7 +111,7 @@ Uses ABAC (Attribute-Based Access Control) with:
 - Hierarchical policy inheritance
 
 ## External Resources Reference
-- Project Requirements Document: `/resources/Template Starter Kit for SAAS platform and Digital Application (1).docx`
+- Project Requirements Document: `/product.md`
 - shadcn/ui Documentation: https://ui.shadcn.com/
 - shadcn/ui Blocks: https://ui.shadcn.com/blocks
 - Dashboard Layout: Use dashboard-01 from shadcn blocks

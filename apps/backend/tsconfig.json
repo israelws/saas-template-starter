@@ -18,7 +18,9 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@saas-template/shared": ["../../packages/shared/src"],
+      "@saas-template/shared/*": ["../../packages/shared/src/*"]
     }
   }
 }

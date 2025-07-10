@@ -7,6 +7,7 @@ import {
   UserPreferences,
 } from '@saas-template/shared';
 import { UserOrganizationMembership } from './user-organization-membership.entity';
+import { UserAttribute } from './user-attribute.entity';
 
 @Entity('users')
 @Index(['email'], { unique: true })
@@ -56,4 +57,7 @@ export class User extends BaseEntity {
   // Relations
   @OneToMany(() => UserOrganizationMembership, (membership) => membership.user)
   memberships: UserOrganizationMembership[];
+
+  @OneToMany(() => UserAttribute, (attribute) => attribute.user)
+  userAttributes: UserAttribute[];
 }

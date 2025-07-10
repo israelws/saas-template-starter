@@ -40,6 +40,9 @@ export class UserOrganizationMembership extends BaseEntity {
   @Column({ type: 'boolean', default: false })
   isDefault: boolean;
 
+  @Column({ type: 'boolean', default: true })
+  isActive: boolean;
+
   @Column({ type: 'timestamp with time zone', default: () => 'CURRENT_TIMESTAMP' })
   startDate: Date;
 
