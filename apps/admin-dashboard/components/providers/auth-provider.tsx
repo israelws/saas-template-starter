@@ -90,9 +90,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initAuth();
   }, [dispatch, router, pathname]);
 
-  // Show nothing while initializing to prevent flashing
+  // Show loading state while initializing
   if (!isInitialized) {
-    return null;
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-2 text-sm text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   return <>{children}</>;

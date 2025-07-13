@@ -74,13 +74,26 @@ export const setupAuthInterceptor = () => {
 
         if (!refreshToken) {
           store.dispatch(logout());
-          window.location.href = '/login';
+          // Clear all auth data
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('userData');
+          document.cookie = 'authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+          
+          // Let the auth provider handle navigation
           return Promise.reject(error);
         }
 
         try {
           const response = await authAPI.refreshToken(refreshToken);
           const { accessToken } = response.data;
+
+          // Update token in localStorage and cookies
+          localStorage.setItem('authToken', accessToken);
+          
+          // Set cookie using the setCookie function
+          const { setCookie } = await import('@/lib/cookies');
+          setCookie('authToken', accessToken, 7);
 
           // Update token in store
           const state = store.getState();
@@ -99,12 +112,17 @@ export const setupAuthInterceptor = () => {
             originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           }
 
-          return axios(originalRequest);
+          return api(originalRequest);
         } catch (refreshError) {
           processQueue(refreshError, null);
           store.dispatch(logout());
+          // Clear all auth data
+          localStorage.removeItem('authToken');
           localStorage.removeItem('refreshToken');
-          window.location.href = '/login';
+          localStorage.removeItem('userData');
+          document.cookie = 'authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+          
+          // Let the auth provider handle navigation
           return Promise.reject(refreshError);
         } finally {
           isRefreshing = false;

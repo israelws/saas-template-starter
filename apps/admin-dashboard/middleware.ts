@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Public routes that don't require authentication
-const publicRoutes = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email', '/confirm-email', '/debug-auth'];
+const publicRoutes = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email', '/confirm-email', '/debug-auth', '/test-auth'];
 
 // Routes that should be completely excluded from auth checks
 const excludedRoutes = ['/_next', '/api', '/favicon.ico'];
