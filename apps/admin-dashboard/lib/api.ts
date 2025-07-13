@@ -10,33 +10,7 @@ export const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
-api.interceptors.request.use(
-  (config) => {
-    const state = store.getState();
-    const token = state.auth.token;
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  },
-);
-
-// Response interceptor to handle errors
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Handle unauthorized access
-      store.dispatch({ type: 'auth/logout' });
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  },
-);
+// Interceptors are handled in auth-interceptor.ts
 
 // API endpoints
 export const authAPI = {

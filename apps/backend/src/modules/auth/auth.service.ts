@@ -11,7 +11,7 @@ import {
   ResetPasswordDto,
   ChangePasswordDto,
 } from './dto';
-import { CreateUserDto } from '@saas-template/shared';
+import { CreateUserDto, UserRole } from '@saas-template/shared';
 import { LoggerService } from '../../common/logger/logger.service';
 import { Log, LogPerformance } from '../../common/decorators/log.decorator';
 
@@ -86,14 +86,27 @@ export class AuthService {
         email: loginDto.email,
         reason: error.message,
       });
+      
+      // Pass through specific error messages from Cognito
+      if (error.message && (
+        error.message.includes('verify your email') ||
+        error.message.includes('Invalid email or password')
+      )) {
+        throw new UnauthorizedException(error.message);
+      }
+      
       throw new UnauthorizedException('Invalid credentials');
     }
   }
 
   async register(registerDto: RegisterDto) {
     try {
+      this.logger.log({ message: 'Registration attempt', email: registerDto.email });
+      
       // Check if user already exists
       const existingUser = await this.usersService.findByEmail(registerDto.email);
+      this.logger.log({ message: 'Existing user check', email: registerDto.email, found: !!existingUser });
+      
       if (existingUser) {
         throw new BadRequestException('User already exists');
       }
@@ -107,6 +120,7 @@ export class AuthService {
         email: registerDto.email,
         firstName: registerDto.firstName,
         lastName: registerDto.lastName,
+        role: UserRole.USER, // Default role
         organizationId: registerDto.organizationId,
       };
 
@@ -120,6 +134,7 @@ export class AuthService {
         message: 'User registered successfully. Please check your email for verification.',
       };
     } catch (error) {
+      this.logger.error({ message: 'Registration error', email: registerDto.email, error: error.message, stack: error.stack });
       if (error instanceof BadRequestException) {
         throw error;
       }
@@ -221,5 +236,47 @@ export class AuthService {
     }
 
     return user;
+  }
+
+  async resendConfirmationEmail(email: string) {
+    try {
+      this.logger.log({ message: 'Resending confirmation email', email });
+      
+      await this.cognitoService.resendConfirmationCode(email);
+      
+      return {
+        message: 'Confirmation email sent successfully',
+      };
+    } catch (error) {
+      this.logger.error({ message: 'Failed to resend confirmation email', email, error: error.message });
+      throw new BadRequestException('Failed to resend confirmation email');
+    }
+  }
+
+  async verifyEmail(email: string, code: string) {
+    try {
+      this.logger.log({ message: 'Verifying email', email });
+      
+      await this.cognitoService.confirmSignUp(email, code);
+      
+      // Update user's email verification status in our database
+      const user = await this.usersService.findByEmail(email);
+      if (user) {
+        await this.usersService.updateEmailVerified(user.id, true);
+        
+        this.logger.log({ 
+          message: 'Email verified', 
+          userId: user.id, 
+          email: user.email 
+        });
+      }
+      
+      return {
+        message: 'Email verified successfully',
+      };
+    } catch (error) {
+      this.logger.error({ message: 'Email verification failed', email, error: error.message });
+      throw new BadRequestException('Invalid or expired verification code');
+    }
   }
 }

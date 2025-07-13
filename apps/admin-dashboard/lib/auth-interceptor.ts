@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { store } from '@/store';
 import { loginSuccess, logout } from '@/store/slices/authSlice';
-import { authAPI } from './api';
+import { api, authAPI } from './api';
 
 interface FailedRequest {
   resolve: (token: string | null) => void;
@@ -24,10 +24,10 @@ const processQueue = (error: any, token: string | null = null) => {
 
 export const setupAuthInterceptor = () => {
   // Request interceptor to add auth token
-  axios.interceptors.request.use(
+  api.interceptors.request.use(
     (config) => {
       const state = store.getState();
-      const token = state.auth.token;
+      const token = state.auth.token || localStorage.getItem('authToken');
 
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
@@ -45,7 +45,7 @@ export const setupAuthInterceptor = () => {
   );
 
   // Response interceptor to handle token refresh
-  axios.interceptors.response.use(
+  api.interceptors.response.use(
     (response) => response,
     async (error: AxiosError) => {
       const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };

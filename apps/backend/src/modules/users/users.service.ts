@@ -141,6 +141,12 @@ export class UsersService {
     });
   }
 
+  async updateEmailVerified(id: string, emailVerified: boolean): Promise<void> {
+    await this.userRepository.update(id, {
+      emailVerified,
+    });
+  }
+
   async remove(id: string): Promise<void> {
     const user = await this.findOne(id);
     

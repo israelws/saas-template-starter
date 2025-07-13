@@ -49,21 +49,41 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
     }
 
     try {
-      await authAPI.register({
+      const registrationData = {
         email,
         password,
         firstName,
         lastName,
-      });
+      };
+      
+      console.log('Sending registration data:', { ...registrationData, password: '[REDACTED]' });
+      
+      await authAPI.register(registrationData);
 
       toast({
         title: 'Registration successful',
         description: 'Please check your email to verify your account',
       });
 
-      router.push('/login');
+      // Redirect to email verification page with email as query param
+      router.push(`/verify-email?email=${encodeURIComponent(registrationData.email)}`);
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Registration failed';
+      console.error('Registration error:', error.response?.data);
+      
+      const errorData = error.response?.data;
+      let errorMessage = 'Registration failed';
+      
+      if (errorData?.message) {
+        errorMessage = errorData.message;
+        
+        // Check if it's a validation error with details
+        if (errorData.errors && Array.isArray(errorData.errors)) {
+          const validationErrors = errorData.errors.map((err: any) => 
+            `${err.property}: ${Object.values(err.constraints || {}).join(', ')}`
+          ).join('; ');
+          errorMessage = validationErrors || errorMessage;
+        }
+      }
 
       toast({
         title: 'Registration failed',
@@ -135,6 +155,9 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
                 autoComplete="new-password"
                 disabled={isLoading}
                 required
+                minLength={8}
+                pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+                title="Password must be at least 8 characters and contain uppercase, lowercase, number and special character"
               />
               <Button
                 type="button"

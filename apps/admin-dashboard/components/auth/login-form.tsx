@@ -36,7 +36,9 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
     const password = target.password.value;
 
     try {
+      console.log('Attempting login for:', email);
       const response = await authAPI.login({ email, password });
+      console.log('Login response:', response);
       const { user, accessToken, refreshToken } = response.data;
 
       dispatch(loginSuccess({ user, token: accessToken }));
@@ -57,7 +59,9 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
       const redirect = new URLSearchParams(window.location.search).get('redirect');
       router.push(redirect || '/dashboard');
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Invalid email or password';
+      console.error('Login error:', error);
+      console.error('Error response:', error.response);
+      const errorMessage = error.response?.data?.message || error.message || 'Invalid email or password';
       dispatch(loginFailure(errorMessage));
 
       toast({

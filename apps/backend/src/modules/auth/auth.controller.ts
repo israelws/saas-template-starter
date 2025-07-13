@@ -119,4 +119,20 @@ export class AuthController {
   async getProfile(@Request() req) {
     return this.authService.getProfile(req.user.id);
   }
+
+  @Public()
+  @Post('resend-confirmation')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Resend confirmation email' })
+  async resendConfirmationEmail(@Body() body: { email: string }) {
+    return this.authService.resendConfirmationEmail(body.email);
+  }
+
+  @Public()
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify email with confirmation code' })
+  async verifyEmail(@Body() body: { email: string; code: string }) {
+    return this.authService.verifyEmail(body.email, body.code);
+  }
 }

@@ -5,6 +5,7 @@ import {
   InitiateAuthCommand,
   SignUpCommand,
   ConfirmSignUpCommand,
+  ResendConfirmationCodeCommand,
   ForgotPasswordCommand,
   ConfirmForgotPasswordCommand,
   ChangePasswordCommand,
@@ -61,7 +62,13 @@ export class CognitoService {
       const response = await this.cognitoClient.send(command);
 
       if (!response.AuthenticationResult) {
-        throw new BadRequestException('Authentication failed');
+        console.error('No AuthenticationResult in response:', response);
+        if (response.ChallengeName) {
+          console.error('Challenge required:', response.ChallengeName);
+          console.error('Challenge parameters:', response.ChallengeParameters);
+          throw new BadRequestException(`Authentication challenge required: ${response.ChallengeName}`);
+        }
+        throw new BadRequestException('Authentication failed - no result returned');
       }
 
       const cognitoId = response.AuthenticationResult.AccessToken
@@ -76,7 +83,30 @@ export class CognitoService {
       };
     } catch (error) {
       console.error('Cognito authentication error:', error);
-      throw new BadRequestException(`Invalid credentials: ${error.message}`);
+      console.error('Error name:', error.name);
+      console.error('Error code:', error.$metadata?.httpStatusCode);
+      console.error('AWS error code:', error.Code || error.$metadata?.cfId);
+      console.error('AWS error type:', error.__type);
+      
+      // Check if it's an AWS SDK error
+      if (error.$metadata) {
+        console.error('AWS SDK Error metadata:', error.$metadata);
+      }
+      
+      // Log the original error message from AWS
+      if (error.message && !error.message.includes('Authentication failed')) {
+        console.error('Original AWS error message:', error.message);
+      }
+      
+      // Check for specific Cognito errors
+      if (error.name === 'UserNotConfirmedException') {
+        throw new BadRequestException('Please verify your email before signing in');
+      }
+      if (error.name === 'NotAuthorizedException') {
+        throw new BadRequestException('Invalid email or password');
+      }
+      
+      throw new BadRequestException(`Authentication failed: ${error.message}`);
     }
   }
 
@@ -131,6 +161,27 @@ export class CognitoService {
       return { confirmed: true };
     } catch (error) {
       throw new BadRequestException('Invalid confirmation code');
+    }
+  }
+
+  async resendConfirmationCode(email: string) {
+    try {
+      const params = {
+        ClientId: this.clientId,
+        Username: email,
+      };
+
+      if (this.clientSecret) {
+        params['SecretHash'] = this.generateSecretHash(email);
+      }
+
+      const command = new ResendConfirmationCodeCommand(params);
+      await this.cognitoClient.send(command);
+
+      return { codeSent: true };
+    } catch (error) {
+      console.error('Resend confirmation code error:', error);
+      throw new BadRequestException(`Failed to resend confirmation code: ${error.message}`);
     }
   }
 

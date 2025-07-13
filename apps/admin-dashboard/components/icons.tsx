@@ -14,6 +14,7 @@ import {
   Image,
   Laptop,
   Loader2,
+  Mail,
   Moon,
   MoreVertical,
   Pizza,
@@ -53,6 +54,7 @@ export const Icons = {
   laptop: Laptop,
   eye: Eye,
   eyeOff: EyeOff,
+  mail: Mail,
   gitHub: ({ ...props }) => (
     <svg
       aria-hidden="true"
