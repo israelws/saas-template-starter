@@ -79,6 +79,7 @@ export default function OrganizationsPage() {
       const response = await organizationAPI.getAll();
       setOrganizations(response.data);
     } catch (error) {
+      console.error('Failed to fetch organizations:', error);
       toast({
         title: 'Error',
         description: 'Failed to fetch organizations',
@@ -90,7 +91,12 @@ export default function OrganizationsPage() {
   }, [toast]);
 
   useEffect(() => {
-    fetchOrganizations();
+    // Add a small delay to ensure auth is properly initialized
+    const timer = setTimeout(() => {
+      fetchOrganizations();
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [fetchOrganizations]);
 
   const handleDelete = async (id: string) => {

@@ -11,5 +11,6 @@ export const useBreadcrumb = (breadcrumbs: BreadcrumbItem[]) => {
     return () => {
       setBreadcrumbs([{ label: 'Dashboard', href: '/dashboard' }]);
     };
-  }, [setBreadcrumbs, JSON.stringify(breadcrumbs)]);
+    // Using breadcrumbs.length and mapping labels/hrefs to avoid circular reference
+  }, [setBreadcrumbs, breadcrumbs.length, ...breadcrumbs.map(b => b.label + b.href)]);
 };

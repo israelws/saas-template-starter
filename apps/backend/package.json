@@ -27,6 +27,9 @@
     "migration:create": "npm run typeorm -- migration:create ./src/migrations/",
     "migration:run": "npm run typeorm -- migration:run -d ./typeorm.config.ts",
     "migration:revert": "npm run typeorm -- migration:revert -d ./typeorm.config.ts",
+    "assign-super-admin": "ts-node -r tsconfig-paths/register scripts/assign-super-admin.ts",
+    "revoke-super-admin": "ts-node -r tsconfig-paths/register scripts/revoke-super-admin.ts",
+    "list-super-admins": "ts-node -r tsconfig-paths/register scripts/list-super-admins.ts",
     "migration:show": "npm run typeorm -- migration:show -d ./typeorm.config.ts",
     "seed": "ts-node -r tsconfig-paths/register src/database/seeds/seed.ts"
   },

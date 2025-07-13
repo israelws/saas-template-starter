@@ -60,4 +60,17 @@ export class User extends BaseEntity {
 
   @OneToMany(() => UserAttribute, (attribute) => attribute.user)
   userAttributes: UserAttribute[];
+
+  // Helper methods
+  get fullName(): string {
+    return `${this.firstName} ${this.lastName}`.trim();
+  }
+
+  isSuperAdmin(): boolean {
+    return this.metadata?.isSuperAdmin === true;
+  }
+
+  hasSuperAdminAccess(): boolean {
+    return this.isSuperAdmin() && this.status === UserStatus.ACTIVE;
+  }
 }

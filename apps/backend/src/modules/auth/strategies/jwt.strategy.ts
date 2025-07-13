@@ -49,6 +49,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       firstName: user.firstName,
       lastName: user.lastName,
       status: user.status,
+      metadata: user.metadata,
+      isSuperAdmin: user.metadata?.isSuperAdmin === true,
       memberships: userWithMemberships.memberships,
       // This will be attached to request.user
     };

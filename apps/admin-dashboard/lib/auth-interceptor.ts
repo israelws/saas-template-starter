@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosRequestConfig } from 'axios';
+import { AxiosError, AxiosRequestConfig } from 'axios';
 import { store } from '@/store';
 import { loginSuccess, logout } from '@/store/slices/authSlice';
 import { api, authAPI } from './api';
@@ -60,7 +60,7 @@ export const setupAuthInterceptor = () => {
               if (originalRequest.headers) {
                 originalRequest.headers.Authorization = `Bearer ${token}`;
               }
-              return axios(originalRequest);
+              return api(originalRequest);
             })
             .catch((err) => {
               return Promise.reject(err);

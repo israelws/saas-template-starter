@@ -54,7 +54,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       // Clear tokens
       localStorage.removeItem('authToken');
       localStorage.removeItem('refreshToken');
-      document.cookie = 'authToken=; path=/; max-age=0';
+      
+      // Clear cookie properly
+      document.cookie = 'authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
 
       // Dispatch logout action
       dispatch(logout());

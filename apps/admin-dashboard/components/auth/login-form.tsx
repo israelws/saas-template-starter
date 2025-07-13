@@ -12,6 +12,7 @@ import { Icons } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
 import { authAPI } from '@/lib/api';
 import { loginStart, loginSuccess, loginFailure } from '@/store/slices/authSlice';
+import { setCookie } from '@/lib/cookies';
 
 interface LoginFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -36,31 +37,43 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
     const password = target.password.value;
 
     try {
-      console.log('Attempting login for:', email);
       const response = await authAPI.login({ email, password });
-      console.log('Login response:', response);
       const { user, accessToken, refreshToken } = response.data;
 
-      dispatch(loginSuccess({ user, token: accessToken }));
-
-      // Store tokens
+      // Store tokens and user data immediately
       localStorage.setItem('authToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);
+      localStorage.setItem('userData', JSON.stringify(user));
+      
+      // Update Redux store
+      dispatch(loginSuccess({ user, token: accessToken }));
 
-      // Set cookie for SSR
-      document.cookie = `authToken=${accessToken}; path=/; max-age=${60 * 60 * 24 * 7}`; // 7 days
+      // Set cookie for SSR - ensure it's set before navigation
+      setCookie('authToken', accessToken, 7);
+      
+      // Also set cookie from server for better reliability
+      try {
+        await fetch('/api/auth/set-cookie', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: accessToken }),
+        });
+      } catch (error) {
+        console.error('Failed to set server cookie:', error);
+      }
 
       toast({
         title: 'Welcome back!',
         description: 'You have successfully signed in.',
       });
 
-      // Redirect to dashboard or original destination
-      const redirect = new URLSearchParams(window.location.search).get('redirect');
-      router.push(redirect || '/dashboard');
+      // Add a small delay to ensure auth is properly set up
+      setTimeout(() => {
+        // Redirect to dashboard or original destination
+        const redirect = new URLSearchParams(window.location.search).get('redirect');
+        router.push(redirect || '/dashboard');
+      }, 100);
     } catch (error: any) {
-      console.error('Login error:', error);
-      console.error('Error response:', error.response);
       const errorMessage = error.response?.data?.message || error.message || 'Invalid email or password';
       dispatch(loginFailure(errorMessage));
 
