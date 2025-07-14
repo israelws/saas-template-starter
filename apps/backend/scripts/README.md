@@ -1,6 +1,6 @@
-# Super Admin Management Scripts
+# Backend Management Scripts
 
-These scripts are intended for platform owners only and provide super admin role management capabilities.
+This directory contains administrative scripts for managing the backend system. These scripts are intended for platform owners and administrators only.
 
 ## Available Scripts
 
@@ -34,6 +34,21 @@ Displays all users with super admin privileges.
 ```bash
 npm run list-super-admins
 ```
+
+### 4. Setup Test Organization
+Creates a test organization and assigns a user to it with admin role. This is useful for development and testing.
+
+```bash
+npm run setup-test-org
+```
+
+This script will:
+- Create a test organization called "Test Company" (or use existing)
+- Find the user with email "israel+t21@committed.co.il"
+- Add the user to the organization with admin role
+- Set it as the user's default organization
+
+This helps resolve 403 errors when users don't have an organization context.
 
 ## Super Admin Capabilities
 

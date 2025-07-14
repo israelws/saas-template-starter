@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Tokens</title>
+</head>
+<body>
+    <h1>Token Debug</h1>
+    <button onclick="debugTokens()">Check Current Tokens</button>
+    <div id="output"></div>
+    
+    <script>
+        function debugTokens() {
+            const accessToken = localStorage.getItem('authToken');
+            const refreshToken = localStorage.getItem('refreshToken');
+            
+            console.log('Access token:', accessToken);
+            console.log('Refresh token:', refreshToken);
+            
+            // Decode JWT payload (basic decode, not verification)
+            if (accessToken) {
+                try {
+                    const parts = accessToken.split('.');
+                    if (parts.length === 3) {
+                        const payload = JSON.parse(atob(parts[1]));
+                        console.log('Access token payload:', payload);
+                        console.log('Token expires at:', new Date(payload.exp * 1000));
+                        console.log('Token is expired:', Date.now() > payload.exp * 1000);
+                    }
+                } catch (e) {
+                    console.error('Failed to decode access token:', e);
+                }
+            }
+            
+            document.getElementById('output').innerHTML = `
+                <h3>Tokens found:</h3>
+                <p>Access token: ${accessToken ? 'YES' : 'NO'}</p>
+                <p>Refresh token: ${refreshToken ? 'YES' : 'NO'}</p>
+                <p>Check console for details</p>
+            `;
+        }
+    </script>
+</body>
+</html>

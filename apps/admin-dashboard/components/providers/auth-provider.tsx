@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { setupAuthInterceptor } from '@/lib/auth-interceptor';
 import { loginSuccess } from '@/store/slices/authSlice';
+import { setCurrentOrganization } from '@/store/slices/organizationSlice';
 import { api } from '@/lib/api';
 import { setCookie, getCookie } from '@/lib/cookies';
 
@@ -43,44 +44,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   token,
                 }),
               );
+              
+              // Set default organization if user has memberships
+              if (userData.memberships && userData.memberships.length > 0) {
+                const defaultMembership = userData.memberships.find((m: any) => m.isDefault) || userData.memberships[0];
+                if (defaultMembership && defaultMembership.organization) {
+                  dispatch(setCurrentOrganization(defaultMembership.organization));
+                }
+              }
             } catch (e) {
               console.error('Failed to parse stored user data:', e);
             }
           }
 
           // Then validate token by fetching user profile
-          const response = await api.get('/auth/me');
-          dispatch(
-            loginSuccess({
-              user: response.data,
-              token,
-            }),
-          );
-          
-          // Update stored user data
-          localStorage.setItem('userData', JSON.stringify(response.data));
+          try {
+            const response = await api.get('/auth/me');
+            const userData = response.data;
+            dispatch(
+              loginSuccess({
+                user: userData,
+                token,
+              }),
+            );
+            
+            // Set default organization if user has memberships
+            if (userData.memberships && userData.memberships.length > 0) {
+              const defaultMembership = userData.memberships.find((m: any) => m.isDefault) || userData.memberships[0];
+              if (defaultMembership && defaultMembership.organization) {
+                dispatch(setCurrentOrganization(defaultMembership.organization));
+              }
+            }
+            
+            // Update stored user data
+            localStorage.setItem('userData', JSON.stringify(userData));
+          } catch (validationError) {
+            console.warn('Could not validate token with /auth/me, using stored data');
+            // Continue with stored data if validation fails
+          }
           
           // Ensure cookie is set for middleware
           setCookie('authToken', token, 7);
         } catch (error: any) {
-          console.error('Auth validation failed:', error);
-          
-          // Only clear auth if we're not on a public page
-          const publicPaths = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email'];
-          const isPublicPath = publicPaths.some(path => pathname.startsWith(path));
-          
-          if (!isPublicPath) {
-            // Clear invalid tokens
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('refreshToken');
-            localStorage.removeItem('userData');
-            document.cookie = 'authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-            
-            // Don't redirect if we're already on a public page
-            if (!isPublicPath) {
-              router.push('/login');
-            }
-          }
+          console.error('Auth initialization error:', error);
+          // Don't clear auth on initialization errors - let the middleware handle it
         }
       }
       

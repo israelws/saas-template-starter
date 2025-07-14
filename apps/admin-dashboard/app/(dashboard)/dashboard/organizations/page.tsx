@@ -77,7 +77,9 @@ export default function OrganizationsPage() {
   const fetchOrganizations = useCallback(async () => {
     try {
       const response = await organizationAPI.getAll();
-      setOrganizations(response.data);
+      // Handle paginated response - response.data.data contains the organizations array
+      const orgs = response.data?.data || response.data || [];
+      setOrganizations(Array.isArray(orgs) ? orgs : []);
     } catch (error) {
       console.error('Failed to fetch organizations:', error);
       toast({

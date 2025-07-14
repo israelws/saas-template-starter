@@ -48,7 +48,8 @@ export default function PoliciesPage() {
   const fetchPolicies = useCallback(async () => {
     try {
       const response = await policyAPI.getAll();
-      setPolicies(response.data);
+      const policiesData = response.data?.data || response.data || [];
+      setPolicies(Array.isArray(policiesData) ? policiesData : []);
     } catch (error) {
       toast({
         title: 'Error',

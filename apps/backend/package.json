@@ -30,8 +30,11 @@
     "assign-super-admin": "ts-node -r tsconfig-paths/register scripts/assign-super-admin.ts",
     "revoke-super-admin": "ts-node -r tsconfig-paths/register scripts/revoke-super-admin.ts",
     "list-super-admins": "ts-node -r tsconfig-paths/register scripts/list-super-admins.ts",
+    "setup-test-org": "ts-node -r tsconfig-paths/register scripts/setup-test-org.ts",
     "migration:show": "npm run typeorm -- migration:show -d ./typeorm.config.ts",
-    "seed": "ts-node -r tsconfig-paths/register src/database/seeds/seed.ts"
+    "seed": "ts-node -r tsconfig-paths/register src/database/seeds/seed.ts",
+    "fix:policies-table": "ts-node -r tsconfig-paths/register scripts/fix-policies-table.ts",
+    "fix:policies-table-v2": "ts-node -r tsconfig-paths/register scripts/fix-policies-table-v2.ts"
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.840.0",

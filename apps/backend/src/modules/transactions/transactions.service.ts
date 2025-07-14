@@ -121,6 +121,10 @@ export class TransactionsService {
       endDate,
     } = params;
 
+    // Ensure page and limit are numbers
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+
     const query = this.transactionRepository.createQueryBuilder('transaction');
     
     query
@@ -153,17 +157,17 @@ export class TransactionsService {
 
     query
       .orderBy(`transaction.${sortBy}`, sortOrder)
-      .skip((page - 1) * limit)
-      .take(limit);
+      .skip((pageNum - 1) * limitNum)
+      .take(limitNum);
 
     const [transactions, total] = await query.getManyAndCount();
 
     return {
       data: transactions,
       total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
     };
   }
 

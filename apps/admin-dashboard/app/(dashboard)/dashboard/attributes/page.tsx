@@ -77,7 +77,9 @@ export default function AttributesPage() {
     try {
       setIsLoading(true);
       const response = await attributeAPI.getAll();
-      setAttributes(response.data || []);
+      // Handle both paginated and non-paginated responses
+      const attrs = response.data?.data || response.data || [];
+      setAttributes(Array.isArray(attrs) ? attrs : []);
     } catch (error) {
       console.error('Error fetching attributes:', error);
       toast({
@@ -115,17 +117,21 @@ export default function AttributesPage() {
     }
   };
 
-  const filteredAttributes = attributes.filter((attr) => {
-    const matchesSearch =
-      attr.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      attr.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      attr.description?.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredAttributes = React.useMemo(() => {
+    if (!Array.isArray(attributes)) return [];
+    
+    return attributes.filter((attr) => {
+      const matchesSearch =
+        attr.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        attr.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        attr.description?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesCategory = categoryFilter === 'all' || attr.category === categoryFilter;
-    const matchesType = typeFilter === 'all' || attr.type === typeFilter;
+      const matchesCategory = categoryFilter === 'all' || attr.category === categoryFilter;
+      const matchesType = typeFilter === 'all' || attr.type === typeFilter;
 
-    return matchesSearch && matchesCategory && matchesType;
-  });
+      return matchesSearch && matchesCategory && matchesType;
+    });
+  }, [attributes, searchQuery, categoryFilter, typeFilter]);
 
   const getCategoryConfig = (category: string) => {
     return ATTRIBUTE_CATEGORIES.find((c) => c.value === category);
@@ -165,7 +171,9 @@ export default function AttributesPage() {
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         {ATTRIBUTE_CATEGORIES.slice(1).map((category) => {
-          const count = attributes.filter((a) => a.category === category.value).length;
+          const count = Array.isArray(attributes) 
+            ? attributes.filter((a) => a.category === category.value).length 
+            : 0;
           const Icon = category.icon;
 
           return (

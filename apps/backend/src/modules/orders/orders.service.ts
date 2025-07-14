@@ -131,6 +131,10 @@ export class OrdersService {
       endDate,
     } = params;
 
+    // Ensure page and limit are numbers
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+
     const query = this.orderRepository.createQueryBuilder('order');
     
     query
@@ -156,17 +160,17 @@ export class OrdersService {
 
     query
       .orderBy(`order.${sortBy}`, sortOrder)
-      .skip((page - 1) * limit)
-      .take(limit);
+      .skip((pageNum - 1) * limitNum)
+      .take(limitNum);
 
     const [orders, total] = await query.getManyAndCount();
 
     return {
       data: orders,
       total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
     };
   }
 

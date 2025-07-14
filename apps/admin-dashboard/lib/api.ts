@@ -18,6 +18,7 @@ export const authAPI = {
   register: (data: any) => api.post('/auth/register', data),
   logout: () => api.post('/auth/logout'),
   refreshToken: (refreshToken: string) => api.post('/auth/refresh', { refreshToken }),
+  validateToken: () => api.get('/auth/me'),
   forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
   resetPassword: (data: { token: string; password: string }) =>
     api.post('/auth/reset-password', data),
@@ -84,9 +85,22 @@ export const userAPI = {
 };
 
 export const policyAPI = {
-  getAll: (params?: any) => api.get('/abac/policies', { params }),
+  getAll: (params?: any) => {
+    const state = store.getState();
+    const organizationId = state.organization.currentOrganization?.id;
+    return api.get('/abac/policies', { 
+      params: { 
+        ...params, 
+        organizationId 
+      } 
+    });
+  },
   getById: (id: string) => api.get(`/abac/policies/${id}`),
-  create: (data: any) => api.post('/abac/policies', data),
+  create: (data: any) => {
+    const state = store.getState();
+    const organizationId = state.organization.currentOrganization?.id;
+    return api.post('/abac/policies', { ...data, organizationId });
+  },
   update: (id: string, data: any) => api.patch(`/abac/policies/${id}`, data),
   delete: (id: string) => api.delete(`/abac/policies/${id}`),
   test: (context: any) => api.post('/abac/policies/test', context),
@@ -94,9 +108,142 @@ export const policyAPI = {
 };
 
 export const attributeAPI = {
-  getAll: () => api.get('/abac/attributes'),
+  getAll: () => {
+    const state = store.getState();
+    const organizationId = state.organization.currentOrganization?.id;
+    return api.get('/abac/attributes', { 
+      params: { organizationId } 
+    });
+  },
   getById: (id: string) => api.get(`/abac/attributes/${id}`),
-  create: (data: any) => api.post('/abac/attributes', data),
+  create: (data: any) => {
+    const state = store.getState();
+    const organizationId = state.organization.currentOrganization?.id;
+    return api.post('/abac/attributes', { ...data, organizationId });
+  },
   update: (id: string, data: any) => api.put(`/abac/attributes/${id}`, data),
   delete: (id: string) => api.delete(`/abac/attributes/${id}`),
+};
+
+export const productAPI = {
+  getAll: (params?: any) => {
+    const state = store.getState();
+    const organizationId = state.organization.currentOrganization?.id;
+    return api.get('/products', { 
+      params: { 
+        ...params, 
+        organizationId 
+      } 
+    });
+  },
+  getById: (id: string) => api.get(`/products/${id}`),
+  create: (data: any) => {
+    const state = store.getState();
+    const organizationId = state.organization.currentOrganization?.id;
+    return api.post('/products', { ...data, organizationId });
+  },
+  update: (id: string, data: any) => api.patch(`/products/${id}`, data),
+  delete: (id: string) => api.delete(`/products/${id}`),
+  getLowStock: (organizationId?: string) => {
+    const state = store.getState();
+    const orgId = organizationId || state.organization.currentOrganization?.id;
+    return api.get('/products/low-stock', { params: { organizationId: orgId } });
+  },
+  getBySku: (sku: string, organizationId?: string) => {
+    const state = store.getState();
+    const orgId = organizationId || state.organization.currentOrganization?.id;
+    return api.get(`/products/sku/${sku}`, { params: { organizationId: orgId } });
+  },
+  updateInventory: (id: string, quantity: number, operation?: 'set' | 'add' | 'subtract') => 
+    api.post(`/products/${id}/inventory`, { quantity, operation }),
+  reserveInventory: (id: string, quantity: number) => 
+    api.post(`/products/${id}/inventory/reserve`, { quantity }),
+  releaseInventory: (id: string, quantity: number) => 
+    api.post(`/products/${id}/inventory/release`, { quantity }),
+  bulkUpdateStatus: (ids: string[], status: string) => {
+    const state = store.getState();
+    const organizationId = state.organization.currentOrganization?.id;
+    return api.post('/products/bulk-status', { ids, status, organizationId });
+  },
+};
+
+export const customerAPI = {
+  getAll: (params?: any) => {
+    const state = store.getState();
+    const organizationId = state.organization.currentOrganization?.id;
+    return api.get('/customers', { 
+      params: { 
+        ...params, 
+        organizationId 
+      } 
+    });
+  },
+  getById: (id: string) => api.get(`/customers/${id}`),
+  create: (data: any) => {
+    const state = store.getState();
+    const organizationId = state.organization.currentOrganization?.id;
+    return api.post('/customers', { ...data, organizationId });
+  },
+  update: (id: string, data: any) => api.patch(`/customers/${id}`, data),
+  delete: (id: string) => api.delete(`/customers/${id}`),
+  getByEmail: (email: string) => {
+    const state = store.getState();
+    const organizationId = state.organization.currentOrganization?.id;
+    return api.get('/customers/by-email', { params: { email, organizationId } });
+  },
+  getTransactions: (customerId: string, params?: any) => 
+    api.get(`/customers/${customerId}/transactions`, { params }),
+  getOrders: (customerId: string, params?: any) => 
+    api.get(`/customers/${customerId}/orders`, { params }),
+};
+
+export const orderAPI = {
+  getAll: (params?: any) => {
+    const state = store.getState();
+    const organizationId = state.organization.currentOrganization?.id;
+    return api.get('/orders', { 
+      params: { 
+        ...params, 
+        organizationId 
+      } 
+    });
+  },
+  getById: (id: string) => api.get(`/orders/${id}`),
+  create: (data: any) => {
+    const state = store.getState();
+    const organizationId = state.organization.currentOrganization?.id;
+    return api.post('/orders', { ...data, organizationId });
+  },
+  update: (id: string, data: any) => api.patch(`/orders/${id}`, data),
+  delete: (id: string) => api.delete(`/orders/${id}`),
+  updateStatus: (id: string, status: string) => 
+    api.patch(`/orders/${id}/status`, { status }),
+  getItems: (orderId: string) => api.get(`/orders/${orderId}/items`),
+  addItem: (orderId: string, item: any) => api.post(`/orders/${orderId}/items`, item),
+  updateItem: (orderId: string, itemId: string, data: any) => 
+    api.patch(`/orders/${orderId}/items/${itemId}`, data),
+  removeItem: (orderId: string, itemId: string) => 
+    api.delete(`/orders/${orderId}/items/${itemId}`),
+};
+
+export const transactionAPI = {
+  getAll: (params?: any) => {
+    const state = store.getState();
+    const organizationId = state.organization.currentOrganization?.id;
+    return api.get('/transactions', { 
+      params: { 
+        ...params, 
+        organizationId 
+      } 
+    });
+  },
+  getById: (id: string) => api.get(`/transactions/${id}`),
+  create: (data: any) => {
+    const state = store.getState();
+    const organizationId = state.organization.currentOrganization?.id;
+    return api.post('/transactions', { ...data, organizationId });
+  },
+  getByReference: (reference: string) => api.get(`/transactions/reference/${reference}`),
+  refund: (id: string, amount?: number) => 
+    api.post(`/transactions/${id}/refund`, { amount }),
 };

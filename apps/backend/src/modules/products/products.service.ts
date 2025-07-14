@@ -69,6 +69,10 @@ export class ProductsService {
       search,
     } = params;
 
+    // Ensure page and limit are numbers
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+
     const query = this.productRepository.createQueryBuilder('product');
     
     query.where('product.organizationId = :organizationId', { organizationId });
@@ -90,17 +94,17 @@ export class ProductsService {
 
     query
       .orderBy(`product.${sortBy}`, sortOrder)
-      .skip((page - 1) * limit)
-      .take(limit);
+      .skip((pageNum - 1) * limitNum)
+      .take(limitNum);
 
     const [products, total] = await query.getManyAndCount();
 
     return {
       data: products,
       total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
     };
   }
 

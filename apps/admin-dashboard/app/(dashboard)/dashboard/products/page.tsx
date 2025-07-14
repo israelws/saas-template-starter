@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { api } from '@/lib/api';
+import { productAPI } from '@/lib/api';
 import { Product } from '@saas-template/shared';
 import { Plus, Search, Edit, Trash2, Package, DollarSign } from 'lucide-react';
 
@@ -27,8 +27,10 @@ export default function ProductsPage() {
 
   const fetchProducts = useCallback(async () => {
     try {
-      const response = await api.get('/products');
-      setProducts(response.data);
+      const response = await productAPI.getAll();
+      // Handle paginated response - response.data.data contains the products array
+      const productsData = response.data?.data || response.data || [];
+      setProducts(Array.isArray(productsData) ? productsData : []);
     } catch (error) {
       toast({
         title: 'Error',
@@ -50,7 +52,7 @@ export default function ProductsPage() {
     }
 
     try {
-      await api.delete(`/products/${id}`);
+      await productAPI.delete(id);
       toast({
         title: 'Success',
         description: 'Product deleted successfully',

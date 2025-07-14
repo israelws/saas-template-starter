@@ -39,10 +39,14 @@ export class PolicyService {
   ): Promise<PaginatedResponse<Policy>> {
     const { page, limit, sortBy = 'priority', sortOrder = 'ASC' } = params;
 
+    // Ensure page and limit are numbers
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+
     const [policies, total] = await this.policyRepository.findAndCount({
       where: { organizationId },
-      skip: (page - 1) * limit,
-      take: limit,
+      skip: (pageNum - 1) * limitNum,
+      take: limitNum,
       order: { [sortBy]: sortOrder },
       relations: ['organization', 'policySet'],
     });
@@ -50,9 +54,9 @@ export class PolicyService {
     return {
       data: policies,
       total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
     };
   }
 

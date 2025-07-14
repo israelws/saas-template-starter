@@ -86,10 +86,14 @@ export class OrganizationsService {
   async findAll(params: PaginationParams): Promise<PaginatedResponse<Organization>> {
     const { page, limit, sortBy = 'createdAt', sortOrder = 'DESC' } = params;
 
+    // Ensure page and limit are numbers
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+
     const [organizations, total] = await this.organizationRepository.findAndCount({
       where: { parent: IsNull() }, // Only get root organizations
-      skip: (page - 1) * limit,
-      take: limit,
+      skip: (pageNum - 1) * limitNum,
+      take: limitNum,
       order: { [sortBy]: sortOrder },
       relations: ['children'],
     });
@@ -97,9 +101,9 @@ export class OrganizationsService {
     return {
       data: organizations,
       total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
     };
   }
 

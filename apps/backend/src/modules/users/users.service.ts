@@ -74,18 +74,22 @@ export class UsersService {
   async findAll(params: PaginationParams): Promise<PaginatedResponse<User>> {
     const { page, limit, sortBy = 'createdAt', sortOrder = 'DESC' } = params;
     
+    // Ensure page and limit are numbers
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+    
     const [users, total] = await this.userRepository.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
+      skip: (pageNum - 1) * limitNum,
+      take: limitNum,
       order: { [sortBy]: sortOrder },
     });
 
     return {
       data: users,
       total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
     };
   }
 

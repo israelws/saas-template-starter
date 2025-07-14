@@ -5,21 +5,22 @@
 export const setCookie = (name: string, value: string, days: number = 7) => {
   const date = new Date();
   date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-  const expires = `expires=${date.toUTCString()}`;
+  const expires = date.toUTCString();
   
-  // Set cookie with all necessary attributes for Next.js middleware
-  // Don't use Secure for localhost development
-  const isSecure = window.location.protocol === 'https:';
-  const cookieString = `${name}=${value}; ${expires}; path=/; SameSite=Lax${isSecure ? '; Secure' : ''}`;
-  document.cookie = cookieString;
+  // Build cookie string with proper format
+  const cookieParts = [
+    `${name}=${value}`,
+    `expires=${expires}`,
+    'path=/',
+    'SameSite=Lax'
+  ];
   
-  // Debug log
-  console.log('Setting cookie:', {
-    name,
-    valueLength: value.length,
-    expires,
-    isSecure
-  });
+  // Only add Secure for HTTPS
+  if (window.location.protocol === 'https:') {
+    cookieParts.push('Secure');
+  }
+  
+  document.cookie = cookieParts.join('; ');
 };
 
 export const getCookie = (name: string): string | null => {

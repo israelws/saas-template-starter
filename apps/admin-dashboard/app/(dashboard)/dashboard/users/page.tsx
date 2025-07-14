@@ -34,11 +34,15 @@ export default function UsersPage() {
   const fetchUsers = useCallback(async () => {
     try {
       const response = await userAPI.getAll();
-      setUsers(response.data);
-    } catch (error) {
+      console.log('Users API response:', response.data);
+      // Handle paginated response - response.data.data contains the users array
+      const usersData = response.data?.data || response.data || [];
+      setUsers(Array.isArray(usersData) ? usersData : []);
+    } catch (error: any) {
+      console.error('Failed to fetch users:', error);
       toast({
         title: 'Error',
-        description: 'Failed to fetch users',
+        description: error.response?.data?.message || 'Failed to fetch users',
         variant: 'destructive',
       });
     } finally {

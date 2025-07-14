@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { api } from '@/lib/api';
+import { orderAPI } from '@/lib/api';
 import { Order, Customer } from '@saas-template/shared';
 import { Search, Eye, Calendar, User, DollarSign, Package } from 'lucide-react';
 
@@ -27,8 +27,9 @@ export default function OrdersPage() {
 
   const fetchOrders = useCallback(async () => {
     try {
-      const response = await api.get('/orders');
-      setOrders(response.data);
+      const response = await orderAPI.getAll();
+      const ordersData = response.data?.data || response.data || [];
+      setOrders(Array.isArray(ordersData) ? ordersData : []);
     } catch (error) {
       toast({
         title: 'Error',

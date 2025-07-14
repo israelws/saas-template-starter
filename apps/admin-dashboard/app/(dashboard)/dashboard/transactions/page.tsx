@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { api } from '@/lib/api';
+import { transactionAPI } from '@/lib/api';
 import { Transaction } from '@saas-template/shared';
 import {
   Search,
@@ -33,8 +33,9 @@ export default function TransactionsPage() {
 
   const fetchTransactions = useCallback(async () => {
     try {
-      const response = await api.get('/transactions');
-      setTransactions(response.data);
+      const response = await transactionAPI.getAll();
+      const transactionsData = response.data?.data || response.data || [];
+      setTransactions(Array.isArray(transactionsData) ? transactionsData : []);
     } catch (error) {
       toast({
         title: 'Error',

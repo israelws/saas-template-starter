@@ -80,6 +80,10 @@ export class CustomersService {
       search,
     } = params;
 
+    // Ensure page and limit are numbers
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+
     const query = this.customerRepository.createQueryBuilder('customer');
     
     query.where('customer.organizationId = :organizationId', { organizationId });
@@ -107,17 +111,17 @@ export class CustomersService {
 
     query
       .orderBy(`customer.${sortBy}`, sortOrder)
-      .skip((page - 1) * limit)
-      .take(limit);
+      .skip((pageNum - 1) * limitNum)
+      .take(limitNum);
 
     const [customers, total] = await query.getManyAndCount();
 
     return {
       data: customers,
       total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
     };
   }
 

@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { api } from '@/lib/api';
+import { customerAPI } from '@/lib/api';
 import { Customer } from '@saas-template/shared';
 import { Plus, Search, Edit, Trash2, Mail, Phone, CreditCard, ShoppingBag } from 'lucide-react';
 
@@ -27,8 +27,9 @@ export default function CustomersPage() {
 
   const fetchCustomers = useCallback(async () => {
     try {
-      const response = await api.get('/customers');
-      setCustomers(response.data);
+      const response = await customerAPI.getAll();
+      const customersData = response.data?.data || response.data || [];
+      setCustomers(Array.isArray(customersData) ? customersData : []);
     } catch (error) {
       toast({
         title: 'Error',
@@ -50,7 +51,7 @@ export default function CustomersPage() {
     }
 
     try {
-      await api.delete(`/customers/${id}`);
+      await customerAPI.delete(id);
       toast({
         title: 'Success',
         description: 'Customer deleted successfully',
