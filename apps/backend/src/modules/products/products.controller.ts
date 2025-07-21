@@ -10,6 +10,9 @@ import {
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
+  UseGuards,
+  UseInterceptors,
+  Request,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
@@ -20,12 +23,24 @@ import {
   ProductStatus,
 } from '@saas-template/shared';
 import { RequirePermission } from '../abac/decorators/require-permission.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CaslAbacGuard, CheckAbility } from '../abac/guards/casl-abac.guard';
+import { 
+  FieldAccessInterceptor, 
+  UseFieldFiltering,
+  FieldFilterService 
+} from '../abac/interceptors/field-access.interceptor';
 
 @ApiTags('Products')
 @Controller('products')
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard, CaslAbacGuard)
+@UseInterceptors(FieldAccessInterceptor)
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(
+    private readonly productsService: ProductsService,
+    private readonly fieldFilterService: FieldFilterService,
+  ) {}
 
   @Post()
   @RequirePermission('product', 'create')
@@ -36,6 +51,7 @@ export class ProductsController {
 
   @Get()
   @RequirePermission('product', 'list')
+  @UseFieldFiltering('Product')
   @ApiOperation({ summary: 'Get all products for organization' })
   findAll(
     @Query('organizationId', ParseUUIDPipe) organizationId: string,
@@ -45,6 +61,7 @@ export class ProductsController {
       search?: string;
     },
   ) {
+    // Response will be automatically filtered by FieldAccessInterceptor
     return this.productsService.findAll(organizationId, params);
   }
 
@@ -57,8 +74,10 @@ export class ProductsController {
 
   @Get(':id')
   @RequirePermission('product', 'read')
+  @UseFieldFiltering('Product')
   @ApiOperation({ summary: 'Get product by ID' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
+    // Response will be automatically filtered by FieldAccessInterceptor
     return this.productsService.findOne(id);
   }
 
@@ -143,5 +162,88 @@ export class ProductsController {
       body.organizationId,
     );
     return { message: 'Products updated successfully' };
+  }
+
+  @Get(':id/field-permissions')
+  @RequirePermission('product', 'read')
+  @ApiOperation({ summary: 'Get field permissions for the current user' })
+  async getFieldPermissions(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req,
+  ) {
+    // This endpoint shows what fields the user can read/write
+    const product = await this.productsService.findOne(id);
+    const ability = req.caslAbility;
+    
+    if (!ability) {
+      return {
+        resourceType: 'Product',
+        resourceId: id,
+        permissions: {
+          readable: ['*'],
+          writable: ['*'],
+          denied: [],
+        },
+      };
+    }
+
+    const fieldPermissions = ability.fieldPermissions?.get('Product');
+    
+    return {
+      resourceType: 'Product',
+      resourceId: id,
+      permissions: {
+        readable: fieldPermissions?.readable || ['*'],
+        writable: fieldPermissions?.writable || ['*'],
+        denied: fieldPermissions?.denied || [],
+      },
+      canDelete: ability.can('delete', product),
+      canApprove: ability.can('approve', product),
+    };
+  }
+
+  @Get('test-field-permissions')
+  @RequirePermission('product', 'read')
+  @ApiOperation({ summary: 'Test field permissions for a user' })
+  async testFieldPermissions(
+    @Query('userId', ParseUUIDPipe) userId: string,
+    @Query('organizationId', ParseUUIDPipe) organizationId: string,
+    @Query('resourceType') resourceType: string,
+    @Query('action') action: 'read' | 'write',
+    @Request() req,
+  ) {
+    // For now, return mock data based on the resource type
+    // In a real implementation, this would evaluate the user's permissions
+    const mockPermissions = {
+      Customer: {
+        readable: ['id', 'name', 'email', 'phone', 'address'],
+        writable: ['phone', 'email', 'address'],
+        denied: ['ssn', 'dateOfBirth', 'creditScore', 'income', 'internalNotes'],
+      },
+      Product: {
+        readable: ['*'],
+        writable: ['name', 'description', 'price', 'quantity'],
+        denied: ['costPrice', 'profitMargin', 'supplierNotes'],
+      },
+      User: {
+        readable: ['id', 'name', 'email', 'role', 'department'],
+        writable: [],
+        denied: ['password', 'mfaSecret', 'salary', 'performanceRating'],
+      },
+    };
+
+    const permissions = mockPermissions[resourceType] || {
+      readable: ['*'],
+      writable: ['*'],
+      denied: [],
+    };
+
+    return {
+      allowed: true,
+      resourceType,
+      action,
+      ...permissions,
+      fieldPermissions: permissions,
+    };
   }
 }

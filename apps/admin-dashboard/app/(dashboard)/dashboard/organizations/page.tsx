@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { OrganizationTree } from '@/components/organizations/organization-tree';
 import { useBreadcrumb } from '@/hooks/use-breadcrumb';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 
 interface OrganizationNode extends Organization {
   children?: OrganizationNode[];
@@ -66,6 +67,9 @@ export default function OrganizationsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'tree' | 'list'>('tree');
   const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [orgToDelete, setOrgToDelete] = useState<Organization | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -101,24 +105,32 @@ export default function OrganizationsPage() {
     return () => clearTimeout(timer);
   }, [fetchOrganizations]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this organization?')) {
-      return;
-    }
+  const handleDeleteClick = (org: Organization) => {
+    setOrgToDelete(org);
+    setShowDeleteDialog(true);
+  };
 
+  const handleDelete = async () => {
+    if (!orgToDelete) return;
+    
+    setIsDeleting(true);
     try {
-      await organizationAPI.delete(id);
+      await organizationAPI.delete(orgToDelete.id);
       toast({
         title: 'Success',
         description: 'Organization deleted successfully',
       });
       fetchOrganizations();
+      setShowDeleteDialog(false);
+      setOrgToDelete(null);
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to delete organization',
         variant: 'destructive',
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -216,7 +228,7 @@ export default function OrganizationsPage() {
               onSelectOrganization={handleSelectOrganization}
               onAddOrganization={handleAddOrganization}
               onEditOrganization={handleEditOrganization}
-              onDeleteOrganization={handleDelete}
+              onDeleteOrganization={handleDeleteClick}
               onViewDetails={handleViewDetails}
             />
           ) : filteredOrganizations.length === 0 ? (
@@ -283,7 +295,7 @@ export default function OrganizationsPage() {
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDelete(org.id);
+                            handleDeleteClick(org);
                           }}
                         >
                           <Trash2 className="h-4 w-4 text-red-600" />
@@ -298,6 +310,18 @@ export default function OrganizationsPage() {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmationDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={handleDelete}
+        title="Delete Organization"
+        description={`Are you sure you want to delete "${orgToDelete?.name}"? This action cannot be undone and will remove all associated data.`}
+        confirmText="Delete Organization"
+        cancelText="Cancel"
+        variant="destructive"
+        loading={isDeleting}
+      />
     </div>
   );
 }

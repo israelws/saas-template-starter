@@ -50,6 +50,20 @@ export class UserAttribute {
   @Column({ type: 'text', nullable: true })
   description?: string;
 
+  @Column({ 
+    name: 'valid_from',
+    type: 'timestamp', 
+    default: () => 'CURRENT_TIMESTAMP' 
+  })
+  validFrom: Date;
+
+  @Column({ 
+    name: 'valid_to',
+    type: 'timestamp', 
+    nullable: true 
+  })
+  validTo: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 

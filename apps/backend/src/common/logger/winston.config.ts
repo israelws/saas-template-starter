@@ -1,5 +1,5 @@
 import * as winston from 'winston';
-import * as DailyRotateFile from 'winston-daily-rotate-file';
+const DailyRotateFile = require('winston-daily-rotate-file');
 import { utilities as nestWinstonModuleUtilities } from 'nest-winston';
 
 const { combine, timestamp, errors, json, prettyPrint } = winston.format;

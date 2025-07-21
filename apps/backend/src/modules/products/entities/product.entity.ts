@@ -5,6 +5,8 @@ import {
   ProductCategory,
   ProductAttributes,
   ProductInventory,
+  ProductVariant,
+  ProductImage,
 } from '@saas-template/shared';
 import { Organization } from '@/modules/organizations/entities/organization.entity';
 import { OrderItem } from '@/modules/orders/entities/order-item.entity';
@@ -57,6 +59,12 @@ export class Product extends BaseEntity {
 
   @Column({ type: 'jsonb', nullable: true })
   inventory?: ProductInventory;
+
+  @Column({ type: 'jsonb', nullable: true })
+  variants?: ProductVariant[];
+
+  @Column({ type: 'jsonb', nullable: true })
+  images?: ProductImage[];
 
   @Column({ type: 'jsonb', nullable: true })
   metadata?: Record<string, any>;

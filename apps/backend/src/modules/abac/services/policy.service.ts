@@ -82,6 +82,49 @@ export class PolicyService {
 
   async findApplicablePolicies(
     organizationId: string,
+    roles: string | string[],
+    userId?: string,
+  ): Promise<Policy[]> {
+    // Normalize roles to array
+    const roleArray = Array.isArray(roles) ? roles : [roles];
+    
+    // Build query for policies
+    const queryBuilder = this.policyRepository
+      .createQueryBuilder('policy')
+      .leftJoinAndSelect('policy.fieldRules', 'fieldRules')
+      .where('policy.organizationId = :organizationId', { organizationId })
+      .andWhere('policy.isActive = :isActive', { isActive: true });
+
+    // Add role conditions
+    const roleConditions = roleArray.map((role, index) => 
+      `policy.subjects->'roles' @> :role${index}`
+    ).join(' OR ');
+    
+    const roleParams = roleArray.reduce((acc, role, index) => ({
+      ...acc,
+      [`role${index}`]: JSON.stringify([role])
+    }), {});
+
+    // Also check for wildcard roles or user-specific policies
+    queryBuilder.andWhere(
+      `(
+        ${roleConditions} OR
+        policy.subjects->'roles' @> '"*"' OR
+        (policy.subjects->'users' @> :userId AND :userId IS NOT NULL)
+      )`,
+      { ...roleParams, userId: userId ? JSON.stringify([userId]) : null }
+    );
+
+    // Order by priority and effect
+    queryBuilder
+      .orderBy('policy.priority', 'ASC')
+      .addOrderBy('policy.effect', 'DESC'); // DENY policies first
+
+    return queryBuilder.getMany();
+  }
+
+  async findApplicablePoliciesByResource(
+    organizationId: string,
     resourceType: string,
   ): Promise<Policy[]> {
     // Get all active policies for the organization

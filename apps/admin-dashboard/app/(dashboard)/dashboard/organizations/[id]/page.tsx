@@ -12,6 +12,7 @@ import { OrganizationStats } from '@/components/organizations/organization-stats
 import { OrganizationTree } from '@/components/organizations/organization-tree';
 import { cn } from '@/lib/utils';
 import { useBreadcrumb } from '@/hooks/use-breadcrumb';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import {
   ArrowLeft,
   Building2,
@@ -59,6 +60,8 @@ export default function OrganizationDetailsPage() {
   const [hierarchy, setHierarchy] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Set breadcrumbs
   useBreadcrumb(
@@ -85,15 +88,25 @@ export default function OrganizationDetailsPage() {
 
   const fetchOrganizationData = useCallback(async () => {
     try {
-      const [orgResponse, statsResponse, hierarchyResponse] = await Promise.all([
-        organizationAPI.getById(params.id as string),
-        organizationAPI.hierarchy.getOrgStats(params.id as string),
-        organizationAPI.hierarchy.getHierarchy(params.id as string),
-      ]);
-
+      // Fetch organization details
+      const orgResponse = await organizationAPI.getById(params.id as string);
       setOrganization(orgResponse.data);
-      setOrganizationStats(statsResponse.data);
-      setHierarchy(hierarchyResponse.data);
+      
+      // For now, use placeholder stats until stats endpoint is implemented
+      setOrganizationStats({
+        totalMembers: 0,
+        totalChildren: 0,
+        totalPolicies: 0,
+      });
+      
+      // Try to fetch hierarchy, but don't fail if it doesn't exist
+      try {
+        const hierarchyResponse = await organizationAPI.hierarchy.getHierarchy(params.id as string);
+        setHierarchy(Array.isArray(hierarchyResponse.data) ? hierarchyResponse.data : []);
+      } catch (hierarchyError) {
+        console.log('Hierarchy data not available');
+        setHierarchy([]);
+      }
     } catch (error) {
       toast({
         title: 'Error',
@@ -133,10 +146,7 @@ export default function OrganizationDetailsPage() {
   };
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this organization?')) {
-      return;
-    }
-
+    setIsDeleting(true);
     try {
       await organizationAPI.delete(params.id as string);
       toast({
@@ -150,6 +160,7 @@ export default function OrganizationDetailsPage() {
         description: 'Failed to delete organization',
         variant: 'destructive',
       });
+      setIsDeleting(false);
     }
   };
 
@@ -185,7 +196,7 @@ export default function OrganizationDetailsPage() {
               <Edit className="mr-2 h-4 w-4" />
               Edit
             </Button>
-            <Button variant="outline" onClick={handleDelete}>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(true)}>
               <Trash2 className="mr-2 h-4 w-4" />
               Delete
             </Button>
@@ -370,6 +381,18 @@ export default function OrganizationDetailsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <ConfirmationDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={handleDelete}
+        title="Delete Organization"
+        description={`Are you sure you want to delete "${organization?.name}"? This action cannot be undone and will remove all associated data.`}
+        confirmText="Delete Organization"
+        cancelText="Cancel"
+        variant="destructive"
+        loading={isDeleting}
+      />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { UserAttributesController } from './controllers/user-attributes.controll
 import { User } from './entities/user.entity';
 import { UserOrganizationMembership } from './entities/user-organization-membership.entity';
 import { UserAttribute } from './entities/user-attribute.entity';
+import { UserRole } from './entities/user-role.entity';
 import { Organization } from '../organizations/entities/organization.entity';
 import { AttributeDefinition } from '../abac/entities/attribute-definition.entity';
 import { UserRepository } from './repositories/user.repository';
@@ -20,6 +21,7 @@ import { UserAttributesService } from './services/user-attributes.service';
       User, 
       UserOrganizationMembership,
       UserAttribute,
+      UserRole,
       Organization,
       AttributeDefinition
     ]),

@@ -26,6 +26,7 @@ import {
   UserCircle,
   LogOut,
   FileText,
+  FileSearch,
 } from 'lucide-react';
 
 const navigation = [
@@ -33,7 +34,9 @@ const navigation = [
   { name: 'Organizations', href: '/dashboard/organizations', icon: Building2 },
   { name: 'Users', href: '/dashboard/users', icon: Users },
   { name: 'Policies', href: '/dashboard/policies', icon: Shield },
+  { name: 'Field Permissions', href: '/dashboard/policies/field-permissions', icon: Shield },
   { name: 'Attributes', href: '/dashboard/attributes', icon: FileText },
+  { name: 'Field Access Audit', href: '/dashboard/audit/field-access', icon: FileSearch },
   { name: 'Products', href: '/dashboard/products', icon: Package },
   { name: 'Customers', href: '/dashboard/customers', icon: UserCircle },
   { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart },

@@ -1,4 +1,4 @@
-import { Entity, Column, Index, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, Index, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { BaseEntity } from '@/common/entities/base.entity';
 import {
   PolicyEffect,
@@ -8,6 +8,7 @@ import {
 } from '@saas-template/shared';
 import { Organization } from '@/modules/organizations/entities/organization.entity';
 import { PolicySet } from './policy-set.entity';
+import { PolicyFieldRule } from './policy-field-rule.entity';
 
 @Entity('policies')
 @Index(['organizationId', 'isActive'])
@@ -69,4 +70,15 @@ export class Policy extends BaseEntity {
 
   @Column({ type: 'jsonb', nullable: true })
   metadata?: Record<string, any>;
+
+  @Column({ 
+    name: 'field_permissions',
+    type: 'jsonb', 
+    nullable: true,
+    comment: 'Field-level permissions configuration'
+  })
+  fieldPermissions?: Record<string, any>;
+
+  @OneToMany(() => PolicyFieldRule, fieldRule => fieldRule.policy)
+  fieldRules: PolicyFieldRule[];
 }

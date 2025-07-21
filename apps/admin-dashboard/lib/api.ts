@@ -49,8 +49,8 @@ export const organizationAPI = {
       api.get('/organizations/hierarchy/stats', {
         params: { ids: ids.join(',') },
       }),
-    getHierarchy: (id: string) => api.get(`/organizations/hierarchy/${id}`),
-    getOrgStats: (id: string) => api.get(`/organizations/hierarchy/${id}/stats`),
+    getHierarchy: (id: string) => api.get(`/organizations/${id}/full-hierarchy`),
+    getOrgStats: (id: string) => api.get(`/organizations/${id}`), // Use regular getById for now
     getPath: (id: string) => api.get(`/organizations/hierarchy/${id}/path`),
     getSiblings: (id: string) => api.get(`/organizations/hierarchy/${id}/siblings`),
   },
@@ -82,6 +82,19 @@ export const userAPI = {
         'Content-Type': 'multipart/form-data',
       },
     }),
+  // Multi-role management
+  getUserRoles: (userId: string, organizationId: string) =>
+    api.get(`/users/${userId}/roles`, { params: { organizationId } }),
+  assignRole: (userId: string, organizationId: string, data: {
+    roleName: string;
+    assignedBy: string;
+    priority?: number;
+    validTo?: string;
+  }) => api.post(`/users/${userId}/roles`, { ...data, organizationId }),
+  removeRole: (userId: string, organizationId: string, roleName: string) =>
+    api.delete(`/users/${userId}/roles/${roleName}`, { params: { organizationId } }),
+  updateRolePriority: (userId: string, organizationId: string, roleName: string, priority: number) =>
+    api.patch(`/users/${userId}/roles/${roleName}`, { priority, organizationId }),
 };
 
 export const policyAPI = {

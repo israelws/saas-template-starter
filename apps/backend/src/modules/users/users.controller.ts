@@ -97,4 +97,63 @@ export class UsersController {
   ) {
     return this.usersService.setDefaultOrganization(id, organizationId);
   }
+
+  // Multi-role management endpoints
+  @Get(':id/roles')
+  @ApiOperation({ summary: 'Get user roles for an organization' })
+  getUserRoles(
+    @Param('id', ParseUUIDPipe) userId: string,
+    @Query('organizationId', ParseUUIDPipe) organizationId: string,
+  ) {
+    return this.usersService.getUserRoles(userId, organizationId);
+  }
+
+  @Post(':id/roles')
+  @ApiOperation({ summary: 'Assign a role to user' })
+  assignRole(
+    @Param('id', ParseUUIDPipe) userId: string,
+    @Body() body: {
+      organizationId: string;
+      roleName: string;
+      assignedBy: string;
+      priority?: number;
+      validTo?: string;
+    },
+  ) {
+    return this.usersService.assignRole(
+      userId,
+      body.organizationId,
+      body.roleName,
+      body.assignedBy,
+      {
+        priority: body.priority,
+        validTo: body.validTo ? new Date(body.validTo) : undefined,
+      },
+    );
+  }
+
+  @Delete(':id/roles/:roleName')
+  @ApiOperation({ summary: 'Remove a role from user' })
+  removeRole(
+    @Param('id', ParseUUIDPipe) userId: string,
+    @Param('roleName') roleName: string,
+    @Query('organizationId', ParseUUIDPipe) organizationId: string,
+  ) {
+    return this.usersService.removeRole(userId, organizationId, roleName);
+  }
+
+  @Patch(':id/roles/:roleName')
+  @ApiOperation({ summary: 'Update role priority' })
+  updateRolePriority(
+    @Param('id', ParseUUIDPipe) userId: string,
+    @Param('roleName') roleName: string,
+    @Body() body: { organizationId: string; priority: number },
+  ) {
+    return this.usersService.updateRolePriority(
+      userId,
+      body.organizationId,
+      roleName,
+      body.priority,
+    );
+  }
 }

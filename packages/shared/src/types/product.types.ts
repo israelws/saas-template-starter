@@ -27,6 +27,8 @@ export interface Product extends BaseEntity {
   organizationId: string;
   attributes?: ProductAttributes;
   inventory?: ProductInventory;
+  images?: ProductImage[];
+  variants?: ProductVariant[];
   metadata?: Record<string, any>;
 }
 
@@ -54,6 +56,30 @@ export interface ProductInventory {
   location?: string;
 }
 
+export interface ProductImage {
+  id?: string;
+  url: string;
+  alt?: string;
+  isPrimary: boolean;
+  order: number;
+}
+
+export interface ProductVariant {
+  id?: string;
+  sku: string;
+  name: string;
+  price?: number;
+  inventory?: ProductInventory;
+  attributes?: {
+    size?: string;
+    color?: string;
+    material?: string;
+    [key: string]: any;
+  };
+  images?: ProductImage[];
+  isActive: boolean;
+}
+
 export interface CreateProductDto {
   sku: string;
   name: string;
@@ -64,6 +90,8 @@ export interface CreateProductDto {
   organizationId: string;
   attributes?: Partial<ProductAttributes>;
   inventory?: Partial<ProductInventory>;
+  images?: ProductImage[];
+  variants?: Omit<ProductVariant, 'id'>[];
   metadata?: Record<string, any>;
 }
 

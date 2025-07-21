@@ -32,7 +32,7 @@ interface OrganizationTreeProps {
   onSelectOrganization?: (organization: OrganizationNode) => void;
   onAddOrganization?: (parentId: string | null) => void;
   onEditOrganization?: (organization: OrganizationNode) => void;
-  onDeleteOrganization?: (organizationId: string) => void;
+  onDeleteOrganization?: (organization: OrganizationNode) => void;
   onViewDetails?: (organization: OrganizationNode) => void;
   expandedNodes?: Set<string>;
   onToggleExpand?: (nodeId: string) => void;
@@ -45,7 +45,7 @@ interface TreeNodeProps {
   onSelectOrganization?: (organization: OrganizationNode) => void;
   onAddOrganization?: (parentId: string | null) => void;
   onEditOrganization?: (organization: OrganizationNode) => void;
-  onDeleteOrganization?: (organizationId: string) => void;
+  onDeleteOrganization?: (organization: OrganizationNode) => void;
   onViewDetails?: (organization: OrganizationNode) => void;
   expandedNodes: Set<string>;
   onToggleExpand: (nodeId: string) => void;
@@ -156,7 +156,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => onDeleteOrganization?.(node.id)}
+                onClick={() => onDeleteOrganization?.(node)}
                 className="text-destructive"
               >
                 Delete
