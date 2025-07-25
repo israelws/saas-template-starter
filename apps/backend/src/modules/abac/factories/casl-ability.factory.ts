@@ -16,8 +16,12 @@ import { Customer } from '../../customers/entities/customer.entity';
 import { Order } from '../../orders/entities/order.entity';
 import { PolicyService } from '../services/policy.service';
 import { UsersService } from '../../users/users.service';
+import { PolicyEffect } from '../entities/policy.entity';
 
-// Define all possible actions
+/**
+ * All possible actions that can be performed on resources
+ * @typedef {string} Action
+ */
 export type Action = 
   | 'manage' 
   | 'create' 
@@ -28,7 +32,10 @@ export type Action =
   | 'export'
   | 'import';
 
-// Define all subjects
+/**
+ * All subject types that can be protected by CASL abilities
+ * @typedef {InferSubjects|'all'} Subjects
+ */
 export type Subjects = 
   | InferSubjects<
       | typeof User 
@@ -39,24 +46,49 @@ export type Subjects =
     >
   | 'all';
 
-// Define ability type
+/**
+ * CASL ability type for the application using MongoDB-style conditions
+ * @typedef {MongoAbility} AppAbility
+ */
 export type AppAbility = MongoAbility<[Action, Subjects]>;
 
-// Define conditions type
+/**
+ * MongoDB query conditions for CASL rules
+ * @typedef {MongoQuery} Conditions
+ */
 export type Conditions = MongoQuery;
 
-// Field permission configuration
+/**
+ * Field permission configuration for fine-grained access control
+ * @interface FieldPermissions
+ */
 export interface FieldPermissions {
+  /** Array of field names that can be read */
   readable?: string[];
+  /** Array of field names that can be written/modified */
   writable?: string[];
+  /** Array of field names that are explicitly denied (overrides readable/writable) */
   denied?: string[];
 }
 
-// Ability with field permissions
+/**
+ * Extended CASL ability that includes field-level permissions
+ * @interface AppAbilityWithFields
+ * @extends {AppAbility}
+ */
 export interface AppAbilityWithFields extends AppAbility {
+  /** Map of resource types to their field permissions */
   fieldPermissions: Map<string, FieldPermissions>;
 }
 
+/**
+ * Factory service for creating CASL abilities based on user policies
+ * Integrates with the existing ABAC system to provide both resource-level
+ * and field-level access control
+ * 
+ * @class CaslAbilityFactory
+ * @injectable
+ */
 @Injectable()
 export class CaslAbilityFactory {
   constructor(
@@ -66,7 +98,25 @@ export class CaslAbilityFactory {
   ) {}
 
   /**
-   * Create ability for a user in a specific organization context
+   * Creates a CASL ability instance for a user within a specific organization context
+   * 
+   * @async
+   * @param {User} user - The user for whom to create abilities
+   * @param {string} organizationId - The organization context
+   * @param {Object} [options] - Optional configuration
+   * @param {boolean} [options.includeFieldPermissions=true] - Whether to include field permissions
+   * @param {string} [options.resourceType] - Specific resource type to filter permissions
+   * @param {string} [options.resourceId] - Specific resource ID to filter permissions
+   * @returns {Promise<AppAbilityWithFields>} The user's abilities with field permissions
+   * 
+   * @example
+   * ```typescript
+   * const ability = await caslAbilityFactory.createForUser(user, 'org-123');
+   * if (ability.can('read', 'Product')) {
+   *   const fields = ability.fieldPermissions.get('Product');
+   *   // Filter product fields based on permissions
+   * }
+   * ```
    */
   async createForUser(
     user: User, 
@@ -77,9 +127,7 @@ export class CaslAbilityFactory {
       resourceId?: string;
     }
   ): Promise<AppAbilityWithFields> {
-    const { can, cannot, build } = new AbilityBuilder<AppAbility>(
-      createMongoAbility as AbilityClass<AppAbility>
-    );
+    const { can, cannot, build } = new AbilityBuilder<AppAbility>(createMongoAbility);
     
     // Get user roles in the organization
     const userRoles = await this.getUserRolesInOrganization(user.id, organizationId);
@@ -102,7 +150,7 @@ export class CaslAbilityFactory {
     
     // Process each policy
     for (const policy of policies) {
-      if (!policy.is_active) continue;
+      if (!policy.isActive) continue;
       
       const effect = policy.effect;
       const actions = policy.actions || [];
@@ -112,18 +160,18 @@ export class CaslAbilityFactory {
         for (const resourceType of resourceTypes) {
           const conditions = this.buildConditions(policy, user, organizationId);
           
-          if (effect === 'Allow') {
-            can(action as Action, resourceType, conditions);
+          if (effect === PolicyEffect.ALLOW) {
+            can(action as Action, resourceType as any, conditions);
           } else {
-            cannot(action as Action, resourceType, conditions);
+            cannot(action as Action, resourceType as any, conditions);
           }
           
           // Process field permissions if available
-          if (policy.field_permissions && options?.includeFieldPermissions) {
+          if (policy.fieldPermissions && options?.includeFieldPermissions) {
             this.processFieldPermissions(
               fieldPermissions,
               resourceType,
-              policy.field_permissions
+              policy.fieldPermissions
             );
           }
         }
@@ -140,7 +188,14 @@ export class CaslAbilityFactory {
   }
 
   /**
-   * Get user roles in a specific organization
+   * Retrieves user roles in a specific organization
+   * Supports both multi-role system and legacy single-role memberships
+   * 
+   * @private
+   * @async
+   * @param {string} userId - The user's ID
+   * @param {string} organizationId - The organization's ID
+   * @returns {Promise<string[]>} Array of role names, defaults to ['user'] if no roles found
    */
   private async getUserRolesInOrganization(
     userId: string, 
@@ -149,7 +204,7 @@ export class CaslAbilityFactory {
     // First, check the new multi-role system
     const multiRoles = await this.userService.getUserRoles(userId, organizationId);
     if (multiRoles.length > 0) {
-      return multiRoles.map(role => role.role_name);
+      return multiRoles.map(role => role.roleName);
     }
     
     // Fall back to single role from membership
@@ -162,7 +217,12 @@ export class CaslAbilityFactory {
   }
 
   /**
-   * Extract resource types from policy resources configuration
+   * Extracts resource types from various policy resource configurations
+   * Handles multiple formats: array, object with types, object with type
+   * 
+   * @private
+   * @param {any} resources - Policy resources configuration
+   * @returns {string[]} Array of resource type names
    */
   private extractResourceTypes(resources: any): string[] {
     if (!resources) return [];
@@ -183,7 +243,14 @@ export class CaslAbilityFactory {
   }
 
   /**
-   * Build conditions from policy configuration
+   * Builds MongoDB-style conditions from policy configuration
+   * Evaluates dynamic conditions based on user attributes and organization context
+   * 
+   * @private
+   * @param {any} policy - The policy object containing conditions
+   * @param {User} user - The user for condition evaluation
+   * @param {string} organizationId - The organization context
+   * @returns {Conditions} MongoDB query conditions for CASL
    */
   private buildConditions(
     policy: any, 

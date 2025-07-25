@@ -44,13 +44,13 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
       localStorage.setItem('authToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);
       localStorage.setItem('userData', JSON.stringify(user));
-      
+
       // Update Redux store
       dispatch(loginSuccess({ user, token: accessToken }));
 
       // Set cookie for SSR - ensure it's set before navigation
       setCookie('authToken', accessToken, 7);
-      
+
       // Also set cookie from server for better reliability
       try {
         await fetch('/api/auth/set-cookie', {
@@ -74,7 +74,8 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
         router.push(redirect || '/dashboard');
       }, 100);
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Invalid email or password';
+      const errorMessage =
+        error.response?.data?.message || error.message || 'Invalid email or password';
       dispatch(loginFailure(errorMessage));
 
       toast({
@@ -88,14 +89,10 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
   }
 
   return (
-    <div className={cn("grid gap-6", className)} {...props}>
+    <div className={cn('grid gap-6', className)} {...props}>
       <div className="flex flex-col space-y-2 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Welcome back
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Enter your email to sign in to your account
-        </p>
+        <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
+        <p className="text-sm text-muted-foreground">Enter your email to sign in to your account</p>
       </div>
       <form onSubmit={onSubmit}>
         <div className="grid gap-4">
@@ -115,10 +112,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
           <div className="grid gap-2">
             <div className="flex items-center">
               <Label htmlFor="password">Password</Label>
-              <Link
-                href="/forgot-password"
-                className="ml-auto inline-block text-sm underline"
-              >
+              <Link href="/forgot-password" className="ml-auto inline-block text-sm underline">
                 Forgot your password?
               </Link>
             </div>
@@ -143,16 +137,12 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
                 ) : (
                   <Icons.eye className="h-4 w-4" aria-hidden="true" />
                 )}
-                <span className="sr-only">
-                  {showPassword ? 'Hide password' : 'Show password'}
-                </span>
+                <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
               </Button>
             </div>
           </div>
           <Button disabled={isLoading} type="submit" className="w-full">
-            {isLoading && (
-              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-            )}
+            {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
             Sign in
           </Button>
         </div>
@@ -162,9 +152,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            Or continue with
-          </span>
+          <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
         </div>
       </div>
       <div className="grid gap-2">
@@ -186,26 +174,17 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
         </Button>
       </div>
       <p className="px-8 text-center text-sm text-muted-foreground">
-        <Link
-          href="/register"
-          className="hover:text-brand underline underline-offset-4"
-        >
+        <Link href="/register" className="hover:text-brand underline underline-offset-4">
           Don&apos;t have an account? Sign Up
         </Link>
       </p>
       <p className="px-8 text-center text-xs text-muted-foreground">
         By signing in, you agree to our{' '}
-        <Link
-          href="/terms"
-          className="underline underline-offset-4 hover:text-primary"
-        >
+        <Link href="/terms" className="underline underline-offset-4 hover:text-primary">
           Terms of Service
         </Link>{' '}
         and{' '}
-        <Link
-          href="/privacy"
-          className="underline underline-offset-4 hover:text-primary"
-        >
+        <Link href="/privacy" className="underline underline-offset-4 hover:text-primary">
           Privacy Policy
         </Link>
       </p>

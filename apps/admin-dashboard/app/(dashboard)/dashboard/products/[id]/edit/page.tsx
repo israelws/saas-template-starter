@@ -77,7 +77,7 @@ export default function EditProductPage() {
     try {
       const response = await productAPI.getById(params.id as string);
       const product = response.data;
-      
+
       setFormData({
         name: product.name,
         sku: product.sku,
@@ -87,12 +87,14 @@ export default function EditProductPage() {
         inventory: product.inventory?.quantity?.toString() || '0',
         status: product.status || 'active',
       });
-      
+
       setImages(product.images || []);
-      setVariants((product.variants || []).map((v: ProductVariant) => ({
-        ...v,
-        tempId: v.id,
-      })));
+      setVariants(
+        (product.variants || []).map((v: ProductVariant) => ({
+          ...v,
+          tempId: v.id,
+        })),
+      );
     } catch (error) {
       toast({
         title: 'Error',
@@ -130,13 +132,15 @@ export default function EditProductPage() {
       const productData = {
         ...formData,
         price: parseFloat(formData.price),
-        inventory: formData.inventory ? {
-          quantity: parseInt(formData.inventory),
-          reserved: 0,
-          available: parseInt(formData.inventory),
-          reorderLevel: 0,
-          reorderQuantity: 0,
-        } : undefined,
+        inventory: formData.inventory
+          ? {
+              quantity: parseInt(formData.inventory),
+              reserved: 0,
+              available: parseInt(formData.inventory),
+              reorderLevel: 0,
+              reorderQuantity: 0,
+            }
+          : undefined,
         images: images,
         variants: variants.map(({ tempId, ...variant }) => variant),
       };
@@ -198,7 +202,7 @@ export default function EditProductPage() {
       prev.map((img, i) => ({
         ...img,
         isPrimary: i === index,
-      }))
+      })),
     );
   };
 
@@ -216,7 +220,7 @@ export default function EditProductPage() {
     const attributes: { [key: string]: any } = {};
     if (variantForm.size) attributes.size = variantForm.size;
     if (variantForm.color) attributes.color = variantForm.color;
-    
+
     // Add custom attributes
     customAttributes.forEach(({ key, value }) => {
       attributes[key] = value;
@@ -284,11 +288,7 @@ export default function EditProductPage() {
   return (
     <div>
       <div className="mb-8">
-        <Button
-          variant="ghost"
-          onClick={() => router.push('/dashboard/products')}
-          className="mb-4"
-        >
+        <Button variant="ghost" onClick={() => router.push('/dashboard/products')} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Products
         </Button>
@@ -430,7 +430,10 @@ export default function EditProductPage() {
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-center w-full">
-                    <label htmlFor="image-upload" className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                    <label
+                      htmlFor="image-upload"
+                      className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+                    >
                       <div className="flex flex-col items-center justify-center pt-5 pb-6">
                         <Upload className="w-8 h-8 mb-4 text-gray-400" />
                         <p className="mb-2 text-sm text-gray-500">
@@ -503,7 +506,9 @@ export default function EditProductPage() {
                       <Input
                         id="variant-sku"
                         value={variantForm.sku}
-                        onChange={(e) => setVariantForm({ ...variantForm, sku: e.target.value.toUpperCase() })}
+                        onChange={(e) =>
+                          setVariantForm({ ...variantForm, sku: e.target.value.toUpperCase() })
+                        }
                         placeholder="VAR-001"
                       />
                     </div>
@@ -551,7 +556,9 @@ export default function EditProductPage() {
                         id="variant-inventory"
                         type="number"
                         value={variantForm.inventory}
-                        onChange={(e) => setVariantForm({ ...variantForm, inventory: e.target.value })}
+                        onChange={(e) =>
+                          setVariantForm({ ...variantForm, inventory: e.target.value })
+                        }
                         placeholder="0"
                       />
                     </div>
@@ -589,7 +596,9 @@ export default function EditProductPage() {
 
                     {customAttributes.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-sm text-muted-foreground">Attributes to add to variant:</p>
+                        <p className="text-sm text-muted-foreground">
+                          Attributes to add to variant:
+                        </p>
                         <div className="flex flex-wrap gap-2">
                           {customAttributes.map((attr, index) => (
                             <div

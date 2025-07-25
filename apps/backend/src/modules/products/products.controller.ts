@@ -14,7 +14,14 @@ import {
   UseInterceptors,
   Request,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { 
+  ApiTags, 
+  ApiOperation, 
+  ApiBearerAuth,
+  ApiResponse,
+  ApiParam,
+  ApiQuery
+} from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import {
   CreateProductDto,
@@ -166,7 +173,53 @@ export class ProductsController {
 
   @Get(':id/field-permissions')
   @RequirePermission('product', 'read')
-  @ApiOperation({ summary: 'Get field permissions for the current user' })
+  @ApiOperation({ 
+    summary: 'Get field permissions for the current user',
+    description: 'Returns the field-level permissions for a specific product, showing which fields the current user can read, write, or are denied access to'
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Product ID',
+    type: 'string',
+    format: 'uuid'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Field permissions for the product',
+    schema: {
+      type: 'object',
+      properties: {
+        resourceType: { type: 'string', example: 'Product' },
+        resourceId: { type: 'string', format: 'uuid' },
+        permissions: {
+          type: 'object',
+          properties: {
+            readable: { 
+              type: 'array', 
+              items: { type: 'string' },
+              example: ['id', 'name', 'price', 'description'],
+              description: 'Fields the user can read'
+            },
+            writable: { 
+              type: 'array', 
+              items: { type: 'string' },
+              example: ['name', 'price', 'description'],
+              description: 'Fields the user can modify'
+            },
+            denied: { 
+              type: 'array', 
+              items: { type: 'string' },
+              example: ['costPrice', 'profitMargin'],
+              description: 'Fields explicitly denied (overrides readable/writable)'
+            }
+          }
+        },
+        canDelete: { type: 'boolean', description: 'Whether user can delete this product' },
+        canApprove: { type: 'boolean', description: 'Whether user can approve this product' }
+      }
+    }
+  })
+  @ApiResponse({ status: 404, description: 'Product not found' })
   async getFieldPermissions(
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req,
@@ -204,7 +257,87 @@ export class ProductsController {
 
   @Get('test-field-permissions')
   @RequirePermission('product', 'read')
-  @ApiOperation({ summary: 'Test field permissions for a user' })
+  @ApiOperation({ 
+    summary: 'Test field permissions for a user',
+    description: 'Tests and returns the field-level permissions for a specific user and resource type. This endpoint is useful for debugging and understanding what fields a user can access.'
+  })
+  @ApiQuery({
+    name: 'userId',
+    description: 'ID of the user to test permissions for',
+    type: 'string',
+    required: true
+  })
+  @ApiQuery({
+    name: 'organizationId',
+    description: 'Organization context for permission evaluation',
+    type: 'string',
+    required: true
+  })
+  @ApiQuery({
+    name: 'resourceType',
+    description: 'Type of resource to check permissions for',
+    type: 'string',
+    required: true,
+    enum: ['Customer', 'Product', 'User', 'Order', 'Transaction'],
+    example: 'Product'
+  })
+  @ApiQuery({
+    name: 'action',
+    description: 'Action to test (read or write)',
+    type: 'string',
+    required: true,
+    enum: ['read', 'write'],
+    example: 'read'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Field permissions test results',
+    schema: {
+      type: 'object',
+      properties: {
+        allowed: { 
+          type: 'boolean', 
+          description: 'Whether the action is allowed' 
+        },
+        resourceType: { 
+          type: 'string', 
+          description: 'Resource type tested' 
+        },
+        action: { 
+          type: 'string', 
+          enum: ['read', 'write'],
+          description: 'Action tested' 
+        },
+        readable: { 
+          type: 'array', 
+          items: { type: 'string' },
+          description: 'Fields the user can read',
+          example: ['id', 'name', 'email', 'phone', 'address']
+        },
+        writable: { 
+          type: 'array', 
+          items: { type: 'string' },
+          description: 'Fields the user can modify',
+          example: ['phone', 'email', 'address']
+        },
+        denied: { 
+          type: 'array', 
+          items: { type: 'string' },
+          description: 'Fields explicitly denied to the user',
+          example: ['ssn', 'dateOfBirth', 'creditScore']
+        },
+        fieldPermissions: {
+          type: 'object',
+          description: 'Complete field permissions object',
+          properties: {
+            readable: { type: 'array', items: { type: 'string' } },
+            writable: { type: 'array', items: { type: 'string' } },
+            denied: { type: 'array', items: { type: 'string' } }
+          }
+        }
+      }
+    }
+  })
   async testFieldPermissions(
     @Query('userId', ParseUUIDPipe) userId: string,
     @Query('organizationId', ParseUUIDPipe) organizationId: string,

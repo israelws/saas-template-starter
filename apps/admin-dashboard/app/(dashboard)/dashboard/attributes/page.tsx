@@ -119,7 +119,7 @@ export default function AttributesPage() {
 
   const filteredAttributes = React.useMemo(() => {
     if (!Array.isArray(attributes)) return [];
-    
+
     return attributes.filter((attr) => {
       const matchesSearch =
         attr.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -171,8 +171,8 @@ export default function AttributesPage() {
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         {ATTRIBUTE_CATEGORIES.slice(1).map((category) => {
-          const count = Array.isArray(attributes) 
-            ? attributes.filter((a) => a.category === category.value).length 
+          const count = Array.isArray(attributes)
+            ? attributes.filter((a) => a.category === category.value).length
             : 0;
           const Icon = category.icon;
 

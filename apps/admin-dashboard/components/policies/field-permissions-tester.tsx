@@ -4,24 +4,30 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import { useAppSelector } from '@/store/hooks';
-import { 
-  TestTube, 
-  Shield, 
-  Eye, 
-  EyeOff, 
-  Edit, 
-  CheckCircle, 
+import {
+  TestTube,
+  Shield,
+  Eye,
+  EyeOff,
+  Edit,
+  CheckCircle,
   XCircle,
   AlertCircle,
   FileJson,
-  Play
+  Play,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -56,7 +62,7 @@ const SAMPLE_DATA = {
       street: '123 Main St',
       city: 'Anytown',
       state: 'CA',
-      zip: '12345'
+      zip: '12345',
     },
     internalNotes: 'VIP customer, handle with care',
     riskScore: 3.5,
@@ -66,7 +72,7 @@ const SAMPLE_DATA = {
     name: 'Premium Insurance Package',
     description: 'Comprehensive coverage for all your needs',
     price: 199.99,
-    costPrice: 120.00,
+    costPrice: 120.0,
     profitMargin: 0.4,
     sku: 'INS-PREM-001',
     category: 'Insurance',
@@ -90,9 +96,9 @@ const SAMPLE_DATA = {
 
 export function FieldPermissionsTester() {
   const { toast } = useToast();
-  const organizationId = useAppSelector(state => state.organization.currentOrganization?.id);
+  const organizationId = useAppSelector((state) => state.organization.currentOrganization?.id);
   const [loading, setLoading] = useState(false);
-  
+
   // Test configuration
   const [selectedUser, setSelectedUser] = useState('');
   const [selectedResource, setSelectedResource] = useState('Customer');
@@ -123,16 +129,14 @@ export function FieldPermissionsTester() {
       });
 
       const permissions = response.data;
-      
+
       // Apply field filtering to sample data
-      const sampleData = customData 
-        ? JSON.parse(customData) 
-        : SAMPLE_DATA[selectedResource] || {};
-      
+      const sampleData = customData ? JSON.parse(customData) : SAMPLE_DATA[selectedResource] || {};
+
       const filteredData = applyFieldFiltering(
         sampleData,
         permissions.readableFields || [],
-        permissions.deniedFields || []
+        permissions.deniedFields || [],
       );
 
       setTestResult({
@@ -160,7 +164,7 @@ export function FieldPermissionsTester() {
   const applyFieldFiltering = (
     data: any,
     readableFields: string[],
-    deniedFields: string[]
+    deniedFields: string[],
   ): any => {
     if (!data || typeof data !== 'object') return data;
 
@@ -188,10 +192,10 @@ export function FieldPermissionsTester() {
 
   const renderFieldStatus = (field: string, data: any) => {
     const isDenied = testResult?.deniedFields?.includes(field);
-    const isReadable = testResult?.readableFields?.includes(field) || 
-                      testResult?.readableFields?.includes('*');
-    const isWritable = testResult?.writableFields?.includes(field) ||
-                      testResult?.writableFields?.includes('*');
+    const isReadable =
+      testResult?.readableFields?.includes(field) || testResult?.readableFields?.includes('*');
+    const isWritable =
+      testResult?.writableFields?.includes(field) || testResult?.writableFields?.includes('*');
     const isInFilteredData = testResult?.filteredData && field in testResult.filteredData;
 
     return (
@@ -200,8 +204,12 @@ export function FieldPermissionsTester() {
         className={cn(
           'flex items-center justify-between p-3 rounded-lg border',
           isDenied && 'bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800',
-          !isDenied && isInFilteredData && 'bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800',
-          !isDenied && !isInFilteredData && 'bg-gray-50 border-gray-200 dark:bg-gray-950 dark:border-gray-800'
+          !isDenied &&
+            isInFilteredData &&
+            'bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800',
+          !isDenied &&
+            !isInFilteredData &&
+            'bg-gray-50 border-gray-200 dark:bg-gray-950 dark:border-gray-800',
         )}
       >
         <div className="flex items-center gap-3">
@@ -217,9 +225,7 @@ export function FieldPermissionsTester() {
           <div>
             <div className="font-medium">{field}</div>
             <div className="text-sm text-muted-foreground">
-              {typeof data[field] === 'object' 
-                ? JSON.stringify(data[field]) 
-                : String(data[field])}
+              {typeof data[field] === 'object' ? JSON.stringify(data[field]) : String(data[field])}
             </div>
           </div>
         </div>
@@ -319,11 +325,7 @@ export function FieldPermissionsTester() {
         </div>
 
         {/* Run Test Button */}
-        <Button 
-          onClick={handleRunTest} 
-          disabled={loading || !selectedUser}
-          className="w-full"
-        >
+        <Button onClick={handleRunTest} disabled={loading || !selectedUser} className="w-full">
           <Play className="h-4 w-4 mr-2" />
           {loading ? 'Running Test...' : 'Run Field Permissions Test'}
         </Button>
@@ -351,8 +353,8 @@ export function FieldPermissionsTester() {
 
                 <TabsContent value="comparison" className="space-y-3">
                   <div className="space-y-2">
-                    {Object.keys(testResult.sampleData).map(field => 
-                      renderFieldStatus(field, testResult.sampleData)
+                    {Object.keys(testResult.sampleData).map((field) =>
+                      renderFieldStatus(field, testResult.sampleData),
                     )}
                   </div>
                 </TabsContent>
@@ -402,7 +404,7 @@ export function FieldPermissionsTester() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-1">
-                    {(testResult.readableFields || []).map(field => (
+                    {(testResult.readableFields || []).map((field) => (
                       <Badge key={field} variant="outline" className="text-xs">
                         {field}
                       </Badge>
@@ -423,7 +425,7 @@ export function FieldPermissionsTester() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-1">
-                    {(testResult.writableFields || []).map(field => (
+                    {(testResult.writableFields || []).map((field) => (
                       <Badge key={field} variant="outline" className="text-xs">
                         {field}
                       </Badge>
@@ -444,7 +446,7 @@ export function FieldPermissionsTester() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-1">
-                    {(testResult.deniedFields || []).map(field => (
+                    {(testResult.deniedFields || []).map((field) => (
                       <Badge key={field} variant="destructive" className="text-xs">
                         {field}
                       </Badge>

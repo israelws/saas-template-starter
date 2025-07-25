@@ -4,7 +4,7 @@ export const decodeJWT = (token: string) => {
     if (parts.length !== 3) {
       return null;
     }
-    
+
     const payload = JSON.parse(atob(parts[1]));
     return payload;
   } catch (error) {
@@ -18,7 +18,7 @@ export const isTokenExpired = (token: string) => {
   if (!payload || !payload.exp) {
     return true;
   }
-  
+
   return Date.now() >= payload.exp * 1000;
 };
 
@@ -27,18 +27,18 @@ export const getTokenExpiryTime = (token: string) => {
   if (!payload || !payload.exp) {
     return null;
   }
-  
+
   return new Date(payload.exp * 1000);
 };
 
 export const logTokenStatus = () => {
   const accessToken = localStorage.getItem('authToken');
   const refreshToken = localStorage.getItem('refreshToken');
-  
+
   console.log('=== Token Status ===');
   console.log('Access token exists:', !!accessToken);
   console.log('Refresh token exists:', !!refreshToken);
-  
+
   if (accessToken) {
     const payload = decodeJWT(accessToken);
     if (payload) {
@@ -47,10 +47,10 @@ export const logTokenStatus = () => {
       console.log('Access token subject:', payload.sub);
     }
   }
-  
+
   if (refreshToken) {
     console.log('Refresh token (first 50 chars):', refreshToken.substring(0, 50));
   }
-  
+
   console.log('==================');
 };

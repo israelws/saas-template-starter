@@ -7,6 +7,7 @@ export * from './types/customer.types';
 export * from './types/order.types';
 export * from './types/transaction.types';
 export * from './types/common.types';
+export * from './types/insurance.types';
 
 // Constants
 export * from './constants/organization.constants';

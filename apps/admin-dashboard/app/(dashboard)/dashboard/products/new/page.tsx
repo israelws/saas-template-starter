@@ -90,13 +90,15 @@ export default function NewProductPage() {
       const productData = {
         ...formData,
         price: parseFloat(formData.price),
-        inventory: formData.inventory ? {
-          quantity: parseInt(formData.inventory),
-          reserved: 0,
-          available: parseInt(formData.inventory),
-          reorderLevel: 0,
-          reorderQuantity: 0,
-        } : undefined,
+        inventory: formData.inventory
+          ? {
+              quantity: parseInt(formData.inventory),
+              reserved: 0,
+              available: parseInt(formData.inventory),
+              reorderLevel: 0,
+              reorderQuantity: 0,
+            }
+          : undefined,
         images: images,
         variants: variants.map(({ tempId, ...variant }) => variant),
       };
@@ -158,7 +160,7 @@ export default function NewProductPage() {
       prev.map((img, i) => ({
         ...img,
         isPrimary: i === index,
-      }))
+      })),
     );
   };
 
@@ -176,7 +178,7 @@ export default function NewProductPage() {
     const attributes: { [key: string]: any } = {};
     if (variantForm.size) attributes.size = variantForm.size;
     if (variantForm.color) attributes.color = variantForm.color;
-    
+
     // Add custom attributes
     customAttributes.forEach(({ key, value }) => {
       attributes[key] = value;
@@ -238,11 +240,7 @@ export default function NewProductPage() {
   return (
     <div>
       <div className="mb-8">
-        <Button
-          variant="ghost"
-          onClick={() => router.push('/dashboard/products')}
-          className="mb-4"
-        >
+        <Button variant="ghost" onClick={() => router.push('/dashboard/products')} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Products
         </Button>
@@ -265,110 +263,110 @@ export default function NewProductPage() {
                 <CardDescription>Enter the basic information for the new product</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="name">Product Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => handleChange('name', e.target.value)}
-                  placeholder="Enter product name"
-                  required
-                  disabled={isLoading}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="sku">SKU *</Label>
-                <Input
-                  id="sku"
-                  value={formData.sku}
-                  onChange={(e) => handleChange('sku', e.target.value.toUpperCase())}
-                  placeholder="PROD-001"
-                  required
-                  disabled={isLoading}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Stock Keeping Unit - unique identifier
-                </p>
-              </div>
-            </div>
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Product Name *</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => handleChange('name', e.target.value)}
+                      placeholder="Enter product name"
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="sku">SKU *</Label>
+                    <Input
+                      id="sku"
+                      value={formData.sku}
+                      onChange={(e) => handleChange('sku', e.target.value.toUpperCase())}
+                      placeholder="PROD-001"
+                      required
+                      disabled={isLoading}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Stock Keeping Unit - unique identifier
+                    </p>
+                  </div>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => handleChange('description', e.target.value)}
-                placeholder="Enter product description"
-                rows={4}
-                disabled={isLoading}
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => handleChange('description', e.target.value)}
+                    placeholder="Enter product description"
+                    rows={4}
+                    disabled={isLoading}
+                  />
+                </div>
 
-            <div className="grid gap-6 md:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="price">Price *</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.price}
-                  onChange={(e) => handleChange('price', e.target.value)}
-                  placeholder="0.00"
-                  required
-                  disabled={isLoading}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Select
-                  value={formData.category}
-                  onValueChange={(value) => handleChange('category', value)}
-                  disabled={isLoading}
-                >
-                  <SelectTrigger id="category">
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category.value} value={category.value}>
-                        {category.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="inventory">Initial Inventory</Label>
-                <Input
-                  id="inventory"
-                  type="number"
-                  min="0"
-                  value={formData.inventory}
-                  onChange={(e) => handleChange('inventory', e.target.value)}
-                  placeholder="0"
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
+                <div className="grid gap-6 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="price">Price *</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={formData.price}
+                      onChange={(e) => handleChange('price', e.target.value)}
+                      placeholder="0.00"
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Category</Label>
+                    <Select
+                      value={formData.category}
+                      onValueChange={(value) => handleChange('category', value)}
+                      disabled={isLoading}
+                    >
+                      <SelectTrigger id="category">
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.value} value={category.value}>
+                            {category.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="inventory">Initial Inventory</Label>
+                    <Input
+                      id="inventory"
+                      type="number"
+                      min="0"
+                      value={formData.inventory}
+                      onChange={(e) => handleChange('inventory', e.target.value)}
+                      placeholder="0"
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={formData.isActive ? 'active' : 'inactive'}
-                onValueChange={(value) => handleChange('isActive', value === 'active')}
-                disabled={isLoading}
-              >
-                <SelectTrigger id="status">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={formData.isActive ? 'active' : 'inactive'}
+                    onValueChange={(value) => handleChange('isActive', value === 'active')}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger id="status">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -382,7 +380,10 @@ export default function NewProductPage() {
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-center w-full">
-                    <label htmlFor="image-upload" className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                    <label
+                      htmlFor="image-upload"
+                      className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+                    >
                       <div className="flex flex-col items-center justify-center pt-5 pb-6">
                         <Upload className="w-8 h-8 mb-4 text-gray-400" />
                         <p className="mb-2 text-sm text-gray-500">
@@ -455,7 +456,9 @@ export default function NewProductPage() {
                       <Input
                         id="variant-sku"
                         value={variantForm.sku}
-                        onChange={(e) => setVariantForm({ ...variantForm, sku: e.target.value.toUpperCase() })}
+                        onChange={(e) =>
+                          setVariantForm({ ...variantForm, sku: e.target.value.toUpperCase() })
+                        }
                         placeholder="VAR-001"
                       />
                     </div>
@@ -503,7 +506,9 @@ export default function NewProductPage() {
                         id="variant-inventory"
                         type="number"
                         value={variantForm.inventory}
-                        onChange={(e) => setVariantForm({ ...variantForm, inventory: e.target.value })}
+                        onChange={(e) =>
+                          setVariantForm({ ...variantForm, inventory: e.target.value })
+                        }
                         placeholder="0"
                       />
                     </div>
@@ -541,7 +546,9 @@ export default function NewProductPage() {
 
                     {customAttributes.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-sm text-muted-foreground">Attributes to add to variant:</p>
+                        <p className="text-sm text-muted-foreground">
+                          Attributes to add to variant:
+                        </p>
                         <div className="flex flex-wrap gap-2">
                           {customAttributes.map((attr, index) => (
                             <div

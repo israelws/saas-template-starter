@@ -26,17 +26,17 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import { useAppSelector } from '@/store/hooks';
-import { 
-  FileSearch, 
-  Shield, 
-  User, 
+import {
+  FileSearch,
+  Shield,
+  User,
   Calendar as CalendarIcon,
   Filter,
   Download,
   RefreshCw,
   Eye,
   EyeOff,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -60,8 +60,8 @@ interface FieldAccessLog {
 
 export function FieldAccessAuditLog() {
   const { toast } = useToast();
-  const organizationId = useAppSelector(state => state.organization.currentOrganization?.id);
-  
+  const organizationId = useAppSelector((state) => state.organization.currentOrganization?.id);
+
   const [logs, setLogs] = useState<FieldAccessLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
@@ -80,7 +80,7 @@ export function FieldAccessAuditLog() {
 
   const fetchLogs = async () => {
     if (!organizationId) return;
-    
+
     setLoading(true);
     try {
       // In a real implementation, this would call an actual API endpoint
@@ -133,7 +133,7 @@ export function FieldAccessAuditLog() {
           requestId: 'req-345',
         },
       ];
-      
+
       setLogs(mockLogs);
     } catch (error) {
       toast({
@@ -180,13 +180,15 @@ export function FieldAccessAuditLog() {
     }
   };
 
-  const filteredLogs = logs.filter(log => {
+  const filteredLogs = logs.filter((log) => {
     if (filters.userId && !log.userId.includes(filters.userId)) return false;
     if (filters.resourceType && log.resourceType !== filters.resourceType) return false;
     if (filters.action && log.action !== filters.action) return false;
-    if (filters.searchTerm && 
-        !log.userName.toLowerCase().includes(filters.searchTerm.toLowerCase()) &&
-        !log.resourceId.toLowerCase().includes(filters.searchTerm.toLowerCase())) {
+    if (
+      filters.searchTerm &&
+      !log.userName.toLowerCase().includes(filters.searchTerm.toLowerCase()) &&
+      !log.resourceId.toLowerCase().includes(filters.searchTerm.toLowerCase())
+    ) {
       return false;
     }
     const logDate = new Date(log.timestamp);
@@ -203,9 +205,7 @@ export function FieldAccessAuditLog() {
             <Filter className="h-5 w-5" />
             Filters
           </CardTitle>
-          <CardDescription>
-            Filter audit logs by various criteria
-          </CardDescription>
+          <CardDescription>Filter audit logs by various criteria</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-4">
@@ -293,15 +293,11 @@ export function FieldAccessAuditLog() {
       <Card>
         <CardHeader>
           <CardTitle>Field Access Logs</CardTitle>
-          <CardDescription>
-            Detailed log of all field-level access attempts
-          </CardDescription>
+          <CardDescription>Detailed log of all field-level access attempts</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Loading audit logs...
-            </div>
+            <div className="text-center py-8 text-muted-foreground">Loading audit logs...</div>
           ) : filteredLogs.length === 0 ? (
             <div className="text-center py-8">
               <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -339,7 +335,9 @@ export function FieldAccessAuditLog() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={cn('flex items-center gap-1 w-fit', getActionColor(log.action))}>
+                      <Badge
+                        className={cn('flex items-center gap-1 w-fit', getActionColor(log.action))}
+                      >
                         {getActionIcon(log.action)}
                         {log.action}
                       </Badge>
@@ -353,7 +351,7 @@ export function FieldAccessAuditLog() {
                     <TableCell>
                       {log.action === 'denied' && log.deniedFields ? (
                         <div className="flex flex-wrap gap-1">
-                          {log.deniedFields.slice(0, 3).map(field => (
+                          {log.deniedFields.slice(0, 3).map((field) => (
                             <Badge key={field} variant="destructive" className="text-xs">
                               {field}
                             </Badge>
@@ -366,7 +364,7 @@ export function FieldAccessAuditLog() {
                         </div>
                       ) : (
                         <div className="flex flex-wrap gap-1">
-                          {log.fields.slice(0, 3).map(field => (
+                          {log.fields.slice(0, 3).map((field) => (
                             <Badge key={field} variant="secondary" className="text-xs">
                               {field}
                             </Badge>
@@ -379,15 +377,9 @@ export function FieldAccessAuditLog() {
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {log.ipAddress}
-                    </TableCell>
+                    <TableCell className="font-mono text-xs">{log.ipAddress}</TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedLog(log)}
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedLog(log)}>
                         View
                       </Button>
                     </TableCell>
@@ -405,15 +397,15 @@ export function FieldAccessAuditLog() {
           <Card className="w-full max-w-2xl">
             <CardHeader>
               <CardTitle>Audit Log Details</CardTitle>
-              <CardDescription>
-                Request ID: {selectedLog.requestId}
-              </CardDescription>
+              <CardDescription>Request ID: {selectedLog.requestId}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <Label>User</Label>
-                  <p className="text-sm">{selectedLog.userName} ({selectedLog.userId})</p>
+                  <p className="text-sm">
+                    {selectedLog.userName} ({selectedLog.userId})
+                  </p>
                 </div>
                 <div>
                   <Label>Timestamp</Label>
@@ -421,13 +413,13 @@ export function FieldAccessAuditLog() {
                 </div>
                 <div>
                   <Label>Action</Label>
-                  <Badge className={getActionColor(selectedLog.action)}>
-                    {selectedLog.action}
-                  </Badge>
+                  <Badge className={getActionColor(selectedLog.action)}>{selectedLog.action}</Badge>
                 </div>
                 <div>
                   <Label>Resource</Label>
-                  <p className="text-sm">{selectedLog.resourceType} - {selectedLog.resourceId}</p>
+                  <p className="text-sm">
+                    {selectedLog.resourceType} - {selectedLog.resourceId}
+                  </p>
                 </div>
                 <div>
                   <Label>Organization</Label>
@@ -448,7 +440,7 @@ export function FieldAccessAuditLog() {
                 <div>
                   <Label>Denied Fields</Label>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {selectedLog.deniedFields.map(field => (
+                    {selectedLog.deniedFields.map((field) => (
                       <Badge key={field} variant="destructive">
                         {field}
                       </Badge>
@@ -459,7 +451,7 @@ export function FieldAccessAuditLog() {
                 <div>
                   <Label>Accessed Fields</Label>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {selectedLog.fields.map(field => (
+                    {selectedLog.fields.map((field) => (
                       <Badge key={field} variant="secondary">
                         {field}
                       </Badge>
@@ -469,9 +461,7 @@ export function FieldAccessAuditLog() {
               )}
 
               <div className="flex justify-end">
-                <Button onClick={() => setSelectedLog(null)}>
-                  Close
-                </Button>
+                <Button onClick={() => setSelectedLog(null)}>Close</Button>
               </div>
             </CardContent>
           </Card>

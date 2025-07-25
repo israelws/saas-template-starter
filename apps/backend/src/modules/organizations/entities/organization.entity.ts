@@ -42,6 +42,9 @@ export class Organization extends BaseEntity {
   @TreeChildren()
   children: Organization[];
 
+  // Virtual property to expose parentId
+  parentId?: string;
+
   @Column({ type: 'jsonb', nullable: true })
   settings?: OrganizationSettings;
 

@@ -6,25 +6,20 @@ export const setCookie = (name: string, value: string, days: number = 7) => {
   const date = new Date();
   date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
   const expires = date.toUTCString();
-  
+
   // Build cookie string with proper format
-  const cookieParts = [
-    `${name}=${value}`,
-    `expires=${expires}`,
-    'path=/',
-    'SameSite=Lax'
-  ];
-  
+  const cookieParts = [`${name}=${value}`, `expires=${expires}`, 'path=/', 'SameSite=Lax'];
+
   // Only add Secure for HTTPS
   if (window.location.protocol === 'https:') {
     cookieParts.push('Secure');
   }
-  
+
   document.cookie = cookieParts.join('; ');
 };
 
 export const getCookie = (name: string): string | null => {
-  const nameEQ = name + "=";
+  const nameEQ = name + '=';
   const ca = document.cookie.split(';');
   for (let i = 0; i < ca.length; i++) {
     let c = ca[i];

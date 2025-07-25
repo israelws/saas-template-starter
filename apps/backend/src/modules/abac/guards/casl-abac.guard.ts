@@ -12,23 +12,65 @@ import { CaslAbilityFactory, Action, Subjects } from '../factories/casl-ability.
 import { PolicyEvaluationContext } from '@saas-template/shared';
 import { PERMISSION_KEY } from '../decorators/require-permission.decorator';
 
+/** Metadata key for ability checks */
 export const CHECK_ABILITY_KEY = 'check_ability';
 
 /**
- * Decorator for CASL-based permissions
+ * Interface for CASL-based permission checks
+ * @interface AbilityCheck
  */
 export interface AbilityCheck {
+  /** The action to check permission for (e.g., 'read', 'update', 'delete') */
   action: Action;
+  /** The subject type to check permission on (e.g., 'Product', 'Customer') */
   subject: Subjects | string;
+  /** Optional specific field to check permission for */
   field?: string;
 }
 
+/**
+ * Decorator to specify CASL ability checks for a route handler
+ * 
+ * @decorator
+ * @param {...AbilityCheck} checks - One or more ability checks to perform
+ * @returns {MethodDecorator}
+ * 
+ * @example
+ * ```typescript
+ * @CheckAbility(
+ *   { action: 'read', subject: 'Product' },
+ *   { action: 'update', subject: 'Product', field: 'price' }
+ * )
+ * async updateProductPrice() { ... }
+ * ```
+ */
 export const CheckAbility = (...checks: AbilityCheck[]) =>
   SetMetadata(CHECK_ABILITY_KEY, checks);
 
 /**
  * Enhanced ABAC Guard that integrates CASL for field-level permissions
- * while maintaining backward compatibility with the existing ABAC system
+ * while maintaining backward compatibility with the existing ABAC system.
+ * 
+ * This guard supports two modes:
+ * 1. CASL-based checks using @CheckAbility decorator (preferred)
+ * 2. Traditional ABAC checks using @RequirePermission decorator (legacy)
+ * 
+ * @class CaslAbacGuard
+ * @implements {CanActivate}
+ * @injectable
+ * 
+ * @example
+ * ```typescript
+ * // Using with CASL abilities
+ * @UseGuards(JwtAuthGuard, CaslAbacGuard)
+ * @CheckAbility({ action: 'read', subject: 'Product' })
+ * async getProduct() { ... }
+ * 
+ * // Using with traditional ABAC
+ * @UseGuards(JwtAuthGuard, CaslAbacGuard)
+ * @RequirePermission('product', 'read')
+ * async getProductLegacy() { ... }
+ * ```
  */
 @Injectable()
 export class CaslAbacGuard implements CanActivate {
@@ -38,6 +80,16 @@ export class CaslAbacGuard implements CanActivate {
     private caslAbilityFactory: CaslAbilityFactory,
   ) {}
 
+  /**
+   * Determines if the current request should be allowed to proceed
+   * Evaluates both CASL abilities and traditional ABAC policies
+   * 
+   * @async
+   * @param {ExecutionContext} context - NestJS execution context
+   * @returns {Promise<boolean>} True if access is allowed
+   * @throws {UnauthorizedException} If user is not authenticated
+   * @throws {ForbiddenException} If user lacks required permissions
+   */
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
@@ -84,7 +136,17 @@ export class CaslAbacGuard implements CanActivate {
   }
 
   /**
-   * Check CASL-based abilities
+   * Check CASL-based abilities for the current request
+   * Evaluates all specified ability checks and stores ability in request
+   * 
+   * @private
+   * @async
+   * @param {any} request - HTTP request object
+   * @param {any} user - Authenticated user
+   * @param {string} organizationId - Organization context
+   * @param {AbilityCheck[]} checks - Array of ability checks to perform
+   * @returns {Promise<boolean>} True if all checks pass
+   * @throws {ForbiddenException} If any ability check fails
    */
   private async checkCaslAbilities(
     request: any,
@@ -129,6 +191,18 @@ export class CaslAbacGuard implements CanActivate {
 
   /**
    * Check traditional ABAC permissions (backward compatibility)
+   * Evaluates hierarchical policies and creates CASL ability for field filtering
+   * 
+   * @private
+   * @async
+   * @param {any} request - HTTP request object
+   * @param {any} user - Authenticated user
+   * @param {string} organizationId - Organization context
+   * @param {Object} permission - Permission requirement
+   * @param {string} permission.resource - Resource type
+   * @param {string} permission.action - Action to perform
+   * @returns {Promise<boolean>} True if permission is granted
+   * @throws {ForbiddenException} If permission is denied
    */
   private async checkTraditionalAbac(
     request: any,
@@ -187,6 +261,12 @@ export class CaslAbacGuard implements CanActivate {
 
   /**
    * Get organization ID from various sources
+   * Checks multiple locations in order of precedence
+   * 
+   * @private
+   * @param {any} request - HTTP request object
+   * @param {any} user - Authenticated user
+   * @returns {string|null} Organization ID or null if not found
    */
   private getOrganizationId(request: any, user: any): string | null {
     return request.query.organizationId || 
@@ -198,6 +278,13 @@ export class CaslAbacGuard implements CanActivate {
 
   /**
    * Get user role in organization
+   * Supports both multi-role system and legacy single-role memberships
+   * 
+   * @private
+   * @async
+   * @param {any} user - User object
+   * @param {string} organizationId - Organization ID
+   * @returns {Promise<string>} User's role name (defaults to 'user')
    */
   private async getUserRole(user: any, organizationId: string): Promise<string> {
     // Try to get from multi-role system first
@@ -226,6 +313,15 @@ export class CaslAbacGuard implements CanActivate {
 
   /**
    * Build evaluation context for traditional ABAC
+   * Creates a comprehensive context object with subject, resource, and environment attributes
+   * 
+   * @private
+   * @param {any} request - HTTP request object
+   * @param {any} user - Authenticated user
+   * @param {string} organizationId - Organization context
+   * @param {string} userRole - User's role in the organization
+   * @param {Object} permission - Permission requirement
+   * @returns {PolicyEvaluationContext} Complete evaluation context
    */
   private buildEvaluationContext(
     request: any,

@@ -5,6 +5,8 @@ export enum OrganizationType {
   DIVISION = 'division',
   DEPARTMENT = 'department',
   TEAM = 'team',
+  INSURANCE_AGENCY = 'insurance_agency',
+  INSURANCE_BRANCH = 'insurance_branch',
 }
 
 export interface Organization extends BaseEntity {

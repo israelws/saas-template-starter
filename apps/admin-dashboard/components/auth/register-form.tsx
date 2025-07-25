@@ -55,9 +55,9 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
         firstName,
         lastName,
       };
-      
+
       console.log('Sending registration data:', { ...registrationData, password: '[REDACTED]' });
-      
+
       await authAPI.register(registrationData);
 
       toast({
@@ -69,18 +69,20 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
       router.push(`/verify-email?email=${encodeURIComponent(registrationData.email)}`);
     } catch (error: any) {
       console.error('Registration error:', error.response?.data);
-      
+
       const errorData = error.response?.data;
       let errorMessage = 'Registration failed';
-      
+
       if (errorData?.message) {
         errorMessage = errorData.message;
-        
+
         // Check if it's a validation error with details
         if (errorData.errors && Array.isArray(errorData.errors)) {
-          const validationErrors = errorData.errors.map((err: any) => 
-            `${err.property}: ${Object.values(err.constraints || {}).join(', ')}`
-          ).join('; ');
+          const validationErrors = errorData.errors
+            .map(
+              (err: any) => `${err.property}: ${Object.values(err.constraints || {}).join(', ')}`,
+            )
+            .join('; ');
           errorMessage = validationErrors || errorMessage;
         }
       }
@@ -96,11 +98,9 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
   }
 
   return (
-    <div className={cn("grid gap-6", className)} {...props}>
+    <div className={cn('grid gap-6', className)} {...props}>
       <div className="flex flex-col space-y-2 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Create an account
-        </h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Create an account</h1>
         <p className="text-sm text-muted-foreground">
           Enter your information below to create your account
         </p>
@@ -172,9 +172,7 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
                 ) : (
                   <Icons.eye className="h-4 w-4" aria-hidden="true" />
                 )}
-                <span className="sr-only">
-                  {showPassword ? 'Hide password' : 'Show password'}
-                </span>
+                <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
               </Button>
             </div>
           </div>
@@ -208,9 +206,7 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
             </div>
           </div>
           <Button disabled={isLoading} type="submit" className="w-full">
-            {isLoading && (
-              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-            )}
+            {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
             Create account
           </Button>
         </div>
@@ -220,9 +216,7 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            Or continue with
-          </span>
+          <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
         </div>
       </div>
       <div className="grid gap-2">
@@ -245,27 +239,18 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
       </div>
       <p className="px-8 text-center text-sm text-muted-foreground">
         By clicking continue, you agree to our{' '}
-        <Link
-          href="/terms"
-          className="underline underline-offset-4 hover:text-primary"
-        >
+        <Link href="/terms" className="underline underline-offset-4 hover:text-primary">
           Terms of Service
         </Link>{' '}
         and{' '}
-        <Link
-          href="/privacy"
-          className="underline underline-offset-4 hover:text-primary"
-        >
+        <Link href="/privacy" className="underline underline-offset-4 hover:text-primary">
           Privacy Policy
         </Link>
         .
       </p>
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{' '}
-        <Link
-          href="/login"
-          className="underline underline-offset-4 hover:text-primary"
-        >
+        <Link href="/login" className="underline underline-offset-4 hover:text-primary">
           Sign in
         </Link>
       </p>

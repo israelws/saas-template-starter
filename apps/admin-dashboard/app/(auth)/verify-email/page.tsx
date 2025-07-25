@@ -23,18 +23,18 @@ export default function VerifyEmailPage() {
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !code) return;
 
     setIsVerifying(true);
     try {
       await api.post('/auth/verify-email', { email, code });
-      
+
       toast({
         title: 'Email verified successfully',
         description: 'You can now sign in to your account.',
       });
-      
+
       router.push('/login');
     } catch (error) {
       toast({
@@ -90,8 +90,8 @@ export default function VerifyEmailPage() {
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
             <p className="text-lg">
-              &ldquo;The verification process was quick and secure. I appreciate
-              the extra layer of security for my account.&rdquo;
+              &ldquo;The verification process was quick and secure. I appreciate the extra layer of
+              security for my account.&rdquo;
             </p>
             <footer className="text-sm">Jordan Lee</footer>
           </blockquote>
@@ -104,15 +104,9 @@ export default function VerifyEmailPage() {
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
                 <Icons.mail className="h-6 w-6" />
               </div>
-              <h1 className="text-2xl font-semibold tracking-tight">
-                Check your email
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                We sent a verification code to
-              </p>
-              {email && (
-                <p className="text-sm font-medium mb-2">{email}</p>
-              )}
+              <h1 className="text-2xl font-semibold tracking-tight">Check your email</h1>
+              <p className="text-sm text-muted-foreground">We sent a verification code to</p>
+              {email && <p className="text-sm font-medium mb-2">{email}</p>}
               <p className="text-sm text-muted-foreground">
                 Enter the 6-digit code from your email below
               </p>
@@ -144,9 +138,7 @@ export default function VerifyEmailPage() {
                   />
                 </div>
                 <Button type="submit" disabled={isVerifying || !code || code.length !== 6}>
-                  {isVerifying && (
-                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                  )}
+                  {isVerifying && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
                   Verify Email
                 </Button>
               </div>
@@ -182,10 +174,7 @@ export default function VerifyEmailPage() {
 
               <div className="text-center text-sm text-muted-foreground">
                 Wrong email?{' '}
-                <Link
-                  href="/register"
-                  className="underline underline-offset-4 hover:text-primary"
-                >
+                <Link href="/register" className="underline underline-offset-4 hover:text-primary">
                   Go back to sign up
                 </Link>
               </div>

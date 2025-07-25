@@ -309,7 +309,9 @@ export const EnhancedPolicyBuilder: React.FC<EnhancedPolicyBuilderProps> = ({
                       </div>
                     )}
                   </div>
-                  {errors.resources && <p className="text-sm text-destructive">{errors.resources}</p>}
+                  {errors.resources && (
+                    <p className="text-sm text-destructive">{errors.resources}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -362,7 +364,9 @@ export const EnhancedPolicyBuilder: React.FC<EnhancedPolicyBuilderProps> = ({
                   <Button
                     type="button"
                     variant={effect === PolicyEffect.ALLOW ? 'default' : 'outline'}
-                    className={cn(effect === PolicyEffect.ALLOW && 'bg-green-600 hover:bg-green-700')}
+                    className={cn(
+                      effect === PolicyEffect.ALLOW && 'bg-green-600 hover:bg-green-700',
+                    )}
                     onClick={() => setEffect(PolicyEffect.ALLOW)}
                   >
                     Allow
@@ -400,7 +404,7 @@ export const EnhancedPolicyBuilder: React.FC<EnhancedPolicyBuilderProps> = ({
                         const attr = availableAttributes.find((a) => a.key === value);
                         updateCondition(condition.id, {
                           attribute: value,
-                          type: attr?.type as any || 'string',
+                          type: (attr?.type as any) || 'string',
                         });
                       }}
                     >
@@ -497,8 +501,13 @@ export const EnhancedPolicyBuilder: React.FC<EnhancedPolicyBuilderProps> = ({
                       <div className="text-sm text-blue-800 dark:text-blue-200">
                         <p className="font-medium mb-1">How field permissions work:</p>
                         <ul className="list-disc list-inside space-y-1 text-xs">
-                          <li>Field permissions apply to the resource types selected in Policy Rules</li>
-                          <li>They filter which fields users can read or write when accessing resources</li>
+                          <li>
+                            Field permissions apply to the resource types selected in Policy Rules
+                          </li>
+                          <li>
+                            They filter which fields users can read or write when accessing
+                            resources
+                          </li>
                           <li>Denied fields override readable/writable permissions</li>
                           <li>Use * to allow all fields, then deny specific sensitive fields</li>
                         </ul>

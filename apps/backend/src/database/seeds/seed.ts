@@ -11,6 +11,7 @@ import { Order } from '../../modules/orders/entities/order.entity';
 import { OrderItem } from '../../modules/orders/entities/order-item.entity';
 import { Transaction } from '../../modules/transactions/entities/transaction.entity';
 import { AttributeDefinition } from '../../modules/abac/entities/attribute-definition.entity';
+import { PolicyFieldRule } from '../../modules/abac/entities/policy-field-rule.entity';
 import { config } from 'dotenv';
 import { LoggerService } from '../../common/logger/logger.service';
 import { OrganizationSeeder } from './organization.seeder';
@@ -36,6 +37,7 @@ const AppDataSource = new DataSource({
     UserAttribute,
     Policy,
     PolicySet,
+    PolicyFieldRule,
     Product,
     Customer,
     Order,

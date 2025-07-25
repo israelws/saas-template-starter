@@ -10,15 +10,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { userAPI } from '@/lib/api';
 import { useAppSelector } from '@/store/hooks';
-import { 
-  ArrowLeft, 
-  Shield, 
-  User, 
-  Building, 
+import {
+  ArrowLeft,
+  Shield,
+  User,
+  Building,
   Clock,
   AlertCircle,
   CheckCircle,
-  XCircle
+  XCircle,
 } from 'lucide-react';
 
 interface UserDetails {
@@ -34,8 +34,8 @@ export default function UserRolesPage() {
   const router = useRouter();
   const { toast } = useToast();
   const userId = params.id as string;
-  const organizationId = useAppSelector(state => state.organization.currentOrganization?.id);
-  
+  const organizationId = useAppSelector((state) => state.organization.currentOrganization?.id);
+
   const [user, setUser] = useState<UserDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [roleStats, setRoleStats] = useState({
@@ -78,9 +78,7 @@ export default function UserRolesPage() {
   if (loading) {
     return (
       <div className="container mx-auto py-6">
-        <div className="text-center py-12 text-muted-foreground">
-          Loading user details...
-        </div>
+        <div className="text-center py-12 text-muted-foreground">Loading user details...</div>
       </div>
     );
   }
@@ -90,9 +88,7 @@ export default function UserRolesPage() {
       <div className="container mx-auto py-6">
         <div className="text-center py-12">
           <p className="text-muted-foreground mb-4">User not found</p>
-          <Button onClick={() => router.push('/dashboard/users')}>
-            Back to Users
-          </Button>
+          <Button onClick={() => router.push('/dashboard/users')}>Back to Users</Button>
         </div>
       </div>
     );
@@ -103,23 +99,15 @@ export default function UserRolesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.push('/dashboard/users')}
-          >
+          <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard/users')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Role Management</h1>
-            <p className="text-muted-foreground mt-1">
-              Managing roles for {user.name}
-            </p>
+            <p className="text-muted-foreground mt-1">Managing roles for {user.name}</p>
           </div>
         </div>
-        <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
-          {user.status}
-        </Badge>
+        <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>{user.status}</Badge>
       </div>
 
       {/* User Info Card */}
@@ -221,9 +209,7 @@ export default function UserRolesPage() {
           <Card>
             <CardHeader>
               <CardTitle>About Multi-Role Support</CardTitle>
-              <CardDescription>
-                Understanding how multiple roles work in the system
-              </CardDescription>
+              <CardDescription>Understanding how multiple roles work in the system</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -232,9 +218,9 @@ export default function UserRolesPage() {
                   Role Priority
                 </h4>
                 <p className="text-sm text-muted-foreground">
-                  When a user has multiple roles, the system evaluates permissions based on role priority. 
-                  Higher priority roles (larger numbers) are evaluated first. The first role that grants 
-                  or denies access determines the outcome.
+                  When a user has multiple roles, the system evaluates permissions based on role
+                  priority. Higher priority roles (larger numbers) are evaluated first. The first
+                  role that grants or denies access determines the outcome.
                 </p>
               </div>
 
@@ -244,8 +230,8 @@ export default function UserRolesPage() {
                   Temporary Roles
                 </h4>
                 <p className="text-sm text-muted-foreground">
-                  Roles can be assigned with an expiration date. This is useful for temporary 
-                  assignments like covering for someone on leave, contractors with limited 
+                  Roles can be assigned with an expiration date. This is useful for temporary
+                  assignments like covering for someone on leave, contractors with limited
                   engagement periods, or trial access to elevated permissions.
                 </p>
               </div>
@@ -256,7 +242,7 @@ export default function UserRolesPage() {
                   Organization Context
                 </h4>
                 <p className="text-sm text-muted-foreground">
-                  Roles are scoped to organizations. A user can have different roles in different 
+                  Roles are scoped to organizations. A user can have different roles in different
                   organizations, allowing for flexible access control in multi-tenant scenarios.
                 </p>
               </div>

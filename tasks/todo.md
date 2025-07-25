@@ -331,7 +331,7 @@
 4. Security audit and load testing
 
 ---
-**Last Updated**: 2025-07-21
+**Last Updated**: 2025-07-24
 **Updated By**: AI Assistant
 
 ## Recent Accomplishments (2025-07-21 Session) - Enhanced ABAC Implementation
@@ -428,3 +428,165 @@
 
 ## Key Enhancements Summary:
 The system now supports enterprise-grade field-level access control with multi-role capabilities, making it suitable for complex insurance, financial, and healthcare applications where granular data access control is critical. The implementation follows the zero-trust security model and provides comprehensive audit trails for compliance requirements.
+
+## Phase 10: Organization Hierarchy Constraints Implementation (0% Complete) - NEW
+
+### 10.1 Organization Hierarchy Rules
+- [ ] Implement strict parent-child relationships:
+  - [ ] Division can only have company parent
+  - [ ] Department can only have division parent
+  - [ ] Team can only have department parent
+  - [ ] Insurance agency can only have company parent
+  - [ ] Insurance branch can only have insurance agency parent
+- [ ] Update organization entity validation:
+  - [ ] Add parent type validation in organization.entity.ts
+  - [ ] Create custom validation decorators
+  - [ ] Add database constraints via migrations
+- [ ] Update organization service:
+  - [ ] Validate parent type on create
+  - [ ] Validate parent type on update/move
+  - [ ] Add clear error messages for invalid hierarchies
+- [ ] Update organization controller:
+  - [ ] Return available parent types based on organization type
+  - [ ] Add endpoint to get valid parent organizations
+
+### 10.2 Frontend Organization Creation Enhancement
+- [ ] Update organization creation form:
+  - [ ] Dynamic parent selector based on organization type
+  - [ ] Show only valid parent organizations
+  - [ ] Add client-side validation
+  - [ ] Display hierarchy rules help text
+- [ ] Update organization edit form:
+  - [ ] Restrict parent changes to valid types
+  - [ ] Show warning when changing organization type
+- [ ] Add visual hierarchy indicators:
+  - [ ] Show organization type badges
+  - [ ] Display allowed parent types
+  - [ ] Hierarchy tree view with type indicators
+
+### 10.3 Testing and Validation
+- [ ] Create unit tests for hierarchy validation
+- [ ] Add integration tests for organization CRUD with constraints
+- [ ] Test edge cases (orphaned organizations, circular references)
+- [ ] Add e2e tests for organization creation workflow
+
+## Phase 11: Insurance Agency Implementation (0% Complete)
+
+### 11.1 Business Entity Development
+- [ ] Create insurance-specific organization types:
+  - [ ] Add 'insurance_agency' as organization type (can have company parent)
+  - [ ] Add 'insurance_branch' as organization type (can have insurance agency parent)
+  - [ ] Leverage hierarchy rules from Phase 10
+- [ ] Create Insurance Agent entity:
+  - [ ] Agent profile with license information
+  - [ ] Agent specializations (life, health, property, etc.)
+  - [ ] Commission structure
+  - [ ] Performance metrics
+- [ ] Create Branch entity:
+  - [ ] Branch location details
+  - [ ] Branch manager assignment
+  - [ ] Operating hours
+  - [ ] Service territories
+- [ ] Update database migrations for new entities
+
+### 11.2 Backend API Development
+- [ ] Insurance Agency endpoints:
+  - [ ] CRUD operations for agencies
+  - [ ] Agency statistics and reporting
+  - [ ] Agency-wide policy management
+- [ ] Branch management endpoints:
+  - [ ] CRUD operations for branches
+  - [ ] Branch-to-agency assignment
+  - [ ] Branch performance metrics
+  - [ ] Territory management
+- [ ] Agent management endpoints:
+  - [ ] CRUD operations for agents
+  - [ ] Agent-to-branch assignment
+  - [ ] License verification
+  - [ ] Commission calculation
+- [ ] Update existing endpoints:
+  - [ ] Organization creation with parent selection
+  - [ ] Hierarchical validation for insurance types
+
+### 11.3 Admin Dashboard UI Development
+- [ ] Organization Creation Enhancement:
+  - [ ] Add organization type selector
+  - [ ] Conditional parent organization selector
+  - [ ] Hierarchy validation UI
+  - [ ] Insurance-specific fields
+- [ ] Insurance Agency Management:
+  - [ ] Agency dashboard with key metrics
+  - [ ] Branch overview map view
+  - [ ] Agent roster management
+  - [ ] Policy distribution view
+- [ ] Branch Management UI:
+  - [ ] Branch listing with filters
+  - [ ] Branch creation/edit forms
+  - [ ] Territory assignment interface
+  - [ ] Branch performance dashboard
+- [ ] Agent Management UI:
+  - [ ] Agent listing with search
+  - [ ] Agent profile creation/edit
+  - [ ] License management interface
+  - [ ] Commission tracking view
+- [ ] Policy Assignment UI:
+  - [ ] User-friendly policy browser
+  - [ ] Drag-and-drop policy assignment
+  - [ ] Bulk policy assignment
+  - [ ] Policy inheritance visualization
+  - [ ] Policy testing interface
+
+### 11.4 Insurance-Specific Features
+- [ ] Create insurance-specific attributes:
+  - [ ] agent.license_type
+  - [ ] agent.license_number
+  - [ ] agent.commission_rate
+  - [ ] branch.territory
+  - [ ] branch.service_types
+- [ ] Create insurance-specific policies:
+  - [ ] Agent can only view their assigned customers
+  - [ ] Branch managers can view all branch data
+  - [ ] Agency admins have full access
+  - [ ] Commission visibility rules
+  - [ ] Customer data access based on territory
+- [ ] Insurance workflow support:
+  - [ ] Policy quote generation
+  - [ ] Claim processing workflow
+  - [ ] Commission calculation
+  - [ ] Territory-based assignment
+
+### 11.5 Data Migration and Seeding
+- [ ] Create insurance agency demo data:
+  - [ ] Sample insurance agencies
+  - [ ] Sample branches with territories
+  - [ ] Sample agents with licenses
+  - [ ] Insurance-specific policies
+- [ ] Migration scripts for existing data
+- [ ] Validation and testing data
+
+### Implementation Plan:
+1. **Phase 1**: Organization Hierarchy Constraints (1-2 days)
+   - Implement backend validation for parent-child relationships
+   - Update organization entity and service
+   - Create migration for database constraints
+   - Update frontend organization forms
+
+2. **Phase 2**: Insurance Entity Development (2-3 days)
+   - Create insurance-specific entities and migrations
+   - Implement core CRUD operations
+   - Add validation and business logic
+
+3. **Phase 3**: UI Components Development (3-4 days)
+   - Enhance organization creation flow with hierarchy rules
+   - Build agency/branch/agent management interfaces
+   - Create policy assignment UI
+
+4. **Phase 4**: Integration and Testing (1-2 days)
+   - Connect frontend to backend
+   - Test hierarchical relationships
+   - Validate insurance-specific workflows
+
+5. **Phase 5**: Demo Data and Documentation (1 day)
+   - Create comprehensive demo data
+   - Document new features
+   - Create user guides

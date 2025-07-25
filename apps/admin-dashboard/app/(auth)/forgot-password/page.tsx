@@ -71,8 +71,8 @@ export default function ForgotPasswordPage() {
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
             <p className="text-lg">
-              &ldquo;Security and access control have never been easier. The platform
-              provides exactly what we need for enterprise-grade management.&rdquo;
+              &ldquo;Security and access control have never been easier. The platform provides
+              exactly what we need for enterprise-grade management.&rdquo;
             </p>
             <footer className="text-sm">Maria Rodriguez</footer>
           </blockquote>

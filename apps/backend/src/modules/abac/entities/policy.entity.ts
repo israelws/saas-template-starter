@@ -10,6 +10,9 @@ import { Organization } from '@/modules/organizations/entities/organization.enti
 import { PolicySet } from './policy-set.entity';
 import { PolicyFieldRule } from './policy-field-rule.entity';
 
+// Re-export PolicyEffect for convenience
+export { PolicyEffect } from '@saas-template/shared';
+
 @Entity('policies')
 @Index(['organizationId', 'isActive'])
 @Index(['priority'])

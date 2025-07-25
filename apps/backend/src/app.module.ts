@@ -12,6 +12,7 @@ import { ProductsModule } from './modules/products/products.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
+import { InsuranceModule } from './modules/insurance/insurance.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { LoggerModule } from './common/logger/logger.module';
 import { CacheModule } from './common/cache/cache.module';
@@ -62,6 +63,7 @@ import { ValidationPipe } from '@nestjs/common';
     CustomersModule,
     OrdersModule,
     TransactionsModule,
+    InsuranceModule,
   ],
   controllers: [AppController],
   providers: [

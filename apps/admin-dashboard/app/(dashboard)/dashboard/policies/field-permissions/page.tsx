@@ -29,13 +29,21 @@ export default function FieldPermissionsPage() {
         <CardContent>
           <div className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
             <p>
-              Field-level permissions allow you to control which specific fields within a resource 
+              Field-level permissions allow you to control which specific fields within a resource
               users can read or write. This provides granular access control for sensitive data.
             </p>
             <ul className="list-disc list-inside space-y-1 ml-4">
-              <li><strong>Readable fields:</strong> Fields the user can view in API responses</li>
-              <li><strong>Writable fields:</strong> Fields the user can include in create/update requests</li>
-              <li><strong>Denied fields:</strong> Fields explicitly blocked (overrides readable/writable)</li>
+              <li>
+                <strong>Readable fields:</strong> Fields the user can view in API responses
+              </li>
+              <li>
+                <strong>Writable fields:</strong> Fields the user can include in create/update
+                requests
+              </li>
+              <li>
+                <strong>Denied fields:</strong> Fields explicitly blocked (overrides
+                readable/writable)
+              </li>
             </ul>
           </div>
         </CardContent>
@@ -80,7 +88,7 @@ export default function FieldPermissionsPage() {
               </CardHeader>
               <CardContent>
                 <pre className="text-sm overflow-x-auto p-4 bg-muted rounded-lg">
-{`{
+                  {`{
   "Customer": {
     "readable": ["id", "name", "email", "phone", "policyNumbers"],
     "writable": ["phone", "email", "notes"],
@@ -105,7 +113,7 @@ export default function FieldPermissionsPage() {
               </CardHeader>
               <CardContent>
                 <pre className="text-sm overflow-x-auto p-4 bg-muted rounded-lg">
-{`{
+                  {`{
   "Customer": {
     "readable": ["*"],
     "writable": ["email", "phone", "mailingAddress", "preferences"],
@@ -130,7 +138,7 @@ export default function FieldPermissionsPage() {
               </CardHeader>
               <CardContent>
                 <pre className="text-sm overflow-x-auto p-4 bg-muted rounded-lg">
-{`{
+                  {`{
   "*": {
     "readable": ["*"],
     "writable": [],
@@ -150,36 +158,36 @@ export default function FieldPermissionsPage() {
                 <div className="space-y-2">
                   <h4 className="font-medium">1. Start Restrictive</h4>
                   <p className="text-sm text-muted-foreground">
-                    Begin with minimal permissions and add fields as needed. It's easier to grant 
+                    Begin with minimal permissions and add fields as needed. It's easier to grant
                     access than to revoke it later.
                   </p>
                 </div>
                 <div className="space-y-2">
                   <h4 className="font-medium">2. Use Explicit Denials for Sensitive Fields</h4>
                   <p className="text-sm text-muted-foreground">
-                    Always explicitly deny sensitive fields like SSN, passwords, and financial data 
+                    Always explicitly deny sensitive fields like SSN, passwords, and financial data
                     to ensure they're never accidentally exposed.
                   </p>
                 </div>
                 <div className="space-y-2">
                   <h4 className="font-medium">3. Document Your Fields</h4>
                   <p className="text-sm text-muted-foreground">
-                    Maintain a data dictionary that clearly identifies which fields contain 
+                    Maintain a data dictionary that clearly identifies which fields contain
                     sensitive information and why.
                   </p>
                 </div>
                 <div className="space-y-2">
                   <h4 className="font-medium">4. Test Thoroughly</h4>
                   <p className="text-sm text-muted-foreground">
-                    Use the testing tool to verify that field permissions work as expected 
-                    before deploying to production.
+                    Use the testing tool to verify that field permissions work as expected before
+                    deploying to production.
                   </p>
                 </div>
                 <div className="space-y-2">
                   <h4 className="font-medium">5. Regular Audits</h4>
                   <p className="text-sm text-muted-foreground">
-                    Periodically review field permissions to ensure they still align with 
-                    your security requirements and compliance needs.
+                    Periodically review field permissions to ensure they still align with your
+                    security requirements and compliance needs.
                   </p>
                 </div>
               </CardContent>

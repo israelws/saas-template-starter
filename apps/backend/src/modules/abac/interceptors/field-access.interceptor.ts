@@ -9,10 +9,25 @@ import { map } from 'rxjs/operators';
 import { CaslAbilityFactory } from '../factories/casl-ability.factory';
 import { Reflector } from '@nestjs/core';
 
+/** Metadata key for field permissions configuration */
 export const FIELD_PERMISSIONS_KEY = 'fieldPermissions';
 
 /**
  * Decorator to enable field-level filtering on a controller method
+ * When applied, the response will be automatically filtered based on user's field permissions
+ * 
+ * @decorator
+ * @param {string} [resourceType] - Optional resource type name (e.g., 'Product', 'Customer')
+ * @returns {MethodDecorator} Method decorator
+ * 
+ * @example
+ * ```typescript
+ * @Get()
+ * @UseFieldFiltering('Product')
+ * async findAll() {
+ *   return this.productService.findAll();
+ * }
+ * ```
  */
 export function UseFieldFiltering(resourceType?: string) {
   return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
@@ -21,6 +36,25 @@ export function UseFieldFiltering(resourceType?: string) {
   };
 }
 
+/**
+ * Interceptor that automatically filters response data based on user's field-level permissions
+ * Works in conjunction with CASL abilities to remove sensitive fields from API responses
+ * 
+ * @class FieldAccessInterceptor
+ * @implements {NestInterceptor}
+ * @injectable
+ * 
+ * @example
+ * ```typescript
+ * // In a module
+ * providers: [
+ *   {
+ *     provide: APP_INTERCEPTOR,
+ *     useClass: FieldAccessInterceptor,
+ *   },
+ * ]
+ * ```
+ */
 @Injectable()
 export class FieldAccessInterceptor implements NestInterceptor {
   constructor(
@@ -28,6 +62,14 @@ export class FieldAccessInterceptor implements NestInterceptor {
     private caslAbilityFactory: CaslAbilityFactory,
   ) {}
 
+  /**
+   * Intercepts the request/response cycle to apply field-level filtering
+   * 
+   * @async
+   * @param {ExecutionContext} context - NestJS execution context
+   * @param {CallHandler} next - Next handler in the chain
+   * @returns {Promise<Observable<any>>} Observable with filtered response data
+   */
   async intercept(
     context: ExecutionContext,
     next: CallHandler,
@@ -72,7 +114,14 @@ export class FieldAccessInterceptor implements NestInterceptor {
   }
 
   /**
-   * Filter response data based on field permissions
+   * Filters response data based on user's field permissions
+   * Recursively handles arrays and nested objects
+   * 
+   * @private
+   * @param {any} data - The data to filter
+   * @param {any} ability - User's CASL ability with field permissions
+   * @param {string|boolean} resourceTypeConfig - Resource type or boolean flag
+   * @returns {any} Filtered data with only permitted fields
    */
   private filterResponseFields(
     data: any,
@@ -109,7 +158,12 @@ export class FieldAccessInterceptor implements NestInterceptor {
   }
 
   /**
-   * Get resource type from object
+   * Attempts to determine the resource type from an object
+   * Checks constructor name, type fields, and other type indicators
+   * 
+   * @private
+   * @param {any} obj - Object to determine type from
+   * @returns {string|null} Resource type name or null if not found
    */
   private getResourceType(obj: any): string | null {
     // Try to get type from constructor name
@@ -126,7 +180,13 @@ export class FieldAccessInterceptor implements NestInterceptor {
   }
 
   /**
-   * Apply field permissions to an object
+   * Applies field permissions to filter object properties
+   * Removes denied fields and respects readable field lists
+   * 
+   * @private
+   * @param {any} obj - Object to filter
+   * @param {any} fieldPermissions - Field permissions configuration
+   * @returns {any} New object with only permitted fields
    */
   private applyFieldFilter(
     obj: any,
@@ -157,7 +217,13 @@ export class FieldAccessInterceptor implements NestInterceptor {
   }
 
   /**
-   * Process field value, handling nested objects and special cases
+   * Processes individual field values, handling special cases
+   * Preserves dates, nulls, and handles nested objects appropriately
+   * 
+   * @private
+   * @param {any} value - Field value to process
+   * @param {string} fieldName - Name of the field being processed
+   * @returns {any} Processed field value
    */
   private processFieldValue(value: any, fieldName: string): any {
     // Handle null/undefined
@@ -188,14 +254,36 @@ export class FieldAccessInterceptor implements NestInterceptor {
 }
 
 /**
- * Service-layer helper for field filtering
+ * Service layer helper for applying field-level permissions
+ * Provides methods to filter data for both read and write operations
+ * 
+ * @class FieldFilterService
+ * @injectable
+ * 
+ * @example
+ * ```typescript
+ * const filteredData = await fieldFilterService.filterFieldsForWrite(
+ *   user,
+ *   organizationId,
+ *   'Product',
+ *   requestData
+ * );
+ * ```
  */
 @Injectable()
 export class FieldFilterService {
   constructor(private caslAbilityFactory: CaslAbilityFactory) {}
 
   /**
-   * Filter fields based on user's permissions before saving
+   * Filters fields based on user's write permissions before saving
+   * Removes fields that the user is not allowed to modify
+   * 
+   * @async
+   * @param {any} user - User making the request
+   * @param {string} organizationId - Organization context
+   * @param {string} resourceType - Type of resource being modified
+   * @param {any} data - Data to filter
+   * @returns {Promise<any>} Filtered data containing only writable fields
    */
   async filterFieldsForWrite(
     user: any,

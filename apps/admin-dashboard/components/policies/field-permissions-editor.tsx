@@ -6,7 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { X, Plus, Shield, Eye, EyeOff, Edit, AlertCircle } from 'lucide-react';
@@ -40,7 +46,7 @@ export function FieldPermissionsEditor({
 }: FieldPermissionsEditorProps) {
   const { toast } = useToast();
   const [selectedResource, setSelectedResource] = useState<string>(
-    Object.keys(value)[0] || availableResourceTypes[0]
+    Object.keys(value)[0] || availableResourceTypes[0],
   );
   const [fieldInput, setFieldInput] = useState('');
   const [activeTab, setActiveTab] = useState<'readable' | 'writable' | 'denied'>('readable');
@@ -54,8 +60,11 @@ export function FieldPermissionsEditor({
   const handleAddField = (type: 'readable' | 'writable' | 'denied') => {
     if (!fieldInput.trim()) return;
 
-    const fields = fieldInput.split(',').map(f => f.trim()).filter(Boolean);
-    
+    const fields = fieldInput
+      .split(',')
+      .map((f) => f.trim())
+      .filter(Boolean);
+
     const updatedPermissions = {
       ...value,
       [selectedResource]: {
@@ -66,7 +75,7 @@ export function FieldPermissionsEditor({
 
     onChange(updatedPermissions);
     setFieldInput('');
-    
+
     toast({
       title: 'Fields added',
       description: `Added ${fields.length} field(s) to ${type} list`,
@@ -78,7 +87,7 @@ export function FieldPermissionsEditor({
       ...value,
       [selectedResource]: {
         ...currentPermissions,
-        [type]: (currentPermissions[type] || []).filter(f => f !== field),
+        [type]: (currentPermissions[type] || []).filter((f) => f !== field),
       },
     };
 
@@ -95,7 +104,7 @@ export function FieldPermissionsEditor({
     };
 
     onChange(updatedPermissions);
-    
+
     toast({
       title: 'Wildcard added',
       description: `All fields are now ${type} for ${selectedResource}`,
@@ -105,8 +114,8 @@ export function FieldPermissionsEditor({
   const isSensitiveField = (field: string): boolean => {
     const resourceSensitiveFields = SENSITIVE_FIELDS[selectedResource] || [];
     const allSensitiveFields = [...SENSITIVE_FIELDS.common, ...resourceSensitiveFields];
-    return allSensitiveFields.some(sensitive => 
-      field.toLowerCase().includes(sensitive.toLowerCase())
+    return allSensitiveFields.some((sensitive) =>
+      field.toLowerCase().includes(sensitive.toLowerCase()),
     );
   };
 
@@ -130,13 +139,11 @@ export function FieldPermissionsEditor({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {availableResourceTypes.map(type => (
+              {availableResourceTypes.map((type) => (
                 <SelectItem key={type} value={type}>
                   {type}
                   {value[type] && (
-                    <span className="ml-2 text-xs text-muted-foreground">
-                      (configured)
-                    </span>
+                    <span className="ml-2 text-xs text-muted-foreground">(configured)</span>
                   )}
                 </SelectItem>
               ))}
@@ -237,9 +244,15 @@ export function FieldPermissionsEditor({
                 Field Permission Rules:
               </p>
               <ul className="list-disc list-inside space-y-1 text-blue-800 dark:text-blue-200">
-                <li><strong>Denied</strong> fields override all other permissions</li>
-                <li>If <strong>readable</strong> is specified, ONLY those fields are returned</li>
-                <li>Use <strong>*</strong> to allow all fields (except denied)</li>
+                <li>
+                  <strong>Denied</strong> fields override all other permissions
+                </li>
+                <li>
+                  If <strong>readable</strong> is specified, ONLY those fields are returned
+                </li>
+                <li>
+                  Use <strong>*</strong> to allow all fields (except denied)
+                </li>
                 <li>Leave empty to use default field visibility</li>
               </ul>
             </div>
@@ -268,13 +281,15 @@ function FieldPermissionList({ fields, type, onRemove, isSensitive }: FieldPermi
 
   return (
     <div className="flex flex-wrap gap-2">
-      {fields.map(field => (
+      {fields.map((field) => (
         <Badge
           key={field}
           variant={type === 'denied' ? 'destructive' : 'secondary'}
           className={cn(
             'pr-1',
-            isSensitive(field) && type !== 'denied' && 'border-amber-500 bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+            isSensitive(field) &&
+              type !== 'denied' &&
+              'border-amber-500 bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
           )}
         >
           {field}
@@ -303,7 +318,14 @@ interface FieldInputProps {
   description: string;
 }
 
-function FieldInput({ value, onChange, onAdd, onAddAll, placeholder, description }: FieldInputProps) {
+function FieldInput({
+  value,
+  onChange,
+  onAdd,
+  onAddAll,
+  placeholder,
+  description,
+}: FieldInputProps) {
   return (
     <div className="space-y-2">
       <Label>{description}</Label>

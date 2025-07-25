@@ -5,8 +5,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
@@ -14,17 +27,17 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { userAPI } from '@/lib/api';
 import { useAppSelector } from '@/store/hooks';
-import { 
-  UserPlus, 
-  Shield, 
-  Clock, 
-  ChevronUp, 
-  ChevronDown, 
-  Trash2, 
+import {
+  UserPlus,
+  Shield,
+  Clock,
+  ChevronUp,
+  ChevronDown,
+  Trash2,
   Edit,
   CalendarIcon,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -64,14 +77,14 @@ const AVAILABLE_ROLES = [
 
 export function MultiRoleManager({ userId, userName, onRolesUpdated }: MultiRoleManagerProps) {
   const { toast } = useToast();
-  const organizationId = useAppSelector(state => state.organization.currentOrganization?.id);
-  const currentUser = useAppSelector(state => state.auth.user);
-  
+  const organizationId = useAppSelector((state) => state.organization.currentOrganization?.id);
+  const currentUser = useAppSelector((state) => state.auth.user);
+
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingRole, setEditingRole] = useState<UserRole | null>(null);
-  
+
   // Add role form state
   const [selectedRole, setSelectedRole] = useState('');
   const [priority, setPriority] = useState(100);
@@ -134,7 +147,7 @@ export function MultiRoleManager({ userId, userName, onRolesUpdated }: MultiRole
 
     try {
       await userAPI.removeRole(userId, organizationId, roleName);
-      
+
       toast({
         title: 'Role removed',
         description: `Successfully removed ${roleName} role`,
@@ -156,7 +169,7 @@ export function MultiRoleManager({ userId, userName, onRolesUpdated }: MultiRole
 
     try {
       await userAPI.updateRolePriority(userId, organizationId, roleName, newPriority);
-      
+
       toast({
         title: 'Priority updated',
         description: `Updated priority for ${roleName} role`,
@@ -215,7 +228,8 @@ export function MultiRoleManager({ userId, userName, onRolesUpdated }: MultiRole
                 Multi-Role Management
               </CardTitle>
               <CardDescription>
-                Manage multiple roles for {userName || 'this user'} with priority and validity periods
+                Manage multiple roles for {userName || 'this user'} with priority and validity
+                periods
               </CardDescription>
             </div>
             <Button onClick={() => setShowAddDialog(true)} size="sm">
@@ -226,9 +240,7 @@ export function MultiRoleManager({ userId, userName, onRolesUpdated }: MultiRole
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Loading roles...
-            </div>
+            <div className="text-center py-8 text-muted-foreground">Loading roles...</div>
           ) : roles.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground mb-4">No roles assigned yet</p>
@@ -244,7 +256,7 @@ export function MultiRoleManager({ userId, userName, onRolesUpdated }: MultiRole
                   key={role.id}
                   className={cn(
                     'flex items-center justify-between p-4 rounded-lg border',
-                    isRoleExpired(role.validTo) && 'opacity-60'
+                    isRoleExpired(role.validTo) && 'opacity-60',
                   )}
                 >
                   <div className="flex items-center gap-4">
@@ -257,7 +269,9 @@ export function MultiRoleManager({ userId, userName, onRolesUpdated }: MultiRole
                             size="icon"
                             variant="ghost"
                             className="h-6 w-6"
-                            onClick={() => handleUpdatePriority(role.id, role.roleName, role.priority + 10)}
+                            onClick={() =>
+                              handleUpdatePriority(role.id, role.roleName, role.priority + 10)
+                            }
                           >
                             <ChevronUp className="h-3 w-3" />
                           </Button>
@@ -267,18 +281,21 @@ export function MultiRoleManager({ userId, userName, onRolesUpdated }: MultiRole
                             size="icon"
                             variant="ghost"
                             className="h-6 w-6"
-                            onClick={() => handleUpdatePriority(role.id, role.roleName, role.priority - 10)}
+                            onClick={() =>
+                              handleUpdatePriority(role.id, role.roleName, role.priority - 10)
+                            }
                           >
                             <ChevronDown className="h-3 w-3" />
                           </Button>
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Badge className={getRoleColor(role.roleName)}>
-                          {AVAILABLE_ROLES.find(r => r.value === role.roleName)?.label || role.roleName}
+                          {AVAILABLE_ROLES.find((r) => r.value === role.roleName)?.label ||
+                            role.roleName}
                         </Badge>
                         {role.isActive && !isRoleExpired(role.validTo) && (
                           <Badge variant="outline" className="border-green-500 text-green-600">
@@ -299,17 +316,19 @@ export function MultiRoleManager({ userId, userName, onRolesUpdated }: MultiRole
                           </Badge>
                         )}
                       </div>
-                      
+
                       <div className="text-sm text-muted-foreground">
                         <p>
                           Assigned by {role.assignedByUser?.name || role.assignedBy} on{' '}
                           {format(new Date(role.assignedAt), 'MMM d, yyyy')}
                         </p>
                         {role.validTo && (
-                          <p className={cn(
-                            'flex items-center gap-1',
-                            isRoleExpired(role.validTo) && 'text-red-600'
-                          )}>
+                          <p
+                            className={cn(
+                              'flex items-center gap-1',
+                              isRoleExpired(role.validTo) && 'text-red-600',
+                            )}
+                          >
                             <Clock className="h-3 w-3" />
                             {isRoleExpired(role.validTo) ? 'Expired' : 'Expires'} on{' '}
                             {format(new Date(role.validTo), 'MMM d, yyyy')}
@@ -318,7 +337,7 @@ export function MultiRoleManager({ userId, userName, onRolesUpdated }: MultiRole
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-2">
                     <Button
                       size="sm"
@@ -354,16 +373,14 @@ export function MultiRoleManager({ userId, userName, onRolesUpdated }: MultiRole
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>
-              {editingRole ? 'Edit Role' : 'Assign New Role'}
-            </DialogTitle>
+            <DialogTitle>{editingRole ? 'Edit Role' : 'Assign New Role'}</DialogTitle>
             <DialogDescription>
-              {editingRole 
-                ? 'Update the role configuration' 
+              {editingRole
+                ? 'Update the role configuration'
                 : 'Select a role and configure its priority and validity period'}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Role</Label>
@@ -372,7 +389,7 @@ export function MultiRoleManager({ userId, userName, onRolesUpdated }: MultiRole
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent>
-                  {AVAILABLE_ROLES.map(role => (
+                  {AVAILABLE_ROLES.map((role) => (
                     <SelectItem key={role.value} value={role.value}>
                       {role.label}
                     </SelectItem>
@@ -397,11 +414,7 @@ export function MultiRoleManager({ userId, userName, onRolesUpdated }: MultiRole
             </div>
 
             <div className="flex items-center space-x-2">
-              <Switch
-                id="expiry"
-                checked={hasExpiry}
-                onCheckedChange={setHasExpiry}
-              />
+              <Switch id="expiry" checked={hasExpiry} onCheckedChange={setHasExpiry} />
               <Label htmlFor="expiry">Set expiration date</Label>
             </div>
 
@@ -414,7 +427,7 @@ export function MultiRoleManager({ userId, userName, onRolesUpdated }: MultiRole
                       variant="outline"
                       className={cn(
                         'w-full justify-start text-left font-normal',
-                        !expiryDate && 'text-muted-foreground'
+                        !expiryDate && 'text-muted-foreground',
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
@@ -436,10 +449,13 @@ export function MultiRoleManager({ userId, userName, onRolesUpdated }: MultiRole
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setShowAddDialog(false);
-              resetForm();
-            }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowAddDialog(false);
+                resetForm();
+              }}
+            >
               Cancel
             </Button>
             <Button onClick={handleAddRole} disabled={!selectedRole}>

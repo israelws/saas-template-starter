@@ -15,7 +15,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { organizationAPI } from '@/lib/api';
+import { organizationAPI, api } from '@/lib/api';
 import { Organization } from '@saas-template/shared';
 import {
   Plus,
@@ -41,23 +41,46 @@ function buildOrganizationTree(organizations: Organization[]): OrganizationNode[
   const orgMap = new Map<string, OrganizationNode>();
   const rootOrgs: OrganizationNode[] = [];
 
-  // First pass: create map
+  console.log('Building tree from organizations:', organizations);
+
+  // First pass: create all nodes with empty children arrays
   organizations.forEach((org) => {
     orgMap.set(org.id, { ...org, children: [] });
   });
 
-  // Second pass: build tree
+  // Second pass: build tree relationships
   organizations.forEach((org) => {
     const node = orgMap.get(org.id)!;
-    if (org.parentId && orgMap.has(org.parentId)) {
-      const parent = orgMap.get(org.parentId)!;
-      parent.children = parent.children || [];
+    const parentId = org.parentId || org.parent?.id;
+    
+    if (parentId && orgMap.has(parentId)) {
+      const parent = orgMap.get(parentId)!;
+      if (!parent.children) {
+        parent.children = [];
+      }
       parent.children.push(node);
     } else {
+      // Only add to root if no parent
       rootOrgs.push(node);
     }
   });
 
+  console.log('Built tree structure:', rootOrgs);
+  console.log('Total organizations:', organizations.length);
+  console.log('Root organizations:', rootOrgs.length);
+  
+  // Sort children at each level for consistent display
+  const sortChildren = (nodes: OrganizationNode[]) => {
+    nodes.sort((a, b) => a.name.localeCompare(b.name));
+    nodes.forEach(node => {
+      if (node.children && node.children.length > 0) {
+        sortChildren(node.children);
+      }
+    });
+  };
+  
+  sortChildren(rootOrgs);
+  
   return rootOrgs;
 }
 
@@ -80,17 +103,65 @@ export default function OrganizationsPage() {
 
   const fetchOrganizations = useCallback(async () => {
     try {
+      // Debug auth state
+      const token = localStorage.getItem('authToken');
+      console.log('Current auth token:', token ? 'Present' : 'Missing');
+      
+      // Try to get hierarchy data first for better tree view
+      try {
+        const hierarchyResponse = await api.get('/organizations/hierarchy');
+        if (hierarchyResponse.data) {
+          // Flatten the hierarchy to get all organizations
+          const flattenHierarchy = (nodes: any[], result: Organization[] = []): Organization[] => {
+            nodes.forEach(node => {
+              result.push(node);
+              if (node.children && node.children.length > 0) {
+                flattenHierarchy(node.children, result);
+              }
+            });
+            return result;
+          };
+          const allOrgs = flattenHierarchy(Array.isArray(hierarchyResponse.data) ? hierarchyResponse.data : [hierarchyResponse.data]);
+          setOrganizations(allOrgs);
+          return;
+        }
+      } catch (hierarchyError) {
+        console.log('Hierarchy endpoint not available, falling back to regular list');
+      }
+      
+      // Fallback to regular getAll
       const response = await organizationAPI.getAll();
+      console.log('API Response:', response);
+      console.log('Response data:', response.data);
+      
       // Handle paginated response - response.data.data contains the organizations array
       const orgs = response.data?.data || response.data || [];
-      setOrganizations(Array.isArray(orgs) ? orgs : []);
-    } catch (error) {
+      console.log('Extracted organizations:', orgs);
+      console.log('First org details:', orgs[0]);
+      
+      // Fix parentId issue - backend returns parent object but not parentId
+      const orgsWithParentId = orgs.map(org => ({
+        ...org,
+        parentId: org.parentId || org.parent?.id || null
+      }));
+      
+      setOrganizations(Array.isArray(orgsWithParentId) ? orgsWithParentId : []);
+    } catch (error: any) {
       console.error('Failed to fetch organizations:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch organizations',
-        variant: 'destructive',
+      console.error('Error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        headers: error.config?.headers
       });
+      
+      // Only show error toast if it's not an auth error (auth errors are handled by interceptor)
+      if (error.response?.status !== 401) {
+        toast({
+          title: 'Error',
+          description: error.response?.data?.message || 'Failed to fetch organizations',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -101,7 +172,7 @@ export default function OrganizationsPage() {
     const timer = setTimeout(() => {
       fetchOrganizations();
     }, 100);
-    
+
     return () => clearTimeout(timer);
   }, [fetchOrganizations]);
 
@@ -112,7 +183,7 @@ export default function OrganizationsPage() {
 
   const handleDelete = async () => {
     if (!orgToDelete) return;
-    
+
     setIsDeleting(true);
     try {
       await organizationAPI.delete(orgToDelete.id);
@@ -141,6 +212,8 @@ export default function OrganizationsPage() {
   );
 
   const treeOrganizations = buildOrganizationTree(filteredOrganizations);
+  console.log('Filtered organizations:', filteredOrganizations);
+  console.log('Tree organizations:', treeOrganizations);
 
   const getTypeColor = (type: string) => {
     const colors: Record<string, string> = {

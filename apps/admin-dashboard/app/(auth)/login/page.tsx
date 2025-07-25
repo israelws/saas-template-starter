@@ -24,8 +24,8 @@ export default function LoginPage() {
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
             <p className="text-lg">
-              &ldquo;This platform has revolutionized how we manage our multi-organization
-              structure and permissions. The ABAC system is incredibly powerful.&rdquo;
+              &ldquo;This platform has revolutionized how we manage our multi-organization structure
+              and permissions. The ABAC system is incredibly powerful.&rdquo;
             </p>
             <footer className="text-sm">Sofia Davis</footer>
           </blockquote>

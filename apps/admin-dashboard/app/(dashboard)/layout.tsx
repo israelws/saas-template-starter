@@ -27,6 +27,8 @@ import {
   LogOut,
   FileText,
   FileSearch,
+  Briefcase,
+  MapPin,
 } from 'lucide-react';
 
 const navigation = [
@@ -37,6 +39,11 @@ const navigation = [
   { name: 'Field Permissions', href: '/dashboard/policies/field-permissions', icon: Shield },
   { name: 'Attributes', href: '/dashboard/attributes', icon: FileText },
   { name: 'Field Access Audit', href: '/dashboard/audit/field-access', icon: FileSearch },
+  // Insurance Section
+  { name: 'Insurance Agents', href: '/dashboard/insurance/agents', icon: Briefcase },
+  { name: 'Insurance Branches', href: '/dashboard/insurance/branches', icon: Building2 },
+  { name: 'Territories', href: '/dashboard/territories', icon: MapPin },
+  // Business Objects
   { name: 'Products', href: '/dashboard/products', icon: Package },
   { name: 'Customers', href: '/dashboard/customers', icon: UserCircle },
   { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart },
@@ -57,7 +64,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       // Clear tokens
       localStorage.removeItem('authToken');
       localStorage.removeItem('refreshToken');
-      
+
       // Clear cookie properly
       document.cookie = 'authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
 

@@ -3,14 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, Not, LessThan, MoreThan } from 'typeorm';
 import { User } from './entities/user.entity';
 import { UserOrganizationMembership } from './entities/user-organization-membership.entity';
-import { UserRole } from './entities/user-role.entity';
+import { UserRole as UserRoleEntity } from './entities/user-role.entity';
 import {
   CreateUserDto,
   UpdateUserDto,
   PaginationParams,
   PaginatedResponse,
   UserStatus,
-  UserRole as UserRoleEnum,
+  UserRole,
 } from '@saas-template/shared';
 
 @Injectable()
@@ -20,8 +20,8 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(UserOrganizationMembership)
     private readonly membershipRepository: Repository<UserOrganizationMembership>,
-    @InjectRepository(UserRole)
-    private readonly userRoleRepository: Repository<UserRole>,
+    @InjectRepository(UserRoleEntity)
+    private readonly userRoleRepository: Repository<UserRoleEntity>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -221,7 +221,7 @@ export class UsersService {
   async updateMembershipRole(
     userId: string,
     organizationId: string,
-    role: UserRoleEnum,
+    role: UserRole,
   ): Promise<UserOrganizationMembership> {
     const membership = await this.membershipRepository.findOne({
       where: { userId, organizationId },
@@ -273,10 +273,19 @@ export class UsersService {
    * Multi-role support methods
    */
 
+  /**
+   * Get all active roles for a user in an organization
+   * Returns roles sorted by priority (highest first)
+   * 
+   * @async
+   * @param {string} userId - ID of the user
+   * @param {string} organizationId - ID of the organization
+   * @returns {Promise<UserRole[]>} Array of active user roles
+   */
   async getUserRoles(
     userId: string,
     organizationId: string,
-  ): Promise<UserRole[]> {
+  ): Promise<UserRoleEntity[]> {
     const now = new Date();
     
     return this.userRoleRepository.find({
@@ -294,6 +303,22 @@ export class UsersService {
     });
   }
 
+  /**
+   * Assign a new role to a user in an organization
+   * Supports role priorities and validity periods for temporary roles
+   * 
+   * @async
+   * @param {string} userId - ID of the user to assign role to
+   * @param {string} organizationId - ID of the organization
+   * @param {string} roleName - Name of the role to assign
+   * @param {string} assignedBy - ID of the user assigning the role
+   * @param {Object} [options] - Optional role configuration
+   * @param {number} [options.priority=0] - Role priority (higher number = higher precedence)
+   * @param {Date} [options.validFrom] - When the role becomes active (defaults to now)
+   * @param {Date} [options.validTo] - When the role expires (optional)
+   * @returns {Promise<UserRole>} The created user role
+   * @throws {BadRequestException} If user already has this active role
+   */
   async assignRole(
     userId: string,
     organizationId: string,
@@ -304,7 +329,7 @@ export class UsersService {
       validFrom?: Date;
       validTo?: Date;
     },
-  ): Promise<UserRole> {
+  ): Promise<UserRoleEntity> {
     // Check if user already has this active role
     const existingRole = await this.userRoleRepository.findOne({
       where: {
@@ -335,6 +360,17 @@ export class UsersService {
     return this.userRoleRepository.save(userRole);
   }
 
+  /**
+   * Remove a role from a user in an organization
+   * Soft deletes by setting isActive to false
+   * 
+   * @async
+   * @param {string} userId - ID of the user
+   * @param {string} organizationId - ID of the organization
+   * @param {string} roleName - Name of the role to remove
+   * @returns {Promise<void>}
+   * @throws {NotFoundException} If role assignment not found
+   */
   async removeRole(
     userId: string,
     organizationId: string,
@@ -359,12 +395,24 @@ export class UsersService {
     await this.userRoleRepository.save(userRole);
   }
 
+  /**
+   * Update the priority of an existing role assignment
+   * Higher priority roles take precedence in permission evaluation
+   * 
+   * @async
+   * @param {string} userId - ID of the user
+   * @param {string} organizationId - ID of the organization
+   * @param {string} roleName - Name of the role to update
+   * @param {number} priority - New priority value (0-1000)
+   * @returns {Promise<UserRole>} The updated user role
+   * @throws {NotFoundException} If role assignment not found
+   */
   async updateRolePriority(
     userId: string,
     organizationId: string,
     roleName: string,
     priority: number,
-  ): Promise<UserRole> {
+  ): Promise<UserRoleEntity> {
     const userRole = await this.userRoleRepository.findOne({
       where: {
         userId,
@@ -383,6 +431,15 @@ export class UsersService {
     return this.userRoleRepository.save(userRole);
   }
 
+  /**
+   * Get user role names sorted by priority
+   * Convenience method that returns just the role names
+   * 
+   * @async
+   * @param {string} userId - ID of the user
+   * @param {string} organizationId - ID of the organization
+   * @returns {Promise<string[]>} Array of role names in priority order
+   */
   async getUserRolesByPriority(
     userId: string,
     organizationId: string,
@@ -391,6 +448,16 @@ export class UsersService {
     return roles.map(role => role.roleName);
   }
 
+  /**
+   * Check if a user has a specific role in an organization
+   * Checks only active roles within their validity period
+   * 
+   * @async
+   * @param {string} userId - ID of the user
+   * @param {string} organizationId - ID of the organization
+   * @param {string} roleName - Name of the role to check
+   * @returns {Promise<boolean>} True if user has the active role
+   */
   async hasRole(
     userId: string,
     organizationId: string,

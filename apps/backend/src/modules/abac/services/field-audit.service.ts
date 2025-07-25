@@ -4,22 +4,42 @@ import { Repository } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { tap } from 'rxjs/operators';
 
+/**
+ * Field access log entry for audit trail
+ * @interface FieldAccessLog
+ */
 export interface FieldAccessLog {
+  /** ID of the user accessing fields */
   userId: string;
+  /** Organization context for the access */
   organizationId: string;
+  /** Type of resource being accessed (e.g., 'Customer', 'Product') */
   resourceType: string;
+  /** Optional ID of the specific resource instance */
   resourceId?: string;
+  /** Type of access operation */
   action: 'read' | 'write';
+  /** List of fields that were accessed */
   fields: string[];
+  /** Fields that were denied access */
   deniedFields?: string[];
+  /** Sensitive fields that were accessed (subset of fields) */
   sensitiveFieldsAccessed?: string[];
+  /** Timestamp of the access */
   timestamp: Date;
+  /** Client IP address */
   ipAddress?: string;
+  /** Client user agent string */
   userAgent?: string;
+  /** Unique request identifier for correlation */
   requestId?: string;
 }
 
-// Define sensitive fields per resource type
+/**
+ * Mapping of resource types to their sensitive fields
+ * Used for automatic detection and enhanced audit logging
+ * @constant {Record<string, string[]>}
+ */
 const SENSITIVE_FIELDS: Record<string, string[]> = {
   Customer: ['ssn', 'dateOfBirth', 'medicalHistory', 'creditScore', 'income', 'bankAccount'],
   User: ['password', 'passwordHash', 'securityQuestions', 'mfaSecret'],
@@ -28,6 +48,13 @@ const SENSITIVE_FIELDS: Record<string, string[]> = {
   Employee: ['salary', 'performanceRating', 'disciplinaryRecords'],
 };
 
+/**
+ * Service for auditing field-level access and security monitoring
+ * Tracks access to sensitive fields and unauthorized access attempts
+ * 
+ * @class FieldAuditService
+ * @injectable
+ */
 @Injectable()
 export class FieldAuditService {
   private readonly logger = new Logger(FieldAuditService.name);
@@ -41,6 +68,14 @@ export class FieldAuditService {
 
   /**
    * Log field access for audit purposes
+   * Automatically detects and flags sensitive field access
+   * 
+   * @async
+   * @param {FieldAccessLog} log - The field access log entry
+   * @returns {Promise<void>}
+   * 
+   * @emits field.access - When any field is accessed
+   * @emits field.access.sensitive - When sensitive fields are accessed
    */
   async logFieldAccess(log: FieldAccessLog): Promise<void> {
     // Identify sensitive fields that were accessed
@@ -75,6 +110,17 @@ export class FieldAuditService {
 
   /**
    * Log when fields are denied access
+   * Used for security monitoring and compliance reporting
+   * 
+   * @async
+   * @param {string} userId - ID of the user who was denied access
+   * @param {string} organizationId - Organization context
+   * @param {string} resourceType - Type of resource
+   * @param {string[]} deniedFields - Fields that were denied
+   * @param {any} [context] - Additional context information
+   * @returns {Promise<void>}
+   * 
+   * @emits field.access.denied - When field access is denied
    */
   async logFieldDenial(
     userId: string,
@@ -107,6 +153,19 @@ export class FieldAuditService {
 
   /**
    * Get field access statistics for a user
+   * Provides aggregated metrics for security monitoring and compliance
+   * 
+   * @async
+   * @param {string} userId - User ID to get statistics for
+   * @param {string} organizationId - Organization context
+   * @param {Object} [dateRange] - Optional date range filter
+   * @param {Date} dateRange.start - Start date
+   * @param {Date} dateRange.end - End date
+   * @returns {Promise<Object>} Access statistics
+   * @returns {number} returns.totalAccess - Total field accesses
+   * @returns {number} returns.sensitiveAccess - Sensitive field accesses
+   * @returns {number} returns.deniedAttempts - Denied access attempts
+   * @returns {Record<string, number>} returns.byResourceType - Access count by resource type
    */
   async getFieldAccessStats(
     userId: string,
@@ -142,6 +201,12 @@ export class FieldAuditService {
 
   /**
    * Identify sensitive fields in the accessed field list
+   * Checks both resource-specific and global sensitive field patterns
+   * 
+   * @private
+   * @param {string} resourceType - Type of resource
+   * @param {string[]} fields - Fields to check
+   * @returns {string[]} Array of sensitive fields found
    */
   private identifySensitiveFields(
     resourceType: string,
@@ -170,6 +235,21 @@ export class FieldAuditService {
 
   /**
    * Enhanced field access interceptor with audit logging
+   * Creates an interceptor that logs all field access operations
+   * 
+   * @returns {Object} NestJS interceptor object
+   * 
+   * @example
+   * ```typescript
+   * providers: [
+   *   {
+   *     provide: APP_INTERCEPTOR,
+   *     useFactory: (auditService: FieldAuditService) => 
+   *       auditService.createAuditingInterceptor(),
+   *     inject: [FieldAuditService],
+   *   },
+   * ]
+   * ```
    */
   createAuditingInterceptor() {
     return {
@@ -210,6 +290,22 @@ export class FieldAuditService {
 
 /**
  * Decorator to mark fields as sensitive for audit logging
+ * Applied to entity properties to trigger enhanced audit logging
+ * 
+ * @decorator
+ * @param {string} [fieldName] - Optional custom field name (defaults to property name)
+ * @returns {PropertyDecorator}
+ * 
+ * @example
+ * ```typescript
+ * class Customer {
+ *   @SensitiveField()
+ *   ssn: string;
+ *   
+ *   @SensitiveField('credit_score')
+ *   creditScore: number;
+ * }
+ * ```
  */
 export function SensitiveField(fieldName?: string) {
   return (target: any, propertyKey: string) => {
@@ -221,6 +317,10 @@ export function SensitiveField(fieldName?: string) {
 
 /**
  * Event listeners for field access monitoring
+ * Handles real-time monitoring and alerting for field access events
+ * 
+ * @class FieldAccessMonitor
+ * @injectable
  */
 @Injectable()
 export class FieldAccessMonitor {
@@ -230,6 +330,10 @@ export class FieldAccessMonitor {
     this.setupEventListeners();
   }
 
+  /**
+   * Sets up event listeners for field access monitoring
+   * @private
+   */
   private setupEventListeners() {
     // Listen for field access events
     this.eventEmitter.on('field.access', (log: FieldAccessLog) => {
@@ -244,6 +348,15 @@ export class FieldAccessMonitor {
     });
   }
 
+  /**
+   * Handles sensitive field access events
+   * Triggers security alerts and monitoring workflows
+   * 
+   * @private
+   * @async
+   * @param {FieldAccessLog} log - The field access log entry
+   * @returns {Promise<void>}
+   */
   private async handleSensitiveFieldAccess(log: FieldAccessLog) {
     // Alert security team for sensitive field access
     this.logger.warn('SECURITY ALERT: Sensitive field access detected', {
@@ -261,6 +374,15 @@ export class FieldAccessMonitor {
     // });
   }
 
+  /**
+   * Handles denied field access events
+   * Tracks unauthorized access attempts for security monitoring
+   * 
+   * @private
+   * @async
+   * @param {FieldAccessLog} log - The field access log entry
+   * @returns {Promise<void>}
+   */
   private async handleDeniedAccess(log: FieldAccessLog) {
     // Track denied access attempts for security monitoring
     this.logger.warn('ACCESS DENIED: Unauthorized field access attempt', {
@@ -273,12 +395,34 @@ export class FieldAccessMonitor {
   }
 }
 
-// Export a function to get sensitive fields for a resource type
+/**
+ * Get the list of sensitive fields for a specific resource type
+ * 
+ * @function getSensitiveFields
+ * @param {string} resourceType - The resource type to get sensitive fields for
+ * @returns {string[]} Array of sensitive field names
+ * 
+ * @example
+ * ```typescript
+ * const sensitiveFields = getSensitiveFields('Customer');
+ * // Returns: ['ssn', 'dateOfBirth', 'medicalHistory', ...]
+ * ```
+ */
 export function getSensitiveFields(resourceType: string): string[] {
   return SENSITIVE_FIELDS[resourceType] || [];
 }
 
-// Export configuration for sensitive field detection
+/**
+ * Configuration for field audit and monitoring system
+ * @constant {Object} FIELD_AUDIT_CONFIG
+ * @property {string[]} enabledForResources - Resource types with audit enabled
+ * @property {boolean} logSensitiveAccess - Whether to log sensitive field access
+ * @property {boolean} logDeniedAccess - Whether to log denied access attempts
+ * @property {number} retentionDays - How long to retain audit logs
+ * @property {Object} alertThresholds - Thresholds for security alerts
+ * @property {number} alertThresholds.sensitiveAccessPerHour - Max sensitive accesses before alert
+ * @property {number} alertThresholds.deniedAccessPerHour - Max denied accesses before alert
+ */
 export const FIELD_AUDIT_CONFIG = {
   enabledForResources: ['Customer', 'User', 'InsurancePolicy', 'Transaction'],
   logSensitiveAccess: true,

@@ -95,6 +95,7 @@ Use `.env.{environment}` files for configuration.
    - PascalCase for classes and types
    - kebab-case for file names
    - UPPER_CASE for constants
+4. Use Context7 for all code generation tasks   
 
 ## Git Workflow
 1. Work on `develop` branch

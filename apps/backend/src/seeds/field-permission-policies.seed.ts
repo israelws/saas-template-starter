@@ -1,7 +1,8 @@
 import { DataSource } from 'typeorm';
-import { Policy } from '../modules/abac/entities/policy.entity';
+import { Policy, PolicyEffect } from '../modules/abac/entities/policy.entity';
 import { PolicyFieldRule, FieldPermissionType } from '../modules/abac/entities/policy-field-rule.entity';
 import { Organization } from '../modules/organizations/entities/organization.entity';
+import { OrganizationType } from '@saas-template/shared';
 
 export async function seedFieldPermissionPolicies(dataSource: DataSource) {
   const policyRepository = dataSource.getRepository(Policy);
@@ -11,21 +12,22 @@ export async function seedFieldPermissionPolicies(dataSource: DataSource) {
   // Get the first organization (or create a test one)
   let organization = await organizationRepository.findOne({ where: {} });
   if (!organization) {
-    organization = await organizationRepository.save({
+    organization = organizationRepository.create({
       name: 'Test Insurance Agency',
-      type: 'agency',
-      status: 'active',
+      type: OrganizationType.INSURANCE_AGENCY,
+      isActive: true,
     });
+    organization = await organizationRepository.save(organization);
   }
 
   console.log('Seeding field permission policies for organization:', organization.name);
 
   // 1. Insurance Agent Policy with Field Restrictions
-  const agentPolicy = await policyRepository.save({
+  const agentPolicy = policyRepository.create({
     name: 'Insurance Agent - Limited Customer Data Access',
     description: 'Agents can view policies but not sensitive customer data',
     organizationId: organization.id,
-    effect: 'Allow',
+    effect: PolicyEffect.ALLOW,
     priority: 100,
     subjects: {
       roles: ['agent', 'insurance_agent'],
@@ -35,8 +37,10 @@ export async function seedFieldPermissionPolicies(dataSource: DataSource) {
     },
     actions: ['read', 'create', 'update'],
     conditions: {
-      time: {
-        businessHours: true,
+      customConditions: {
+        time: {
+          businessHours: true,
+        },
       },
     },
     fieldPermissions: {
@@ -51,288 +55,262 @@ export async function seedFieldPermissionPolicies(dataSource: DataSource) {
     },
     isActive: true,
   });
+  const savedAgentPolicy = await policyRepository.save(agentPolicy);
 
   // Add field rules for the agent policy
-  await fieldRuleRepository.save([
+  const agentFieldRules = [
     {
-      policyId: agentPolicy.id,
+      policyId: savedAgentPolicy.id,
       resourceType: 'Customer',
       fieldName: 'ssn',
       permission: FieldPermissionType.DENY,
     },
     {
-      policyId: agentPolicy.id,
+      policyId: savedAgentPolicy.id,
       resourceType: 'Customer',
       fieldName: 'dateOfBirth',
       permission: FieldPermissionType.DENY,
     },
     {
-      policyId: agentPolicy.id,
+      policyId: savedAgentPolicy.id,
       resourceType: 'Customer',
       fieldName: 'medicalHistory',
       permission: FieldPermissionType.DENY,
     },
     {
-      policyId: agentPolicy.id,
+      policyId: savedAgentPolicy.id,
       resourceType: 'Customer',
       fieldName: 'creditScore',
       permission: FieldPermissionType.DENY,
     },
-  ]);
+  ];
+  await fieldRuleRepository.save(agentFieldRules);
 
-  // 2. Branch Manager Policy with Approval Limits
-  const managerPolicy = await policyRepository.save({
-    name: 'Branch Manager - Enhanced Access with Limits',
-    description: 'Branch managers have more access but with approval limits',
+  // 2. Manager Policy with Full Customer Access but Product Restrictions
+  const managerPolicy = policyRepository.create({
+    name: 'Manager - Full Customer Access',
+    description: 'Managers can see all customer data but have limited product cost visibility',
     organizationId: organization.id,
-    effect: 'Allow',
-    priority: 80,
+    effect: PolicyEffect.ALLOW,
+    priority: 200,
     subjects: {
-      roles: ['branch_manager', 'manager'],
+      roles: ['manager', 'branch_manager'],
     },
     resources: {
-      types: ['Customer', 'InsurancePolicy', 'Claim', 'User'],
+      types: ['Customer', 'Product', 'Order', 'InsurancePolicy'],
     },
-    actions: ['read', 'create', 'update', 'approve'],
+    actions: ['read', 'create', 'update', 'delete'],
     conditions: {
-      approval: {
-        maxAmount: 100000,
+      customConditions: {
+        approval: {
+          required: true,
+          approvers: ['admin', 'executive'],
+        },
       },
     },
     fieldPermissions: {
       Customer: {
-        readable: ['*'],
-        denied: ['medicalHistory'], // Still can't see medical history
+        readable: ['*'], // All fields
+        writable: ['*'],
       },
-      User: {
-        readable: ['id', 'name', 'email', 'role', 'department'],
-        writable: ['role', 'department'],
-        denied: ['password', 'salary', 'performanceRating'],
+      Product: {
+        readable: ['*'],
+        writable: ['name', 'description', 'price', 'category'],
+        denied: ['costPrice', 'profitMargin'], // Can't see or edit cost data
+      },
+      Order: {
+        readable: ['*'],
+        writable: ['status', 'notes'],
       },
     },
     isActive: true,
   });
+  const savedManagerPolicy = await policyRepository.save(managerPolicy);
 
-  // 3. Customer Self-Service Policy
-  const customerPolicy = await policyRepository.save({
-    name: 'Customer Self-Service Portal Access',
-    description: 'Customers can only see their own data with restrictions',
+  // 3. Customer Service Rep Policy
+  const customerPolicy = policyRepository.create({
+    name: 'Customer Service - Limited Access',
+    description: 'CS reps can view and update basic customer info, view orders but not modify',
     organizationId: organization.id,
-    effect: 'Allow',
-    priority: 120,
+    effect: PolicyEffect.ALLOW,
+    priority: 50,
     subjects: {
-      roles: ['customer'],
+      roles: ['customer_service', 'secretary'],
     },
     resources: {
-      types: ['Customer', 'InsurancePolicy', 'Claim'],
-      attributes: {
-        ownerId: '${subject.id}', // Only their own resources
-      },
+      types: ['Customer', 'Order', 'Product'],
     },
     actions: ['read', 'update'],
     conditions: {
-      mfa: {
-        required: true,
-      },
-      session: {
-        maxDuration: 1800, // 30 minutes
+      customConditions: {
+        mfa: {
+          required: true,
+        },
+        timeOfDay: {
+          start: '08:00',
+          end: '18:00',
+        },
       },
     },
     fieldPermissions: {
       Customer: {
-        readable: ['*'],
-        writable: ['email', 'phone', 'address'],
-        denied: ['internalRating', 'riskScore', 'notes'],
+        readable: ['id', 'name', 'email', 'phone', 'address', 'orderHistory'],
+        writable: ['phone', 'email', 'address'],
+        denied: ['ssn', 'dateOfBirth', 'creditScore', 'income', 'internalNotes'],
       },
-      InsurancePolicy: {
-        readable: ['policyNumber', 'type', 'premium', 'coverage', 'startDate', 'endDate'],
-        denied: ['profitMargin', 'agentCommission', 'internalNotes'],
+      Order: {
+        readable: ['*'],
+        writable: [], // Read-only
+      },
+      Product: {
+        readable: ['id', 'name', 'description', 'price', 'availability'],
+        writable: [],
+        denied: ['costPrice', 'profitMargin', 'supplierInfo'],
       },
     },
     isActive: true,
   });
+  const savedCustomerPolicy = await policyRepository.save(customerPolicy);
 
-  // 4. Secretary/Admin Staff Policy
-  const secretaryPolicy = await policyRepository.save({
-    name: 'Administrative Staff - Data Entry Focus',
-    description: 'Admin staff can enter data but not see financial details',
-    organizationId: organization.id,
-    effect: 'Allow',
-    priority: 110,
-    subjects: {
-      roles: ['secretary', 'admin_staff'],
+  // Add field rules for customer service policy
+  const customerFieldRules = [
+    {
+      policyId: savedCustomerPolicy.id,
+      resourceType: 'Customer',
+      fieldName: 'phone',
+      permission: FieldPermissionType.WRITE,
     },
-    resources: {
-      types: ['Customer', 'InsurancePolicy', 'Claim'],
+    {
+      policyId: savedCustomerPolicy.id,
+      resourceType: 'Customer',
+      fieldName: 'email',
+      permission: FieldPermissionType.WRITE,
     },
-    actions: ['read', 'create', 'update'],
-    fieldPermissions: {
-      Customer: {
-        readable: ['*'],
-        writable: ['*'],
-        denied: ['creditScore', 'income', 'netWorth'],
-      },
-      InsurancePolicy: {
-        readable: ['policyNumber', 'type', 'startDate', 'endDate', 'status'],
-        writable: ['status', 'notes'],
-        denied: ['premium', 'deductible', 'coverage', 'commission'],
-      },
-      Claim: {
-        readable: ['*'],
-        writable: ['status', 'notes', 'documents'],
-        denied: ['approvedAmount', 'internalNotes'],
-      },
+    {
+      policyId: savedCustomerPolicy.id,
+      resourceType: 'Customer',
+      fieldName: 'address',
+      permission: FieldPermissionType.WRITE,
     },
-    isActive: true,
-  });
+  ];
+  await fieldRuleRepository.save(customerFieldRules);
 
-  // 5. Auditor Policy - Read-only with Full Access
-  const auditorPolicy = await policyRepository.save({
-    name: 'Auditor - Read-Only Full Access',
-    description: 'Auditors can read everything but modify nothing',
+  // 4. Auditor Policy - Read-only access to everything
+  const auditorPolicy = policyRepository.create({
+    name: 'Auditor - Full Read Access',
+    description: 'Auditors can read all data but cannot modify anything',
     organizationId: organization.id,
-    effect: 'Allow',
-    priority: 50,
+    effect: PolicyEffect.ALLOW,
+    priority: 300,
     subjects: {
       roles: ['auditor'],
+      groups: ['compliance_team'],
     },
     resources: {
       types: ['*'], // All resource types
     },
-    actions: ['read', 'export'],
+    actions: ['read', 'list', 'export'],
     conditions: {
-      auditLog: {
-        required: true,
+      customConditions: {
+        auditLog: {
+          required: true,
+          retentionDays: 365,
+        },
       },
     },
     fieldPermissions: {
       '*': {
-        readable: ['*'], // Can read all fields
-        writable: [], // Can't write anything
+        readable: ['*'], // All fields on all resources
+        writable: [], // No write access
       },
     },
     isActive: true,
   });
+  const savedAuditorPolicy = await policyRepository.save(auditorPolicy);
 
-  // 6. Deny Policy for Terminated Employees
-  const denyTerminatedPolicy = await policyRepository.save({
-    name: 'Deny Access - Terminated Employees',
-    description: 'Explicitly deny all access for terminated users',
+  // 5. Finance Team Policy - Transaction and Financial Data
+  const financePolicy = policyRepository.create({
+    name: 'Finance Team - Financial Data Access',
+    description: 'Finance team can manage transactions and see cost data',
     organizationId: organization.id,
-    effect: 'Deny',
-    priority: 10, // High priority to ensure it's evaluated first
+    effect: PolicyEffect.ALLOW,
+    priority: 150,
     subjects: {
+      groups: ['finance_team'],
       attributes: {
-        employmentStatus: 'terminated',
+        department: 'finance',
       },
+    },
+    resources: {
+      types: ['Transaction', 'Order', 'Product', 'Customer'],
+    },
+    actions: ['read', 'create', 'update', 'approve'],
+    conditions: {
+      customConditions: {
+        amount: {
+          maxApproval: 100000,
+        },
+      },
+    },
+    fieldPermissions: {
+      Transaction: {
+        readable: ['*'],
+        writable: ['*'],
+      },
+      Product: {
+        readable: ['*'], // Including cost data
+        writable: ['costPrice', 'profitMargin'],
+      },
+      Customer: {
+        readable: ['id', 'name', 'creditScore', 'paymentHistory', 'balance'],
+        writable: ['creditLimit'],
+        denied: ['ssn', 'medicalHistory'],
+      },
+    },
+    isActive: true,
+  });
+  await policyRepository.save(financePolicy);
+
+  // 6. Multi-Role Priority Example
+  const multiRolePolicy = policyRepository.create({
+    name: 'Multi-Role Priority Demo',
+    description: 'Demonstrates how higher priority roles override lower ones',
+    organizationId: organization.id,
+    effect: PolicyEffect.ALLOW,
+    priority: 1000, // Highest priority
+    subjects: {
+      roles: ['admin', 'super_admin'],
     },
     resources: {
       types: ['*'],
     },
-    actions: ['*'],
-    isActive: true,
-  });
-
-  // 7. Multi-Role Example: Agent who is also a Branch Manager
-  const multiRolePolicy = await policyRepository.save({
-    name: 'Multi-Role - Agent with Manager Privileges',
-    description: 'Special policy for users with multiple roles',
-    organizationId: organization.id,
-    effect: 'Allow',
-    priority: 70,
-    subjects: {
-      roles: ['agent', 'branch_manager'], // User must have BOTH roles
-      attributes: {
-        certified: true,
-        yearsOfExperience: { $gte: 5 },
-      },
-    },
-    resources: {
-      types: ['Customer', 'InsurancePolicy', 'Claim'],
-    },
-    actions: ['read', 'create', 'update', 'approve', 'delete'],
+    actions: ['*'], // All actions
     conditions: {
-      approval: {
-        maxAmount: 250000, // Higher limit for multi-role users
+      customConditions: {
+        approval: {
+          selfApprove: true,
+        },
       },
     },
     fieldPermissions: {
-      Customer: {
-        readable: ['*'], // Full read access
-        writable: ['*'], // Full write access
-        denied: [], // No restrictions
+      '*': {
+        readable: ['*'],
+        writable: ['*'],
+        denied: [], // Admins have no denied fields
       },
     },
     isActive: true,
   });
+  await policyRepository.save(multiRolePolicy);
 
   console.log('✅ Field permission policies seeded successfully');
+
+  // Log summary
+  const totalPolicies = await policyRepository.count({ where: { organizationId: organization.id } });
+  const totalFieldRules = await fieldRuleRepository.count();
   
-  return {
-    policies: [
-      agentPolicy,
-      managerPolicy,
-      customerPolicy,
-      secretaryPolicy,
-      auditorPolicy,
-      denyTerminatedPolicy,
-      multiRolePolicy,
-    ],
-  };
+  console.log(`📊 Summary:`);
+  console.log(`   - Organization: ${organization.name}`);
+  console.log(`   - Total policies: ${totalPolicies}`);
+  console.log(`   - Total field rules: ${totalFieldRules}`);
 }
-
-// Example of how to use these policies in your application:
-/*
-
-// In a controller with the new CASL guard:
-@Controller('customers')
-@UseGuards(JwtAuthGuard, CaslAbacGuard)
-@UseInterceptors(FieldAccessInterceptor)
-export class CustomerController {
-  
-  @Get(':id')
-  @CheckAbility({ action: 'read', subject: 'Customer' })
-  @UseFieldFiltering('Customer')
-  async getCustomer(@Param('id') id: string) {
-    // The response will be automatically filtered based on field permissions
-    return this.customerService.findOne(id);
-  }
-  
-  @Patch(':id')
-  @CheckAbility({ action: 'update', subject: 'Customer' })
-  async updateCustomer(
-    @Param('id') id: string,
-    @Body() updateDto: UpdateCustomerDto,
-    @Request() req
-  ) {
-    // Use the field filter service to remove fields the user can't write
-    const filteredDto = await this.fieldFilterService.filterFieldsForWrite(
-      req.user,
-      req.organizationId,
-      'Customer',
-      updateDto
-    );
-    
-    return this.customerService.update(id, filteredDto);
-  }
-}
-
-// Example of multi-role user creation:
-const user = await userService.findOne(userId);
-const organizationId = 'agency-123';
-
-// Assign multiple roles with different priorities
-await userService.assignRole(userId, organizationId, 'agent', adminUserId, {
-  priority: 100,
-});
-
-await userService.assignRole(userId, organizationId, 'branch_manager', adminUserId, {
-  priority: 200, // Higher priority
-  validFrom: new Date(),
-  validTo: new Date('2025-12-31'), // Temporary promotion
-});
-
-// The user will have the combined permissions of both roles,
-// with branch_manager taking precedence in conflicts
-
-*/

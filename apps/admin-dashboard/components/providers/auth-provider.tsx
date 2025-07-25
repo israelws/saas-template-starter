@@ -44,10 +44,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   token,
                 }),
               );
-              
+
               // Set default organization if user has memberships
               if (userData.memberships && userData.memberships.length > 0) {
-                const defaultMembership = userData.memberships.find((m: any) => m.isDefault) || userData.memberships[0];
+                const defaultMembership =
+                  userData.memberships.find((m: any) => m.isDefault) || userData.memberships[0];
                 if (defaultMembership && defaultMembership.organization) {
                   dispatch(setCurrentOrganization(defaultMembership.organization));
                 }
@@ -67,22 +68,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 token,
               }),
             );
-            
+
             // Set default organization if user has memberships
             if (userData.memberships && userData.memberships.length > 0) {
-              const defaultMembership = userData.memberships.find((m: any) => m.isDefault) || userData.memberships[0];
+              const defaultMembership =
+                userData.memberships.find((m: any) => m.isDefault) || userData.memberships[0];
               if (defaultMembership && defaultMembership.organization) {
                 dispatch(setCurrentOrganization(defaultMembership.organization));
               }
             }
-            
+
             // Update stored user data
             localStorage.setItem('userData', JSON.stringify(userData));
           } catch (validationError) {
             console.warn('Could not validate token with /auth/me, using stored data');
             // Continue with stored data if validation fails
           }
-          
+
           // Ensure cookie is set for middleware
           setCookie('authToken', token, 7);
         } catch (error: any) {
@@ -90,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Don't clear auth on initialization errors - let the middleware handle it
         }
       }
-      
+
       setIsInitialized(true);
     };
 

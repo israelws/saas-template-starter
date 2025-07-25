@@ -91,14 +91,14 @@ export default function OrganizationDetailsPage() {
       // Fetch organization details
       const orgResponse = await organizationAPI.getById(params.id as string);
       setOrganization(orgResponse.data);
-      
+
       // For now, use placeholder stats until stats endpoint is implemented
       setOrganizationStats({
         totalMembers: 0,
         totalChildren: 0,
         totalPolicies: 0,
       });
-      
+
       // Try to fetch hierarchy, but don't fail if it doesn't exist
       try {
         const hierarchyResponse = await organizationAPI.hierarchy.getHierarchy(params.id as string);

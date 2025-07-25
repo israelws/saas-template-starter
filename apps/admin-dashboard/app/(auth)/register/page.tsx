@@ -24,8 +24,8 @@ export default function RegisterPage() {
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
             <p className="text-lg">
-              &ldquo;The platform&apos;s hierarchical organization structure and ABAC system
-              have transformed how we manage access control across our enterprise.&rdquo;
+              &ldquo;The platform&apos;s hierarchical organization structure and ABAC system have
+              transformed how we manage access control across our enterprise.&rdquo;
             </p>
             <footer className="text-sm">Alex Johnson</footer>
           </blockquote>

@@ -16,7 +16,7 @@ export default function LoginDebugPage() {
       <div style={{ padding: '20px', minHeight: '100vh' }}>
         <h1>Debug Login Page</h1>
         <p>Testing step by step...</p>
-        
+
         <div style={{ marginTop: '20px', padding: '10px', border: '1px solid #ccc' }}>
           <h2>Step 1: Basic Rendering</h2>
           <p>✓ If you see this, basic rendering works</p>

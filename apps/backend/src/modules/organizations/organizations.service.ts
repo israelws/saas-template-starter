@@ -90,16 +90,79 @@ export class OrganizationsService {
     const pageNum = Number(page) || 1;
     const limitNum = Number(limit) || 10;
 
-    const [organizations, total] = await this.organizationRepository.findAndCount({
-      where: { parent: IsNull() }, // Only get root organizations
-      skip: (pageNum - 1) * limitNum,
-      take: limitNum,
-      order: { [sortBy]: sortOrder },
-      relations: ['children'],
+    // Use raw query to get organizations with parentId from closure table
+    const query = `
+      SELECT 
+        o.*,
+        p.id as parent_id,
+        p.name as parent_name,
+        p.type as parent_type
+      FROM organizations o
+      LEFT JOIN LATERAL (
+        SELECT c.id_ancestor as id
+        FROM organizations_closure c
+        WHERE c.id_descendant = o.id 
+          AND c.id_ancestor != c.id_descendant
+          AND NOT EXISTS (
+            SELECT 1 
+            FROM organizations_closure c2 
+            WHERE c2.id_descendant = o.id 
+              AND c2.id_ancestor != o.id 
+              AND c2.id_ancestor != c.id_ancestor
+              AND EXISTS (
+                SELECT 1 
+                FROM organizations_closure c3 
+                WHERE c3.id_descendant = c2.id_ancestor 
+                  AND c3.id_ancestor = c.id_ancestor
+              )
+          )
+        LIMIT 1
+      ) AS parent_rel ON true
+      LEFT JOIN organizations p ON parent_rel.id = p.id
+      ORDER BY o."${sortBy}" ${sortOrder}
+      LIMIT $1 OFFSET $2
+    `;
+
+    const countQuery = `SELECT COUNT(*) FROM organizations`;
+
+    const [organizations, countResult] = await Promise.all([
+      this.organizationRepository.query(query, [limitNum, (pageNum - 1) * limitNum]),
+      this.organizationRepository.query(countQuery),
+    ]);
+
+    const total = parseInt(countResult[0].count, 10);
+
+    // Transform raw results to Organization entities with parentId
+    const organizationsWithParentId = organizations.map(row => {
+      const org = this.organizationRepository.create({
+        id: row.id,
+        name: row.name,
+        type: row.type,
+        description: row.description,
+        code: row.code,
+        settings: row.settings,
+        metadata: row.metadata,
+        isActive: row.isActive,
+        path: row.path,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        parentId: row.parent_id || null,
+      });
+      
+      // Add parent object if exists
+      if (row.parent_id) {
+        org.parent = {
+          id: row.parent_id,
+          name: row.parent_name,
+          type: row.parent_type,
+        } as Organization;
+      }
+      
+      return org;
     });
 
     return {
-      data: organizations,
+      data: organizationsWithParentId,
       total,
       page: pageNum,
       limit: limitNum,

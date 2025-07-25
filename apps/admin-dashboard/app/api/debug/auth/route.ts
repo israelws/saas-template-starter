@@ -5,13 +5,13 @@ export async function GET(request: NextRequest) {
   // Get cookies from the request
   const cookieStore = cookies();
   const authToken = cookieStore.get('authToken');
-  
+
   // Get authorization header
   const authHeader = request.headers.get('authorization');
-  
+
   // Get all cookies for debugging
   const allCookies = cookieStore.getAll();
-  
+
   return NextResponse.json({
     authToken: {
       exists: !!authToken,
@@ -19,14 +19,14 @@ export async function GET(request: NextRequest) {
       httpOnly: authToken?.httpOnly,
       sameSite: authToken?.sameSite,
       secure: authToken?.secure,
-      path: authToken?.path
+      path: authToken?.path,
     },
     authHeader: authHeader ? authHeader.substring(0, 30) + '...' : null,
-    allCookies: allCookies.map(cookie => ({
+    allCookies: allCookies.map((cookie) => ({
       name: cookie.name,
       exists: true,
-      valueLength: cookie.value.length
+      valueLength: cookie.value.length,
     })),
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 }
