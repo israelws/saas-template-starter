@@ -98,3 +98,201 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* RTL-specific utilities */
+@layer utilities {
+  /* Logical properties for spacing */
+  .ms-auto {
+    margin-inline-start: auto;
+  }
+  .me-auto {
+    margin-inline-end: auto;
+  }
+  .ms-0 {
+    margin-inline-start: 0;
+  }
+  .me-0 {
+    margin-inline-end: 0;
+  }
+  .ms-1 {
+    margin-inline-start: 0.25rem;
+  }
+  .me-1 {
+    margin-inline-end: 0.25rem;
+  }
+  .ms-2 {
+    margin-inline-start: 0.5rem;
+  }
+  .me-2 {
+    margin-inline-end: 0.5rem;
+  }
+  .ms-3 {
+    margin-inline-start: 0.75rem;
+  }
+  .me-3 {
+    margin-inline-end: 0.75rem;
+  }
+  .ms-4 {
+    margin-inline-start: 1rem;
+  }
+  .me-4 {
+    margin-inline-end: 1rem;
+  }
+  .ps-0 {
+    padding-inline-start: 0;
+  }
+  .pe-0 {
+    padding-inline-end: 0;
+  }
+  
+  /* RTL-aware borders */
+  .border-s {
+    border-inline-start-width: 1px;
+  }
+  .border-e {
+    border-inline-end-width: 1px;
+  }
+  
+  /* RTL-aware rounded corners */
+  .rounded-s {
+    border-start-start-radius: var(--radius);
+    border-end-start-radius: var(--radius);
+  }
+  .rounded-e {
+    border-start-end-radius: var(--radius);
+    border-end-end-radius: var(--radius);
+  }
+}
+
+/* Override for RTL-specific adjustments */
+[dir="rtl"] {
+  /* Ensure proper text alignment */
+  text-align: start;
+}
+
+/* Fix for RTL dropdown menus */
+[dir="rtl"] [role="menu"],
+[dir="rtl"] [data-radix-popper-content-wrapper] {
+  text-align: start;
+  direction: rtl;
+}
+
+/* Ensure dropdown menu items are properly aligned in RTL */
+[dir="rtl"] [role="menuitem"] {
+  text-align: start;
+  flex-direction: row;
+}
+
+/* Fix for RTL form inputs */
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select {
+  text-align: start;
+}
+
+/* Fix for icons in buttons and navigation - both LTR and RTL */
+button svg:first-child:not(:last-child),
+a svg:first-child:not(:last-child),
+.nav-item svg:first-child:not(:last-child),
+td svg:first-child:not(:last-child) {
+  margin-inline-end: 0.5rem;
+}
+
+button svg:last-child:not(:first-child),
+a svg:last-child:not(:first-child),
+.nav-item svg:last-child:not(:first-child),
+td svg:last-child:not(:first-child) {
+  margin-inline-start: 0.5rem;
+}
+
+/* Fix spacing for all icons */
+svg + span,
+svg + div {
+  margin-inline-start: 0.5rem;
+}
+
+span + svg,
+div + svg {
+  margin-inline-end: 0.5rem;
+}
+
+/* Ensure consistent spacing in table cells */
+table td svg,
+table th svg {
+  margin-inline-end: 0.5rem;
+  margin-inline-start: 0;
+}
+
+/* Scrollbar adjustments for RTL */
+[dir="rtl"] {
+  scrollbar-gutter: stable;
+}
+
+[dir="rtl"]::-webkit-scrollbar {
+  margin-inline-start: 0;
+}
+
+/* Fix for RTL badges and pills */
+[dir="rtl"] .rounded-full {
+  direction: ltr;
+}
+
+/* Ensure numbers remain LTR in RTL context */
+[dir="rtl"] .tabular-nums,
+[dir="rtl"] [data-numeric="true"] {
+  direction: ltr;
+  text-align: end;
+}
+
+/* Fix breadcrumb chevron for RTL */
+[dir="rtl"] .breadcrumb-chevron,
+[dir="rtl"] [data-breadcrumb-chevron] {
+  transform: rotate(180deg);
+}
+
+/* Alternative approach for chevron icons */
+[dir="rtl"] svg.chevron-right {
+  transform: rotate(180deg);
+}
+
+/* Fix table cell alignment and spacing in RTL */
+[dir="rtl"] table td,
+[dir="rtl"] table th {
+  text-align: start;
+}
+
+[dir="rtl"] table td:first-child,
+[dir="rtl"] table th:first-child {
+  padding-inline-start: 1rem;
+  padding-left: 0;
+  padding-right: 1rem;
+}
+
+[dir="rtl"] table td:last-child,
+[dir="rtl"] table th:last-child {
+  padding-inline-end: 1rem;
+  padding-right: 0;
+  padding-left: 1rem;
+}
+
+/* Fix sidebar navigation item spacing - ensure consistent spacing */
+.sidebar-nav-item svg,
+[data-sidebar-nav-item] svg,
+nav a svg {
+  margin-inline-end: 0.75rem;
+  margin-inline-start: 0;
+}
+
+/* Fix action buttons alignment in RTL */
+[dir="rtl"] .actions-cell,
+[dir="rtl"] [data-actions-cell] {
+  text-align: end;
+}
+
+/* Fix checkbox/radio button spacing in RTL */
+[dir="rtl"] input[type="checkbox"] + label,
+[dir="rtl"] input[type="radio"] + label {
+  margin-inline-start: 0.5rem;
+  margin-left: 0.5rem;
+  margin-right: 0;
+}

@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { logout } from '@/store/slices/authSlice';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/hooks/use-translation';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,12 +18,15 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { User, Settings, LogOut, HelpCircle, Bell, Shield, ChevronDown } from 'lucide-react';
+import { LanguageSwitcher } from './language-switcher';
 
 export const UserProfileMenu: React.FC = () => {
   const router = useRouter();
   const dispatch = useDispatch();
   const { toast } = useToast();
+  const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
+  const isRTL = ['he', 'ar'].includes(i18n.language);
 
   // Get user data from Redux store
   const user = useSelector((state: RootState) => state.auth.user);
@@ -106,10 +110,10 @@ export const UserProfileMenu: React.FC = () => {
             </span>
             <span className="text-xs text-muted-foreground hidden lg:block">Member</span>
           </div>
-          <ChevronDown className="ml-auto h-4 w-4 opacity-50" />
+          <ChevronDown className="ms-auto h-4 w-4 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
+      <DropdownMenuContent className="w-56" align={isRTL ? "start" : "end"} forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">
@@ -120,30 +124,34 @@ export const UserProfileMenu: React.FC = () => {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleProfileClick}>
-          <User className="mr-2 h-4 w-4" />
-          <span>Profile</span>
+          <User className="me-2 h-4 w-4" />
+          <span>{t('userMenu.profile')}</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleNotificationsClick}>
-          <Bell className="mr-2 h-4 w-4" />
-          <span>Notifications</span>
+          <Bell className="me-2 h-4 w-4" />
+          <span>{t('userMenu.notifications')}</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleSecurityClick}>
-          <Shield className="mr-2 h-4 w-4" />
+          <Shield className="me-2 h-4 w-4" />
           <span>Security</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleSettingsClick}>
-          <Settings className="mr-2 h-4 w-4" />
-          <span>Settings</span>
+          <Settings className="me-2 h-4 w-4" />
+          <span>{t('userMenu.settings')}</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleHelpClick}>
-          <HelpCircle className="mr-2 h-4 w-4" />
+          <HelpCircle className="me-2 h-4 w-4" />
           <span>Help & Support</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
+        <div className="w-full px-2 py-1.5">
+          <LanguageSwitcher />
+        </div>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>Log out</span>
+          <LogOut className="me-2 h-4 w-4" />
+          <span>{t('userMenu.signOut')}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

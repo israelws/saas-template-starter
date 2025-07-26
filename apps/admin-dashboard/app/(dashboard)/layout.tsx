@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { logout } from '@/store/slices/authSlice';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/hooks/use-translation';
 import { BreadcrumbProvider } from '@/contexts/breadcrumb-context';
 import { BreadcrumbNav } from '@/components/layout/breadcrumb-nav';
 import { UserProfileMenu } from '@/components/layout/user-profile-menu';
@@ -30,26 +31,28 @@ import {
   FileSearch,
   Briefcase,
   MapPin,
+  Languages,
 } from 'lucide-react';
 
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: Home },
-  { name: 'Organizations', href: '/dashboard/organizations', icon: Building2 },
-  { name: 'Users', href: '/dashboard/users', icon: Users },
-  { name: 'Roles', href: '/dashboard/roles', icon: Shield },
-  { name: 'Policies', href: '/dashboard/policies', icon: Shield },
-  { name: 'Attributes', href: '/dashboard/attributes', icon: FileText },
-  { name: 'Field Access Audit', href: '/dashboard/audit/field-access', icon: FileSearch },
+const navigationItems = [
+  { key: 'navigation.dashboard', href: '/dashboard', icon: Home },
+  { key: 'navigation.organizations', href: '/dashboard/organizations', icon: Building2 },
+  { key: 'navigation.users', href: '/dashboard/users', icon: Users },
+  { key: 'navigation.roles', href: '/dashboard/roles', icon: Shield },
+  { key: 'navigation.policies', href: '/dashboard/policies', icon: Shield },
+  { key: 'navigation.attributes', href: '/dashboard/attributes', icon: FileText },
+  { key: 'navigation.fieldAccessAudit', href: '/dashboard/audit/field-access', icon: FileSearch },
   // Insurance Section
-  { name: 'Insurance Agents', href: '/dashboard/insurance/agents', icon: Briefcase },
-  { name: 'Insurance Branches', href: '/dashboard/insurance/branches', icon: Building2 },
-  { name: 'Territories', href: '/dashboard/territories', icon: MapPin },
+  { key: 'navigation.insuranceAgents', href: '/dashboard/insurance/agents', icon: Briefcase },
+  { key: 'navigation.insuranceBranches', href: '/dashboard/insurance/branches', icon: Building2 },
+  { key: 'navigation.territories', href: '/dashboard/territories', icon: MapPin },
   // Business Objects
-  { name: 'Products', href: '/dashboard/products', icon: Package },
-  { name: 'Customers', href: '/dashboard/customers', icon: UserCircle },
-  { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart },
-  { name: 'Transactions', href: '/dashboard/transactions', icon: CreditCard },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { key: 'navigation.products', href: '/dashboard/products', icon: Package },
+  { key: 'navigation.customers', href: '/dashboard/customers', icon: UserCircle },
+  { key: 'navigation.orders', href: '/dashboard/orders', icon: ShoppingCart },
+  { key: 'navigation.transactions', href: '/dashboard/transactions', icon: CreditCard },
+  { key: 'navigation.translations', href: '/dashboard/translations', icon: Languages },
+  { key: 'navigation.settings', href: '/dashboard/settings', icon: Settings },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -59,6 +62,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const dispatch = useDispatch();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleLogout = async () => {
     try {
@@ -117,11 +121,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Button>
             </div>
             <nav className="flex-1 space-y-1 px-2 pb-4">
-              {navigation.map((item) => {
+              {navigationItems.map((item) => {
                 const isActive = pathname === item.href;
                 return (
                   <Link
-                    key={item.name}
+                    key={item.key}
                     href={item.href}
                     className={cn(
                       'group flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors',
@@ -130,8 +134,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         : 'text-gray-300 hover:bg-gray-700 hover:text-white',
                     )}
                   >
-                    <item.icon className={cn('h-5 w-5 flex-shrink-0', sidebarOpen && 'mr-3')} />
-                    {sidebarOpen && <span>{item.name}</span>}
+                    <item.icon className={cn('h-5 w-5 flex-shrink-0', sidebarOpen && 'me-3')} />
+                    {sidebarOpen && <span>{t(item.key)}</span>}
                   </Link>
                 );
               })}
@@ -142,8 +146,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white"
                 onClick={handleLogout}
               >
-                <LogOut className={cn('h-5 w-5', sidebarOpen && 'mr-3')} />
-                {sidebarOpen && <span>Sign out</span>}
+                <LogOut className={cn('h-5 w-5', sidebarOpen && 'me-3')} />
+                {sidebarOpen && <span>{t('navigation.signOut')}</span>}
               </Button>
             </div>
           </div>
@@ -183,11 +187,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Button>
             </div>
             <nav className="flex-1 space-y-1 px-2 pb-4">
-              {navigation.map((item) => {
+              {navigationItems.map((item) => {
                 const isActive = pathname === item.href;
                 return (
                   <Link
-                    key={item.name}
+                    key={item.key}
                     href={item.href}
                     className={cn(
                       'group flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors',
@@ -197,8 +201,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     )}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
-                    <span>{item.name}</span>
+                    <item.icon className="h-5 w-5 flex-shrink-0 me-3" />
+                    <span>{t(item.key)}</span>
                   </Link>
                 );
               })}
@@ -208,8 +212,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 variant="ghost"
                 className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white"
               >
-                <LogOut className="mr-3 h-5 w-5" />
-                <span>Sign out</span>
+                <LogOut className="h-5 w-5 me-3" />
+                <span>{t('navigation.signOut')}</span>
               </Button>
             </div>
           </div>
@@ -229,7 +233,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Menu className="h-5 w-5" />
               </Button>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-4">
               <UserProfileMenu />
             </div>
           </header>
@@ -244,13 +248,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {/* Footer */}
               <footer className="border-t bg-white px-4 py-4 lg:px-6">
                 <div className="flex flex-col items-center justify-between space-y-2 text-sm text-muted-foreground sm:flex-row sm:space-y-0">
-                  <p>&copy; {new Date().getFullYear()} SAAS Template. All rights reserved.</p>
+                  <p>{t('footer.copyright', { year: new Date().getFullYear() })}</p>
                   <div className="flex space-x-4">
                     <Link href="/terms" className="hover:text-primary">
-                      Terms of Service
+                      {t('footer.termsOfService')}
                     </Link>
                     <Link href="/privacy" className="hover:text-primary">
-                      Privacy Policy
+                      {t('footer.privacyPolicy')}
                     </Link>
                   </div>
                 </div>
