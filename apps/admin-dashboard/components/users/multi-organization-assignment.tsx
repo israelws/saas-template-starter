@@ -38,6 +38,7 @@ interface MultiOrganizationAssignmentProps {
   user: User;
   currentMemberships: UserOrganizationMembership[];
   availableOrganizations: Organization[];
+  availableRoles?: Array<{ id: string; name: string; displayName: string }>;
   onAssign: (organizationId: string, role: string) => void;
   onUpdateRole: (organizationId: string, role: string) => void;
   onRemove: (organizationId: string) => void;
@@ -45,7 +46,7 @@ interface MultiOrganizationAssignmentProps {
   isLoading?: boolean;
 }
 
-const ROLES = [
+const DEFAULT_ROLES = [
   { value: 'owner', label: 'Owner', color: 'bg-purple-100 text-purple-800' },
   { value: 'admin', label: 'Admin', color: 'bg-blue-100 text-blue-800' },
   { value: 'member', label: 'Member', color: 'bg-green-100 text-green-800' },
@@ -56,11 +57,27 @@ export const MultiOrganizationAssignment: React.FC<MultiOrganizationAssignmentPr
   user,
   currentMemberships,
   availableOrganizations,
+  availableRoles,
   onUpdateRole,
   onRemove,
   onBulkAssign,
   isLoading = false,
 }) => {
+  // Use provided roles or fall back to defaults
+  const ROLES = useMemo(() => {
+    if (availableRoles && availableRoles.length > 0) {
+      return availableRoles.map(role => ({
+        value: role.name,
+        label: role.displayName,
+        color: role.name === 'super_admin' ? 'bg-red-100 text-red-800' :
+               role.name === 'admin' ? 'bg-blue-100 text-blue-800' :
+               role.name === 'manager' ? 'bg-purple-100 text-purple-800' :
+               role.name === 'auditor' ? 'bg-orange-100 text-orange-800' :
+               'bg-gray-100 text-gray-800'
+      }));
+    }
+    return DEFAULT_ROLES;
+  }, [availableRoles]);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrganizations, setSelectedOrganizations] = useState<
@@ -70,14 +87,20 @@ export const MultiOrganizationAssignment: React.FC<MultiOrganizationAssignmentPr
 
   // Filter available organizations (exclude those user is already member of)
   const filteredAvailableOrganizations = useMemo(() => {
-    const membershipOrgIds = new Set(currentMemberships.map((m) => m.organizationId));
+    // Ensure currentMemberships is always an array
+    const safeMemberships = Array.isArray(currentMemberships) ? currentMemberships : [];
+    const membershipOrgIds = new Set(safeMemberships.map((m) => m.organizationId));
+
+    console.log('Available organizations:', availableOrganizations);
+    console.log('Search query:', searchQuery);
 
     return availableOrganizations
       .filter((org) => !membershipOrgIds.has(org.id))
       .filter((org) => {
         const matchesSearch =
           org.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          org.code?.toLowerCase().includes(searchQuery.toLowerCase());
+          org.code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          org.description?.toLowerCase().includes(searchQuery.toLowerCase());
 
         const matchesType = filterType === 'all' || org.type === filterType;
 
@@ -147,7 +170,7 @@ export const MultiOrganizationAssignment: React.FC<MultiOrganizationAssignmentPr
           <div className="py-8 text-center text-sm text-muted-foreground">
             Loading memberships...
           </div>
-        ) : currentMemberships.length === 0 ? (
+        ) : !Array.isArray(currentMemberships) || currentMemberships.length === 0 ? (
           <div className="border rounded-lg p-8 text-center">
             <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <p className="text-sm text-muted-foreground">
@@ -163,7 +186,7 @@ export const MultiOrganizationAssignment: React.FC<MultiOrganizationAssignmentPr
             </Button>
           </div>
         ) : (
-          currentMemberships.map((membership) => {
+          (Array.isArray(currentMemberships) ? currentMemberships : []).map((membership) => {
             const Icon = getOrganizationIcon(membership.organizationType);
 
             return (
@@ -250,7 +273,7 @@ export const MultiOrganizationAssignment: React.FC<MultiOrganizationAssignmentPr
 
       {/* Assign to Organizations Dialog */}
       <Dialog open={showAssignDialog} onOpenChange={setShowAssignDialog}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col bg-white dark:bg-gray-900">
           <DialogHeader>
             <DialogTitle>Assign to Organizations</DialogTitle>
             <DialogDescription>
@@ -258,7 +281,7 @@ export const MultiOrganizationAssignment: React.FC<MultiOrganizationAssignmentPr
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
+          <div className="space-y-4 flex-1 overflow-hidden flex flex-col mt-6">
             {/* Search and Filter */}
             <div className="flex gap-4">
               <div className="flex-1 relative">
@@ -267,11 +290,11 @@ export const MultiOrganizationAssignment: React.FC<MultiOrganizationAssignmentPr
                   placeholder="Search organizations..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
+                  className="pl-9 focus-visible:ring-1 focus-visible:ring-offset-0 focus-visible:ring-gray-300 dark:focus-visible:ring-gray-600"
                 />
               </div>
               <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger className="w-[150px] focus:ring-1 focus:ring-offset-0 focus:ring-gray-300 dark:focus:ring-gray-600">
                   <SelectValue placeholder="All types" />
                 </SelectTrigger>
                 <SelectContent>
@@ -297,10 +320,20 @@ export const MultiOrganizationAssignment: React.FC<MultiOrganizationAssignmentPr
             )}
 
             {/* Organizations List */}
-            <div className="flex-1 overflow-y-auto space-y-2 pr-2">
-              {filteredAvailableOrganizations.length === 0 ? (
+            <div className="flex-1 overflow-y-auto space-y-2 pr-2 min-h-[200px] max-h-[400px] border rounded-lg p-2">
+              {availableOrganizations.length === 0 && searchQuery.length === 0 ? (
                 <div className="py-8 text-center text-sm text-muted-foreground">
-                  No available organizations found
+                  <div className="flex flex-col items-center gap-2">
+                    <Building2 className="h-8 w-8 text-muted-foreground/50" />
+                    <p>Loading organizations...</p>
+                  </div>
+                </div>
+              ) : filteredAvailableOrganizations.length === 0 ? (
+                <div className="py-8 text-center text-sm text-muted-foreground">
+                  {searchQuery.length > 0 
+                    ? `No organizations found matching "${searchQuery}"`
+                    : 'No available organizations found'
+                  }
                 </div>
               ) : (
                 filteredAvailableOrganizations.map((org) => {
@@ -316,8 +349,8 @@ export const MultiOrganizationAssignment: React.FC<MultiOrganizationAssignmentPr
                     <div
                       key={org.id}
                       className={cn(
-                        'border rounded-lg p-3 transition-colors',
-                        isSelected && 'border-primary bg-primary/5',
+                        'border rounded-lg p-3 transition-colors cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800',
+                        isSelected && 'border-primary bg-primary/5 dark:bg-primary/10',
                       )}
                     >
                       <div className="flex items-center gap-3">
@@ -359,9 +392,9 @@ export const MultiOrganizationAssignment: React.FC<MultiOrganizationAssignmentPr
             </div>
 
             {/* Warning */}
-            <div className="flex items-start gap-2 p-3 bg-amber-50 rounded-lg">
-              <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
-              <p className="text-sm text-amber-800">
+            <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+              <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-500 mt-0.5" />
+              <p className="text-sm text-amber-800 dark:text-amber-200">
                 The user will gain access to all resources within the selected organizations based
                 on their assigned roles.
               </p>

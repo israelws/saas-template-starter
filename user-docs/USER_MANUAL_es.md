@@ -16,15 +16,15 @@
 
 ## 1. Introducción
 
-Bienvenido al Manual del Usuario de la Plataforma SAAS. Esta guía completa le ayudará a comprender y utilizar eficazmente el sistema avanzado de gestión de permisos basado en Control de Acceso Basado en Atributos (ABAC).
+Bienvenido al Manual del Usuario de la Plataforma SAAS. Esta guía completa le ayudará a comprender y utilizar eficazmente el sistema avanzado de gestión de permisos basado en Control de Acceso Basado en Atributos (Attribute-Based Access Control - ABAC).
 
 ### Conceptos Clave
 
-- **Organizaciones**: Estructuras jerárquicas que representan empresas, divisiones, departamentos y equipos
-- **Usuarios**: Cuentas individuales que pueden pertenecer a múltiples organizaciones
-- **Roles**: Funciones laborales o puestos (p.ej., Gerente, Auditor)
-- **Políticas**: Reglas que definen qué acciones pueden realizar los usuarios
-- **Atributos**: Propiedades dinámicas utilizadas en la evaluación de políticas
+- **Organizaciones (Organizations)**: Estructuras jerárquicas que representan empresas, divisiones, departamentos y equipos
+- **Usuarios (Users)**: Cuentas individuales que pueden pertenecer a múltiples organizaciones
+- **Roles (Roles)**: Funciones laborales o puestos (p.ej., Gerente, Auditor)
+- **Políticas (Policies)**: Reglas que definen qué acciones pueden realizar los usuarios
+- **Atributos (Attributes)**: Propiedades dinámicas utilizadas en la evaluación de políticas
 
 ---
 
@@ -54,12 +54,12 @@ El panel principal proporciona:
 Las organizaciones siguen una estructura jerárquica estricta:
 
 ```
-Empresa
-├── División
-│   ├── Departamento
-│   │   └── Equipo
-├── Agencia de Seguros
-│   └── Sucursal de Seguros
+Empresa (Company)
+├── División (Division)
+│   ├── Departamento (Department)
+│   │   └── Equipo (Team)
+├── Agencia de Seguros (Insurance Agency)
+│   └── Sucursal de Seguros (Insurance Branch)
 ```
 
 ### Creación de Organizaciones
@@ -69,10 +69,10 @@ Empresa
 1. Navegue a **Panel > Organizaciones**
 2. Haga clic en **"Crear Organización"**
 3. Complete el formulario:
-   - **Nombre**: "Corporación Acme"
-   - **Tipo**: Empresa
-   - **Padre**: (dejar vacío para empresas raíz)
-   - **Descripción**: "Entidad corporativa principal"
+   - **Nombre (Name)**: "Corporación Acme"
+   - **Tipo (Type)**: Empresa
+   - **Padre (Parent)**: (dejar vacío para empresas raíz)
+   - **Descripción (Description)**: "Entidad corporativa principal"
 4. Haga clic en **"Crear"**
 
 #### Ejemplo 2: Crear una División
@@ -163,9 +163,9 @@ Empresa
 
 ### Gestión del Estado del Usuario
 
-- **Activo**: El usuario puede iniciar sesión y acceder a recursos
-- **Inactivo**: El usuario no puede iniciar sesión
-- **Suspendido**: Restricción temporal, puede ser reactivado
+- **Activo (Active)**: El usuario puede iniciar sesión y acceder a recursos
+- **Inactivo (Inactive)**: El usuario no puede iniciar sesión
+- **Suspendido (Suspended)**: Restricción temporal, puede ser reactivado
 
 ---
 
@@ -174,10 +174,10 @@ Empresa
 ### Comprendiendo los Roles
 
 Los roles definen funciones laborales, NO permisos. Ejemplos:
-- **Admin**: Administrador de organización
-- **Gerente**: Gerente de departamento o equipo
-- **Auditor**: Acceso de solo lectura para cumplimiento
-- **Usuario**: Usuario estándar
+- **Admin (Admin)**: Administrador de organización
+- **Gerente (Manager)**: Gerente de departamento o equipo
+- **Auditor (Auditor)**: Acceso de solo lectura para cumplimiento
+- **Usuario (User)**: Usuario estándar
 
 ### Creación de Roles Personalizados
 
@@ -209,11 +209,11 @@ Las políticas definen QUIÉN puede hacer QUÉ en QUÉ recursos bajo QUÉ condic
 
 ### Componentes de Políticas
 
-1. **Sujetos**: A quién se aplica la política (roles, usuarios, grupos)
-2. **Recursos**: A qué recursos se puede acceder
-3. **Acciones**: Qué operaciones están permitidas
-4. **Condiciones**: Cuándo se aplica la política
-5. **Atributos de Recursos**: Alcance de recursos por atributos
+1. **Sujetos (Subjects)**: A quién se aplica la política (roles, usuarios, grupos)
+2. **Recursos (Resources)**: A qué recursos se puede acceder
+3. **Acciones (Actions)**: Qué operaciones están permitidas
+4. **Condiciones (Conditions)**: Cuándo se aplica la política
+5. **Atributos de Recursos (Resource Attributes)**: Alcance de recursos por atributos
 
 ### Creación de Políticas
 
@@ -226,21 +226,21 @@ Esta política permite a los gerentes gestionar todos los recursos dentro de su 
 3. Configure:
 
 **Información Básica:**
-- Nombre: "Acceso de Gerente de Departamento"
-- Descripción: "Acceso completo a recursos del departamento"
-- Alcance: Organización
-- Efecto: Permitir
+- Nombre (Name): "Acceso de Gerente de Departamento"
+- Descripción (Description): "Acceso completo a recursos del departamento"
+- Alcance (Scope): Organización
+- Efecto (Effect): Permitir (Allow)
 
-**Sujetos:**
+**Sujetos (Subjects):**
 - Roles: ["gerente"]
 
-**Recursos:**
-- Tipos: ["producto", "cliente", "pedido"]
+**Recursos (Resources):**
+- Tipos: ["producto (product)", "cliente (customer)", "pedido (order)"]
 - Atributos:
   - organizationId: ${subject.organizationId}
 
-**Acciones:**
-- Seleccione todas: crear, leer, actualizar, eliminar, listar
+**Acciones (Actions):**
+- Seleccione todas: crear (create), leer (read), actualizar (update), eliminar (delete), listar (list)
 
 **Guarde la política**
 
@@ -312,13 +312,13 @@ Las variables dinámicas permiten que las políticas se adapten al contexto del 
 Controle qué recursos específicos afecta una política:
 
 ```javascript
-// Solo recursos en la organización del usuario
+// Solo recursos en la organización del usuario (user's organization)
 organizationId: "${subject.organizationId}"
 
-// Solo recursos en estado específico
+// Solo recursos en estado específico (specific status)
 status: "activo"
 
-// Solo recursos creados por el usuario
+// Solo recursos creados por el usuario (created by user)
 createdBy: "${subject.userId}"
 ```
 
@@ -327,13 +327,13 @@ createdBy: "${subject.userId}"
 Combine múltiples condiciones para control detallado:
 
 ```javascript
-// Gerente puede aprobar pedidos bajo $10,000
+// Gerente puede aprobar pedidos bajo $10,000 (manager can approve orders under $10,000)
 subject.role === 'gerente' && resource.amount < 10000
 
-// Acceso solo durante horas de oficina
+// Acceso solo durante horas de oficina (access only during office hours)
 environment.timeOfDay >= '09:00' && environment.timeOfDay <= '18:00'
 
-// Acceso específico por región
+// Acceso específico por región (region-specific access)
 subject.region === resource.region
 ```
 
@@ -344,9 +344,9 @@ subject.region === resource.region
 ### Comprendiendo los Atributos
 
 Los atributos son propiedades dinámicas que pueden adjuntarse a:
-- **Sujetos** (usuarios): rol, departamento, nivelAutorización
-- **Recursos** (objetos): estado, propietario, clasificación
-- **Entorno** (contexto): tiempo, ubicación, tipoDispositivo
+- **Sujetos (Subjects)** (usuarios): rol (role), departamento (department), nivelAutorización (clearanceLevel)
+- **Recursos (Resources)** (objetos): estado (status), propietario (owner), clasificación (classification)
+- **Entorno (Environment)** (contexto): tiempo (time), ubicación (location), tipoDispositivo (deviceType)
 
 ### Creación de Atributos
 
@@ -355,11 +355,11 @@ Los atributos son propiedades dinámicas que pueden adjuntarse a:
 1. Navegue a **Panel > Atributos**
 2. Haga clic en **"Crear Atributo"**
 3. Configure:
-   - **Nombre**: clearanceLevel
-   - **Categoría**: sujeto
-   - **Tipo**: cadena
-   - **Valores Posibles**: ["público", "interno", "confidencial", "secreto"]
-   - **Descripción**: "Nivel de autorización de seguridad"
+   - **Nombre (Name)**: clearanceLevel
+   - **Categoría (Category)**: sujeto (subject)
+   - **Tipo (Type)**: cadena (string)
+   - **Valores Posibles (Possible Values)**: ["público (public)", "interno (internal)", "confidencial (confidential)", "secreto (secret)"]
+   - **Descripción (Description)**: "Nivel de autorización de seguridad"
 4. Guardar
 
 #### Ejemplo 2: Crear una Clasificación de Recurso
@@ -376,10 +376,10 @@ Los atributos son propiedades dinámicas que pueden adjuntarse a:
 Una vez creados, los atributos pueden usarse en condiciones de políticas:
 
 ```javascript
-// Solo usuarios con autorización adecuada
+// Solo usuarios con autorización adecuada (proper clearance)
 subject.clearanceLevel === 'secreto' || subject.clearanceLevel === 'confidencial'
 
-// Coincidir autorización con clasificación
+// Coincidir autorización con clasificación (match clearance to classification)
 subject.clearanceLevel >= resource.classification
 ```
 
@@ -389,29 +389,29 @@ subject.clearanceLevel >= resource.classification
 
 ### Estructura Organizacional
 
-1. **Mantenerlo Simple**: No cree niveles de jerarquía innecesarios
-2. **Agrupación Lógica**: Agrupe por función, no solo geografía
-3. **Nombres Consistentes**: Use nombres claros y descriptivos
+1. **Mantenerlo Simple (Keep it Simple)**: No cree niveles de jerarquía innecesarios
+2. **Agrupación Lógica (Logical Grouping)**: Agrupe por función, no solo geografía
+3. **Nombres Consistentes (Consistent Naming)**: Use nombres claros y descriptivos
 
 ### Diseño de Roles
 
-1. **Basado en Trabajo**: Nombre roles según funciones laborales
-2. **Evite Nombres de Permisos**: No use "puede_editar_productos"
-3. **Reutilizable**: Diseñe roles que funcionen entre organizaciones
+1. **Basado en Trabajo (Job-Based)**: Nombre roles según funciones laborales
+2. **Evite Nombres de Permisos (Avoid Permission Names)**: No use "puede_editar_productos"
+3. **Reutilizable (Reusable)**: Diseñe roles que funcionen entre organizaciones
 
 ### Diseño de Políticas
 
-1. **Principio de Menor Privilegio**: Otorgue acceso mínimo necesario
-2. **Use Atributos de Recursos**: Alcance políticas a organización
-3. **Pruebe Exhaustivamente**: Use probador de políticas antes del despliegue
-4. **Documente Propósito**: Descripciones claras ayudan al mantenimiento
+1. **Principio de Menor Privilegio (Principle of Least Privilege)**: Otorgue acceso mínimo necesario
+2. **Use Atributos de Recursos (Use Resource Attributes)**: Alcance políticas a organización
+3. **Pruebe Exhaustivamente (Test Thoroughly)**: Use probador de políticas antes del despliegue
+4. **Documente Propósito (Document Purpose)**: Descripciones claras ayudan al mantenimiento
 
 ### Mejores Prácticas de Seguridad
 
-1. **Auditorías Regulares**: Revise políticas y acceso trimestralmente
-2. **Elimine Acceso Obsoleto**: Desactive cuentas no utilizadas
-3. **Monitoree Cambios**: Rastree modificaciones de políticas
-4. **Separación de Funciones**: Divida operaciones sensibles
+1. **Auditorías Regulares (Regular Audits)**: Revise políticas y acceso trimestralmente
+2. **Elimine Acceso Obsoleto (Remove Stale Access)**: Desactive cuentas no utilizadas
+3. **Monitoree Cambios (Monitor Changes)**: Rastree modificaciones de políticas
+4. **Separación de Funciones (Separation of Duties)**: Divida operaciones sensibles
 
 ---
 

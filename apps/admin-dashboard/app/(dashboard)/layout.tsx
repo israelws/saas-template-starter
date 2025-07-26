@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { BreadcrumbProvider } from '@/contexts/breadcrumb-context';
 import { BreadcrumbNav } from '@/components/layout/breadcrumb-nav';
 import { UserProfileMenu } from '@/components/layout/user-profile-menu';
+import Image from 'next/image';
 import {
   Building2,
   Users,
@@ -95,7 +96,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className={cn('hidden lg:flex lg:flex-col', sidebarOpen ? 'lg:w-64' : 'lg:w-16')}>
           <div className="flex flex-1 flex-col bg-gray-900">
             <div className="flex h-16 items-center justify-between px-4">
-              {sidebarOpen && <h1 className="text-xl font-semibold text-white">SAAS Admin</h1>}
+              {sidebarOpen && (
+                <Image
+                  src="/logo_main.png"
+                  alt="Logo"
+                  width={150}
+                  height={40}
+                  className="h-8 w-auto"
+                  priority
+                />
+              )}
               <Button
                 variant="ghost"
                 size="sm"
@@ -156,7 +166,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
           >
             <div className="flex h-16 items-center justify-between px-4">
-              <h1 className="text-xl font-semibold text-white">SAAS Admin</h1>
+              <Image
+                src="/logo_main.png"
+                alt="Logo"
+                width={150}
+                height={40}
+                className="h-8 w-auto"
+                priority
+              />
               <Button
                 variant="ghost"
                 size="sm"

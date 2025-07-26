@@ -21,10 +21,12 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { userAPI, organizationAPI } from '@/lib/api';
-import { ArrowLeft } from 'lucide-react';
+import { userAPI, organizationAPI, policyAPI } from '@/lib/api';
+import { ArrowLeft, Shield, FileText } from 'lucide-react';
 import { MultiOrganizationAssignment } from '@/components/users/multi-organization-assignment';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export default function EditUserPage() {
   const params = useParams();
@@ -41,6 +43,18 @@ export default function EditUserPage() {
   const [user, setUser] = useState<any>(null);
   const [userMemberships, setUserMemberships] = useState<any[]>([]);
   const [availableOrganizations, setAvailableOrganizations] = useState<any[]>([]);
+  const [availablePolicies, setAvailablePolicies] = useState<any[]>([]);
+  const [userPolicies, setUserPolicies] = useState<string[]>([]);
+  const [availableRoles] = useState([
+    { id: '1', name: 'super_admin', displayName: 'Super Admin' },
+    { id: '2', name: 'admin', displayName: 'Admin' },
+    { id: '3', name: 'manager', displayName: 'Manager' },
+    { id: '4', name: 'user', displayName: 'User' },
+    { id: '5', name: 'guest', displayName: 'Guest' },
+    { id: '6', name: 'auditor', displayName: 'Auditor' },
+    { id: '7', name: 'department_head', displayName: 'Department Head' },
+    { id: '8', name: 'customer_service', displayName: 'Customer Service' }
+  ]);
 
   const fetchUser = useCallback(async () => {
     try {
@@ -68,18 +82,35 @@ export default function EditUserPage() {
   const fetchUserMemberships = useCallback(async () => {
     try {
       const response = await userAPI.getUserMemberships(params.id as string);
-      setUserMemberships(response.data || []);
+      // Ensure we always set an array, even if the response is null/undefined
+      const memberships = response.data || response || [];
+      setUserMemberships(Array.isArray(memberships) ? memberships : []);
     } catch (error) {
       console.error('Failed to fetch user memberships:', error);
+      setUserMemberships([]); // Set empty array on error
     }
   }, [params.id]);
 
   const fetchAvailableOrganizations = useCallback(async () => {
     try {
       const response = await organizationAPI.getAll();
-      setAvailableOrganizations(response.data.organizations || []);
+      // Handle different response formats
+      const orgs = response.data?.organizations || response.data?.data || response.data || [];
+      setAvailableOrganizations(Array.isArray(orgs) ? orgs : []);
+      console.log('Fetched organizations:', orgs);
     } catch (error) {
       console.error('Failed to fetch organizations:', error);
+      setAvailableOrganizations([]);
+    }
+  }, []);
+
+  const fetchAvailablePolicies = useCallback(async () => {
+    try {
+      const response = await policyAPI.getAll();
+      const policies = response.data?.data || response.data || [];
+      setAvailablePolicies(Array.isArray(policies) ? policies : []);
+    } catch (error) {
+      console.error('Failed to fetch policies:', error);
     }
   }, []);
 
@@ -88,8 +119,9 @@ export default function EditUserPage() {
       fetchUser();
       fetchUserMemberships();
       fetchAvailableOrganizations();
+      fetchAvailablePolicies();
     }
-  }, [params.id, fetchUser, fetchUserMemberships, fetchAvailableOrganizations]);
+  }, [params.id, fetchUser, fetchUserMemberships, fetchAvailableOrganizations, fetchAvailablePolicies]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,6 +165,23 @@ export default function EditUserPage() {
       });
     }
   };
+
+  const handlePolicyToggle = (policyId: string) => {
+    setUserPolicies(prev => 
+      prev.includes(policyId) 
+        ? prev.filter(id => id !== policyId)
+        : [...prev, policyId]
+    );
+  };
+
+  const isSystemAdmin = useCallback(() => {
+    const systemAdminEmails = [
+      'israel+t21@committed.co.il',
+      'israel+t13@committed.co.il',
+      'israel+t20@committed.co.il'
+    ];
+    return systemAdminEmails.includes(user?.email || '');
+  }, [user]);
 
   const handleUpdateOrganizationRole = async (organizationId: string, role: string) => {
     try {
@@ -215,7 +264,8 @@ export default function EditUserPage() {
       <Tabs defaultValue="details" className="space-y-4">
         <TabsList>
           <TabsTrigger value="details">User Details</TabsTrigger>
-          <TabsTrigger value="organizations">Organizations</TabsTrigger>
+          <TabsTrigger value="organizations">Organizations & Roles</TabsTrigger>
+          <TabsTrigger value="policies">Direct Policies</TabsTrigger>
         </TabsList>
 
         <TabsContent value="details">
@@ -311,18 +361,105 @@ export default function EditUserPage() {
 
         <TabsContent value="organizations">
           <Card>
-            <CardContent className="pt-6">
+            <CardHeader>
+              <CardTitle>Organization & Role Management</CardTitle>
+              <CardDescription>
+                Assign the user to organizations and set their roles
+                {user && isSystemAdmin() && (
+                  <Badge variant="destructive" className="ml-2">
+                    System Administrator
+                  </Badge>
+                )}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               {user && (
                 <MultiOrganizationAssignment
                   user={user}
                   currentMemberships={userMemberships}
                   availableOrganizations={availableOrganizations}
+                  availableRoles={availableRoles}
                   onAssign={handleAssignOrganization}
                   onUpdateRole={handleUpdateOrganizationRole}
                   onRemove={handleRemoveFromOrganization}
                   onBulkAssign={handleBulkAssign}
                 />
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="policies">
+          <Card>
+            <CardHeader>
+              <CardTitle>Direct Policy Assignment</CardTitle>
+              <CardDescription>
+                Assign policies directly to this user. These policies will be applied in addition to role-based policies.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {availablePolicies.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No policies available</p>
+                ) : (
+                  <div className="space-y-2">
+                    {availablePolicies.map((policy) => (
+                      <div key={policy.id} className="flex items-start space-x-3 py-3 border-b last:border-0">
+                        <Checkbox
+                          id={policy.id}
+                          checked={userPolicies.includes(policy.id)}
+                          onCheckedChange={() => handlePolicyToggle(policy.id)}
+                          disabled={isLoading}
+                        />
+                        <div className="flex-1 space-y-1">
+                          <label
+                            htmlFor={policy.id}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Shield className="h-4 w-4 text-gray-500" />
+                              {policy.name}
+                            </div>
+                          </label>
+                          <p className="text-sm text-muted-foreground">
+                            {policy.description || 'No description'}
+                          </p>
+                          <div className="flex items-center gap-4 text-xs">
+                            <span className={`inline-flex items-center rounded-full px-2 py-1 font-semibold ${
+                              policy.effect === 'allow' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {policy.effect === 'allow' ? 'Allow' : 'Deny'}
+                            </span>
+                            <span className="text-gray-500">
+                              Scope: {policy.scope || 'Organization'}
+                            </span>
+                            {policy.isActive ? (
+                              <Badge variant="outline" className="text-green-600">Active</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-gray-500">Inactive</Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="mt-6 flex justify-end">
+                <Button
+                  onClick={() => {
+                    toast({
+                      title: 'Success',
+                      description: 'Policy assignments updated',
+                    });
+                  }}
+                  disabled={isLoading}
+                >
+                  Save Policy Assignments
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

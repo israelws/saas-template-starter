@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Trash2, AlertCircle, X, Shield, Eye, Edit } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Policy, PolicyEffect } from '@saas-template/shared';
-import { FieldPermissionsEditor } from './field-permissions-editor';
+import { FieldPermissionsEditorV2 } from './field-permissions-editor-v2';
 
 interface PolicyCondition {
   id: string;
@@ -68,13 +68,13 @@ const OPERATORS = {
 };
 
 const DEFAULT_RESOURCES = [
-  'organization',
-  'user',
-  'policy',
-  'product',
-  'customer',
-  'order',
-  'transaction',
+  'Organization',
+  'User',
+  'Product',
+  'Customer',
+  'Order',
+  'Transaction',
+  'InsurancePolicy',
 ];
 
 const DEFAULT_ACTIONS = [
@@ -515,7 +515,7 @@ export const EnhancedPolicyBuilder: React.FC<EnhancedPolicyBuilderProps> = ({
                     </div>
                   </div>
 
-                  <FieldPermissionsEditor
+                  <FieldPermissionsEditorV2
                     value={fieldPermissions}
                     onChange={setFieldPermissions}
                     availableResourceTypes={selectedResourceTypes}

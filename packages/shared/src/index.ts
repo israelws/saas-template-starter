@@ -13,6 +13,7 @@ export * from './types/insurance.types';
 export * from './constants/organization.constants';
 export * from './constants/policy.constants';
 export * from './constants/status.constants';
+export * from './constants/resource-fields';
 
 // Utils
 export * from './utils/date.utils';

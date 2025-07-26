@@ -16,8 +16,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { userAPI } from '@/lib/api';
 import { User } from '@saas-template/shared';
-import { Plus, Search, Edit, Trash2, Mail, Calendar, Building2, Users } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Mail, Calendar, Building2, Users, Shield } from 'lucide-react';
 import { useBreadcrumb } from '@/hooks/use-breadcrumb';
+import { Badge } from '@/components/ui/badge';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -81,6 +82,15 @@ export default function UsersPage() {
       user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.lastName?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+
+  const isSystemAdmin = (email: string) => {
+    const systemAdminEmails = [
+      'israel+t21@committed.co.il',
+      'israel+t13@committed.co.il',
+      'israel+t20@committed.co.il'
+    ];
+    return systemAdminEmails.includes(email);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -150,7 +160,15 @@ export default function UsersPage() {
                     onClick={() => router.push(`/dashboard/users/${user.id}`)}
                   >
                     <TableCell className="font-medium">
-                      {user.firstName} {user.lastName}
+                      <div className="flex items-center gap-2">
+                        <span>{user.firstName} {user.lastName}</span>
+                        {isSystemAdmin(user.email) && (
+                          <Badge variant="destructive" className="text-xs">
+                            <Shield className="h-3 w-3 mr-1" />
+                            System Admin
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center">
