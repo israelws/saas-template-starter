@@ -95,7 +95,32 @@ Use `.env.{environment}` files for configuration.
    - PascalCase for classes and types
    - kebab-case for file names
    - UPPER_CASE for constants
-4. Use Context7 for all code generation tasks   
+4. Use Context7 for all code generation tasks
+
+## UI Consistency Guidelines
+1. **Confirmation Dialogs**: Always use shadcn/ui AlertDialog component for:
+   - Delete confirmations
+   - Destructive actions
+   - Important user confirmations
+   - Never use browser's native `confirm()` or `alert()`
+
+2. **Toast Notifications**: Use the toast hook for:
+   - Success messages
+   - Error messages
+   - Info notifications
+
+3. **Form Dialogs**: Use Dialog component for:
+   - Create/Edit forms in modals
+   - Complex user inputs
+
+4. **Loading States**: Always show loading states using:
+   - Skeleton components for initial loads
+   - Spinner or loading text for actions
+
+5. **Error Handling**: Consistent error display:
+   - Form validation errors below fields
+   - API errors in toast notifications
+   - Empty states for no data
 
 ## Git Workflow
 1. Work on `develop` branch

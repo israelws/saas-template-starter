@@ -17,6 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useBreadcrumb } from '@/hooks/use-breadcrumb';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 
 interface Role {
   id: string;
@@ -120,6 +121,12 @@ export default function RolesPage() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; roleId: string | null; roleName?: string }>({ 
+    open: false, 
+    roleId: null,
+    roleName: undefined
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useBreadcrumb([
     { label: 'Dashboard', href: '/dashboard' },
@@ -153,25 +160,29 @@ export default function RolesPage() {
     fetchRoles();
   }, [fetchRoles]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this role? This action cannot be undone.')) {
-      return;
-    }
-
+  const handleDelete = async () => {
+    if (!deleteDialog.roleId) return;
+    
+    setIsDeleting(true);
     try {
       // TODO: Implement actual API call
-      // await rolesAPI.delete(id);
+      // await rolesAPI.delete(deleteDialog.roleId);
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      
       toast({
         title: 'Success',
         description: 'Role deleted successfully',
       });
       fetchRoles();
+      setDeleteDialog({ open: false, roleId: null, roleName: undefined });
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to delete role',
         variant: 'destructive',
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -330,7 +341,11 @@ export default function RolesPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDelete(role.id)}
+                          onClick={() => setDeleteDialog({ 
+                            open: true, 
+                            roleId: role.id,
+                            roleName: role.displayName 
+                          })}
                           disabled={role.isSystem || (role.userCount || 0) > 0}
                           className="text-destructive hover:text-destructive"
                         >
@@ -345,6 +360,18 @@ export default function RolesPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <ConfirmationDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => !open && setDeleteDialog({ open: false, roleId: null, roleName: undefined })}
+        onConfirm={handleDelete}
+        title="Delete Role"
+        description={`Are you sure you want to delete the role "${deleteDialog.roleName || 'this role'}"? This action cannot be undone.`}
+        confirmText="Delete Role"
+        cancelText="Cancel"
+        variant="destructive"
+        loading={isDeleting}
+      />
     </div>
   );
 }

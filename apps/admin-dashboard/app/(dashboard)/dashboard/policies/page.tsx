@@ -15,6 +15,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { policyAPI } from '@/lib/api';
 import { Policy } from '@saas-template/shared';
 import { PolicyFlowDiagram } from '@/components/policies/policy-flow-diagram';
@@ -37,6 +38,12 @@ export default function PoliciesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'flow'>('list');
   const [selectedPolicyId, setSelectedPolicyId] = useState<string | undefined>(undefined);
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; policyId: string | null; policyName?: string }>({ 
+    open: false, 
+    policyId: null,
+    policyName: undefined
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -65,24 +72,26 @@ export default function PoliciesPage() {
     fetchPolicies();
   }, [fetchPolicies]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this policy?')) {
-      return;
-    }
-
+  const handleDelete = async () => {
+    if (!deleteDialog.policyId) return;
+    
+    setIsDeleting(true);
     try {
-      await policyAPI.delete(id);
+      await policyAPI.delete(deleteDialog.policyId);
       toast({
         title: 'Success',
         description: 'Policy deleted successfully',
       });
       fetchPolicies();
+      setDeleteDialog({ open: false, policyId: null, policyName: undefined });
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to delete policy',
         variant: 'destructive',
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -254,7 +263,11 @@ export default function PoliciesPage() {
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDelete(policy.id);
+                            setDeleteDialog({ 
+                              open: true, 
+                              policyId: policy.id,
+                              policyName: policy.name 
+                            });
                           }}
                         >
                           <Trash2 className="h-4 w-4 text-red-600" />
@@ -268,6 +281,18 @@ export default function PoliciesPage() {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmationDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => !open && setDeleteDialog({ open: false, policyId: null, policyName: undefined })}
+        onConfirm={handleDelete}
+        title="Delete Policy"
+        description={`Are you sure you want to delete the policy "${deleteDialog.policyName || 'this policy'}"? This action cannot be undone and may affect user permissions.`}
+        confirmText="Delete Policy"
+        cancelText="Cancel"
+        variant="destructive"
+        loading={isDeleting}
+      />
     </div>
   );
 }
