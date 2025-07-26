@@ -32,6 +32,8 @@ export const organizationAPI = {
   update: (id: string, data: any) => api.patch(`/organizations/${id}`, data),
   delete: (id: string) => api.delete(`/organizations/${id}`),
   getMembers: (id: string) => api.get(`/organizations/${id}/members`),
+  search: (params: { name: string; limit?: number }) => 
+    api.get('/organizations/search', { params }),
   // Hierarchy endpoints
   hierarchy: {
     refresh: () => api.post('/organizations/hierarchy/refresh'),
@@ -109,21 +111,36 @@ export const policyAPI = {
   getAll: (params?: any) => {
     const state = store.getState();
     const organizationId = state.organization.currentOrganization?.id;
-    return api.get('/abac/policies', {
-      params: {
-        ...params,
-        organizationId,
-      },
+    // Include organizationId for ABAC context
+    return api.get('/abac/policies', { 
+      params: { ...params, organizationId } 
     });
   },
-  getById: (id: string) => api.get(`/abac/policies/${id}`),
-  create: (data: any) => {
+  getById: (id: string) => {
     const state = store.getState();
     const organizationId = state.organization.currentOrganization?.id;
-    return api.post('/abac/policies', { ...data, organizationId });
+    return api.get(`/abac/policies/${id}`, { 
+      params: { organizationId } 
+    });
   },
-  update: (id: string, data: any) => api.patch(`/abac/policies/${id}`, data),
-  delete: (id: string) => api.delete(`/abac/policies/${id}`),
+  create: (data: any) => {
+    // Organization ID is optional - can be provided in data if creating org-specific policy
+    return api.post('/abac/policies', data);
+  },
+  update: (id: string, data: any) => {
+    const state = store.getState();
+    const organizationId = state.organization.currentOrganization?.id;
+    return api.patch(`/abac/policies/${id}`, data, { 
+      params: { organizationId } 
+    });
+  },
+  delete: (id: string) => {
+    const state = store.getState();
+    const organizationId = state.organization.currentOrganization?.id;
+    return api.delete(`/abac/policies/${id}`, { 
+      params: { organizationId } 
+    });
+  },
   test: (context: any) => api.post('/abac/policies/test', context),
   evaluate: (context: any) => api.post('/abac/policies/evaluate', context),
 };

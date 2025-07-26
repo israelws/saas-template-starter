@@ -45,13 +45,17 @@ export default function EditPolicyPage() {
   const fetchAttributes = useCallback(async () => {
     try {
       const response = await attributeAPI.getAll();
+      // Handle both paginated and non-paginated responses
+      const attributes = response.data?.data || response.data || [];
+      const attributeArray = Array.isArray(attributes) ? attributes : [];
+      
       setAvailableAttributes(
-        response.data.data?.map((attr: any) => ({
-          key: attr.key,
+        attributeArray.map((attr: any) => ({
+          key: attr.key || attr.name,
           name: attr.name,
-          type: attr.type,
+          type: attr.type || attr.dataType,
           category: attr.category,
-        })) || [],
+        }))
       );
     } catch (error) {
       console.error('Failed to fetch attributes:', error);

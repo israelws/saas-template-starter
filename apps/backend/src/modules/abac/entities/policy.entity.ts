@@ -2,6 +2,7 @@ import { Entity, Column, Index, ManyToOne, JoinColumn, OneToMany } from 'typeorm
 import { BaseEntity } from '@/common/entities/base.entity';
 import {
   PolicyEffect,
+  PolicyScope,
   PolicySubjects,
   PolicyResources,
   PolicyConditions,
@@ -10,8 +11,8 @@ import { Organization } from '@/modules/organizations/entities/organization.enti
 import { PolicySet } from './policy-set.entity';
 import { PolicyFieldRule } from './policy-field-rule.entity';
 
-// Re-export PolicyEffect for convenience
-export { PolicyEffect } from '@saas-template/shared';
+// Re-export PolicyEffect and PolicyScope for convenience
+export { PolicyEffect, PolicyScope } from '@saas-template/shared';
 
 @Entity('policies')
 @Index(['organizationId', 'isActive'])
@@ -23,6 +24,13 @@ export class Policy extends BaseEntity {
 
   @Column({ type: 'text', nullable: true })
   description?: string;
+
+  @Column({
+    type: 'enum',
+    enum: PolicyScope,
+    default: PolicyScope.ORGANIZATION,
+  })
+  scope: PolicyScope;
 
   @Column({
     type: 'enum',
@@ -46,14 +54,15 @@ export class Policy extends BaseEntity {
   @Column({ type: 'jsonb', nullable: true })
   conditions?: PolicyConditions;
 
-  @Column({ type: 'uuid' })
-  organizationId: string;
+  @Column({ type: 'uuid', nullable: true })
+  organizationId?: string;
 
   @ManyToOne(() => Organization, (organization) => organization.policies, {
+    nullable: true,
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'organizationId' })
-  organization: Organization;
+  organization?: Organization;
 
   @Column({ type: 'uuid', nullable: true })
   policySetId?: string;

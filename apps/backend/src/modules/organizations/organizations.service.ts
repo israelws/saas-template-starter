@@ -12,6 +12,14 @@ import {
   ORGANIZATION_TYPE_HIERARCHY,
 } from '@saas-template/shared';
 
+/**
+ * Service for managing organizations with hierarchical structure
+ * @class OrganizationsService
+ * @description
+ * Handles all organization-related operations including CRUD, hierarchy management,
+ * and parent-child relationship validation. Implements business rules for organization
+ * type constraints.
+ */
 @Injectable()
 export class OrganizationsService {
   constructor(
@@ -22,6 +30,21 @@ export class OrganizationsService {
     // private readonly eventsGateway?: any,
   ) {}
 
+  /**
+   * Creates a new organization with parent validation
+   * @method create
+   * @async
+   * @param {CreateOrganizationDto} createOrganizationDto - Organization data
+   * @returns {Promise<Organization>} Created organization
+   * @throws {BadRequestException} If parent-child type constraint is violated
+   * @description
+   * Validates parent-child relationships based on organization type:
+   * - Division can only have company as parent
+   * - Department can only have division as parent
+   * - Team can only have department as parent
+   * - Insurance agency can only have company as parent
+   * - Insurance branch can only have insurance agency as parent
+   */
   async create(createOrganizationDto: CreateOrganizationDto): Promise<Organization> {
     // Validate parent-child relationship if parent is provided
     if (createOrganizationDto.parentId) {
@@ -81,6 +104,44 @@ export class OrganizationsService {
     // }
 
     return savedOrg;
+  }
+
+  /**
+   * Retrieves all organizations with pagination and parent relationships
+   * @method findAll
+   * @async
+   * @param {PaginationParams} params - Pagination parameters
+   * @returns {Promise<PaginatedResponse<Organization>>} Paginated organizations with parentId
+   * @description
+   * Returns organizations with their parent relationships included. The parentId
+   * is extracted from the closure table to support the frontend tree view.
+   * Results include both parentId and parent object references.
+   */
+  /**
+   * Searches organizations by name with autocomplete support
+   * @method searchByName
+   * @async
+   * @param {string} name - Partial organization name (min 3 chars)
+   * @param {number} limit - Maximum results to return
+   * @returns {Promise<Organization[]>} Matching organizations
+   * @description
+   * Case-insensitive search that matches organizations starting with
+   * or containing the search query. Results include parent relationships.
+   */
+  async searchByName(name: string, limit: number = 10): Promise<Organization[]> {
+    const searchQuery = `%${name}%`;
+    
+    const organizations = await this.organizationRepository
+      .createQueryBuilder('org')
+      .leftJoinAndSelect('org.parent', 'parent')
+      .where('LOWER(org.name) LIKE LOWER(:search)', { search: searchQuery })
+      .orWhere('LOWER(org.code) LIKE LOWER(:search)', { search: searchQuery })
+      .orderBy('org.name', 'ASC')
+      .limit(limit)
+      .getMany();
+    
+    // Add parentId to each organization
+    return organizations;
   }
 
   async findAll(params: PaginationParams): Promise<PaginatedResponse<Organization>> {
@@ -193,6 +254,17 @@ export class OrganizationsService {
     return organization;
   }
 
+  /**
+   * Gets the complete organization hierarchy as a tree structure
+   * @method getHierarchy
+   * @async
+   * @param {string} [rootId] - Optional root organization ID
+   * @returns {Promise<OrganizationHierarchy[]>} Array of organization trees
+   * @description
+   * Returns organizations structured as a hierarchy. If rootId is provided,
+   * returns only that subtree. Otherwise returns all root organizations
+   * with their complete descendant trees.
+   */
   async getHierarchy(rootId?: string): Promise<OrganizationHierarchy[]> {
     let roots: Organization[];
 
@@ -227,6 +299,20 @@ export class OrganizationsService {
     return this.organizationRepository.save(organization);
   }
 
+  /**
+   * Moves an organization to a new parent
+   * @method move
+   * @async
+   * @param {string} id - Organization ID to move
+   * @param {string | null} newParentId - New parent ID or null for root
+   * @returns {Promise<Organization>} Updated organization
+   * @throws {BadRequestException} If move violates constraints or creates circular reference
+   * @description
+   * Validates the move operation to ensure:
+   * - No circular references (can't move to own descendant)
+   * - Parent-child type constraints are maintained
+   * - Updates materialized paths for the entire subtree
+   */
   async move(id: string, newParentId: string | null): Promise<Organization> {
     const organization = await this.findOne(id);
     
@@ -287,6 +373,15 @@ export class OrganizationsService {
   }
 
   // Helper methods
+  
+  /**
+   * Builds a tree structure from flat organization array
+   * @method buildTree
+   * @private
+   * @param {Organization[]} organizations - Flat array of organizations
+   * @param {string} parentId - Parent ID to build tree from
+   * @returns {Organization[]} Array of child organizations with nested children
+   */
   private buildTree(organizations: Organization[], parentId: string): Organization[] {
     const children = organizations.filter(org => org.parent?.id === parentId);
     
@@ -297,6 +392,13 @@ export class OrganizationsService {
     });
   }
 
+  /**
+   * Maps an organization entity to hierarchy DTO
+   * @method mapToHierarchy
+   * @private
+   * @param {Organization} organization - Organization entity
+   * @returns {OrganizationHierarchy} Hierarchy DTO
+   */
   private mapToHierarchy(organization: Organization): OrganizationHierarchy {
     return {
       id: organization.id,

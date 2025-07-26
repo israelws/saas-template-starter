@@ -199,13 +199,29 @@ export default function PolicyDetailsPage() {
             <CardContent>
               <dl className="grid grid-cols-1 gap-4">
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Resource</dt>
+                  <dt className="text-sm font-medium text-gray-500">Resource Types</dt>
                   <dd className="mt-1">
                     <code className="rounded bg-gray-100 px-2 py-1 text-sm">
                       {policy.resources?.types?.join(', ') || 'Any'}
                     </code>
                   </dd>
                 </div>
+                {policy.resources?.attributes && Object.keys(policy.resources.attributes).length > 0 && (
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Resource Attributes</dt>
+                    <dd className="mt-1 space-y-1">
+                      {Object.entries(policy.resources.attributes).map(([key, value]) => (
+                        <div key={key} className="flex items-center gap-2">
+                          <code className="rounded bg-gray-100 px-2 py-1 text-sm">{key}</code>
+                          <span className="text-gray-500">=</span>
+                          <code className="rounded bg-blue-100 px-2 py-1 text-sm text-blue-700">
+                            {String(value)}
+                          </code>
+                        </div>
+                      ))}
+                    </dd>
+                  </div>
+                )}
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Action</dt>
                   <dd className="mt-1">

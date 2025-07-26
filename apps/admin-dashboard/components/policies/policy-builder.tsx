@@ -125,6 +125,31 @@ export const PolicyBuilder: React.FC<PolicyBuilderProps> = ({
   const [priority, setPriority] = useState(initialPolicy.priority?.toString() || '50');
   const [conditions, setConditions] = useState<PolicyCondition[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [selectedRoles, setSelectedRoles] = useState<string[]>(
+    initialPolicy.subjects?.roles || []
+  );
+  const [resourceAttributes, setResourceAttributes] = useState<Array<{ key: string; value: string; customKey?: string }>>(
+    initialPolicy.resources?.attributes
+      ? Object.entries(initialPolicy.resources.attributes).map(([key, value]) => ({
+          key,
+          value: String(value),
+        }))
+      : []
+  );
+
+  const addResourceAttribute = () => {
+    setResourceAttributes([...resourceAttributes, { key: '', value: '' }]);
+  };
+
+  const updateResourceAttribute = (index: number, field: 'key' | 'value' | 'customKey', value: string) => {
+    const updated = [...resourceAttributes];
+    updated[index][field] = value;
+    setResourceAttributes(updated);
+  };
+
+  const removeResourceAttribute = (index: number) => {
+    setResourceAttributes(resourceAttributes.filter((_, i) => i !== index));
+  };
 
   const addCondition = () => {
     const newCondition: PolicyCondition = {
@@ -188,6 +213,15 @@ export const PolicyBuilder: React.FC<PolicyBuilderProps> = ({
       customConditions: Object.keys(customConditions).length > 0 ? customConditions : undefined,
     };
 
+    // Convert resource attributes array back to object
+    const resourceAttributesObject: Record<string, any> = {};
+    resourceAttributes.forEach((attr) => {
+      const key = attr.key === 'custom' ? attr.customKey : attr.key;
+      if (key && attr.value) {
+        resourceAttributesObject[key] = attr.value;
+      }
+    });
+
     const policy: Partial<Policy> = {
       ...initialPolicy,
       name: policyName,
@@ -195,14 +229,18 @@ export const PolicyBuilder: React.FC<PolicyBuilderProps> = ({
       resources: {
         types: selectedResourceTypes,
         ids: initialPolicy.resources?.ids || [],
-        attributes: initialPolicy.resources?.attributes || {},
+        attributes: resourceAttributesObject,
       },
       actions: selectedActions,
       effect,
       priority: parseInt(priority),
       conditions: Object.keys(customConditions).length > 0 ? policyConditions : undefined,
       isActive: true,
-      subjects: initialPolicy.subjects || { users: [], groups: [], roles: [] },
+      subjects: {
+        users: initialPolicy.subjects?.users || [],
+        groups: initialPolicy.subjects?.groups || [],
+        roles: selectedRoles,
+      },
     };
 
     onSave(policy);
@@ -406,6 +444,166 @@ export const PolicyBuilder: React.FC<PolicyBuilderProps> = ({
                 Deny
               </span>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Resource Attributes</CardTitle>
+              <CardDescription>
+                Define attributes that resources must have for this policy to apply. Use ${`{subject.organizationId}`} for dynamic values.
+              </CardDescription>
+            </div>
+            <Button onClick={addResourceAttribute} size="sm">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Attribute
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {resourceAttributes.length === 0 ? (
+            <div className="rounded-lg border border-dashed p-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                No resource attributes defined. The policy will apply to all resources of the selected types.
+              </p>
+              <Button onClick={addResourceAttribute} variant="outline" size="sm" className="mt-4">
+                <Plus className="mr-2 h-4 w-4" />
+                Add First Attribute
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {resourceAttributes.map((attr, index) => (
+                <div key={index} className="flex gap-2 items-start">
+                  <div className="flex-1">
+                    <Select
+                      value={attr.key}
+                      onValueChange={(value) => updateResourceAttribute(index, 'key', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select attribute or type custom" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="custom">
+                          <span className="text-muted-foreground">Custom attribute...</span>
+                        </SelectItem>
+                        {availableAttributes
+                          .filter((a) => a.category === 'resource' || a.category === 'subject')
+                          .map((attribute) => (
+                            <SelectItem key={attribute.key} value={attribute.key}>
+                              <div className="flex items-center gap-2">
+                                <span>{attribute.name}</span>
+                                <Badge
+                                  variant="outline"
+                                  className={cn(
+                                    'text-xs',
+                                    attribute.category === 'subject' 
+                                      ? 'bg-blue-100 text-blue-800' 
+                                      : 'bg-green-100 text-green-800'
+                                  )}
+                                >
+                                  {attribute.category}
+                                </Badge>
+                              </div>
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    {attr.key === 'custom' && (
+                      <Input
+                        placeholder="Enter custom attribute key"
+                        value={attr.customKey || ''}
+                        onChange={(e) => updateResourceAttribute(index, 'customKey', e.target.value)}
+                        className="mt-2"
+                      />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Value (e.g., ${subject.organizationId})"
+                      value={attr.value}
+                      onChange={(e) => updateResourceAttribute(index, 'value', e.target.value)}
+                    />
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeResourceAttribute(index)}
+                    className="h-10 w-10 p-0"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <div className="mt-2 rounded-lg bg-muted p-3">
+                <p className="text-xs text-muted-foreground">
+                  <strong>Tip:</strong> Use dynamic variables like:
+                  <code className="mx-1 rounded bg-background px-1 py-0.5">${`{subject.organizationId}`}</code>
+                  to reference the current user's organization, or
+                  <code className="mx-1 rounded bg-background px-1 py-0.5">${`{subject.id}`}</code>
+                  for the user's ID.
+                </p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Target Subjects</CardTitle>
+          <CardDescription>Define which roles this policy applies to</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <Label htmlFor="roles">Roles</Label>
+            <div className="space-y-2">
+              <Select
+                value=""
+                onValueChange={(value) => {
+                  if (!selectedRoles.includes(value)) {
+                    setSelectedRoles([...selectedRoles, value]);
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select roles" />
+                </SelectTrigger>
+                <SelectContent>
+                  {['super_admin', 'admin', 'manager', 'user', 'guest']
+                    .filter((role) => !selectedRoles.includes(role))
+                    .map((role) => (
+                      <SelectItem key={role} value={role}>
+                        <code className="text-sm">{role}</code>
+                      </SelectItem>
+                    ))}
+                  {/* TODO: Fetch dynamic roles from API when backend is ready */}
+                </SelectContent>
+              </Select>
+              {selectedRoles.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {selectedRoles.map((role) => (
+                    <Badge key={role} variant="secondary" className="pr-1">
+                      <code className="text-xs">{role}</code>
+                      <button
+                        onClick={() =>
+                          setSelectedRoles(selectedRoles.filter((r) => r !== role))
+                        }
+                        className="ml-1 rounded-full p-0.5 hover:bg-destructive hover:text-destructive-foreground"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              If no roles are selected, the policy will apply based on other conditions only.
+            </p>
           </div>
         </CardContent>
       </Card>

@@ -35,6 +35,7 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Organizations', href: '/dashboard/organizations', icon: Building2 },
   { name: 'Users', href: '/dashboard/users', icon: Users },
+  { name: 'Roles', href: '/dashboard/roles', icon: Shield },
   { name: 'Policies', href: '/dashboard/policies', icon: Shield },
   { name: 'Field Permissions', href: '/dashboard/policies/field-permissions', icon: Shield },
   { name: 'Attributes', href: '/dashboard/attributes', icon: FileText },

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Policy } from '../entities/policy.entity';
+import { Policy, PolicyScope } from '../entities/policy.entity';
 import { PolicySet } from '../entities/policy-set.entity';
 import {
   CreatePolicyDto,
@@ -24,6 +24,15 @@ export class PolicyService {
     // Validate policy structure
     this.validatePolicy(createPolicyDto);
 
+    // Validate scope-specific requirements
+    if (createPolicyDto.scope === PolicyScope.ORGANIZATION && !createPolicyDto.organizationId) {
+      throw new BadRequestException('Organization ID is required for organization-scoped policies');
+    }
+
+    if (createPolicyDto.scope === PolicyScope.SYSTEM && createPolicyDto.organizationId) {
+      throw new BadRequestException('Organization ID should not be provided for system-scoped policies');
+    }
+
     const policy = this.policyRepository.create({
       ...createPolicyDto,
       priority: createPolicyDto.priority ?? DEFAULT_POLICY_PRIORITY,
@@ -34,7 +43,7 @@ export class PolicyService {
   }
 
   async findAll(
-    organizationId: string,
+    organizationId: string | undefined,
     params: PaginationParams,
   ): Promise<PaginatedResponse<Policy>> {
     const { page, limit, sortBy = 'priority', sortOrder = 'ASC' } = params;
@@ -43,8 +52,16 @@ export class PolicyService {
     const pageNum = Number(page) || 1;
     const limitNum = Number(limit) || 10;
 
+    // Build where clause based on whether organizationId is provided
+    const whereClause: any = organizationId 
+      ? [
+          { scope: PolicyScope.SYSTEM },
+          { scope: PolicyScope.ORGANIZATION, organizationId }
+        ]
+      : {}; // If no organizationId, fetch all policies (for admin views)
+
     const [policies, total] = await this.policyRepository.findAndCount({
-      where: { organizationId },
+      where: whereClause,
       skip: (pageNum - 1) * limitNum,
       take: limitNum,
       order: { [sortBy]: sortOrder },
@@ -74,8 +91,12 @@ export class PolicyService {
   }
 
   async findByOrganization(organizationId: string): Promise<Policy[]> {
+    // Fetch both system policies and organization-specific policies
     return this.policyRepository.find({
-      where: { organizationId, isActive: true },
+      where: [
+        { scope: PolicyScope.SYSTEM, isActive: true },
+        { scope: PolicyScope.ORGANIZATION, organizationId, isActive: true }
+      ],
       order: { priority: 'ASC' },
     });
   }

@@ -22,35 +22,76 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Organization } from '@saas-template/shared';
 
+/**
+ * Organization node interface extending base Organization with children
+ * @interface OrganizationNode
+ * @extends {Organization}
+ */
 interface OrganizationNode extends Organization {
+  /** Child organizations in the hierarchy */
   children?: OrganizationNode[];
 }
 
+/**
+ * Props for the OrganizationTree component
+ * @interface OrganizationTreeProps
+ */
 interface OrganizationTreeProps {
+  /** Array of root organizations with their children */
   organizations: OrganizationNode[];
+  /** ID of the currently selected organization */
   selectedOrganizationId?: string;
+  /** Callback when an organization is selected */
   onSelectOrganization?: (organization: OrganizationNode) => void;
+  /** Callback when adding a new organization */
   onAddOrganization?: (parentId: string | null) => void;
+  /** Callback when editing an organization */
   onEditOrganization?: (organization: OrganizationNode) => void;
+  /** Callback when deleting an organization */
   onDeleteOrganization?: (organization: OrganizationNode) => void;
+  /** Callback when viewing organization details */
   onViewDetails?: (organization: OrganizationNode) => void;
+  /** Set of expanded node IDs (controlled component) */
   expandedNodes?: Set<string>;
+  /** Callback when toggling node expansion (controlled component) */
   onToggleExpand?: (nodeId: string) => void;
 }
 
+/**
+ * Props for individual tree node component
+ * @interface TreeNodeProps
+ * @private
+ */
 interface TreeNodeProps {
+  /** Organization node to render */
   node: OrganizationNode;
+  /** Nesting level for indentation */
   level: number;
+  /** ID of selected organization */
   selectedOrganizationId?: string;
+  /** Selection callback */
   onSelectOrganization?: (organization: OrganizationNode) => void;
+  /** Add child callback */
   onAddOrganization?: (parentId: string | null) => void;
+  /** Edit callback */
   onEditOrganization?: (organization: OrganizationNode) => void;
+  /** Delete callback */
   onDeleteOrganization?: (organization: OrganizationNode) => void;
+  /** View details callback */
   onViewDetails?: (organization: OrganizationNode) => void;
+  /** Set of expanded node IDs */
   expandedNodes: Set<string>;
+  /** Toggle expansion callback */
   onToggleExpand: (nodeId: string) => void;
 }
 
+/**
+ * Renders a single node in the organization tree
+ * @component TreeNode
+ * @param {TreeNodeProps} props - Component props
+ * @returns {JSX.Element} Tree node with children
+ * @private
+ */
 const TreeNode: React.FC<TreeNodeProps> = ({
   node,
   level,
@@ -247,6 +288,30 @@ const TreeNode: React.FC<TreeNodeProps> = ({
   );
 };
 
+/**
+ * Hierarchical tree view component for displaying organizations
+ * @component OrganizationTree
+ * @param {OrganizationTreeProps} props - Component props
+ * @returns {JSX.Element} Tree view with expand/collapse functionality
+ * @description
+ * Renders organizations in a hierarchical tree structure with visual indicators
+ * for parent-child relationships. Supports:
+ * - Expand/collapse functionality
+ * - Visual connection lines between nodes
+ * - Type-based icons and colors
+ * - Action menus for each node
+ * - Controlled or uncontrolled expansion state
+ * 
+ * @example
+ * ```tsx
+ * <OrganizationTree
+ *   organizations={treeData}
+ *   selectedOrganizationId={selectedId}
+ *   onSelectOrganization={handleSelect}
+ *   onAddOrganization={handleAdd}
+ * />
+ * ```
+ */
 export const OrganizationTree: React.FC<OrganizationTreeProps> = ({
   organizations,
   selectedOrganizationId,

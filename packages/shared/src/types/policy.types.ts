@@ -5,6 +5,11 @@ export enum PolicyEffect {
   DENY = 'deny',
 }
 
+export enum PolicyScope {
+  SYSTEM = 'system',
+  ORGANIZATION = 'organization',
+}
+
 export enum AttributeType {
   STRING = 'string',
   NUMBER = 'number',
@@ -37,13 +42,14 @@ export interface AttributeDefinition extends BaseEntity {
 export interface Policy extends BaseEntity {
   name: string;
   description?: string;
+  scope: PolicyScope;
   effect: PolicyEffect;
   priority: number;
   subjects: PolicySubjects;
   resources: PolicyResources;
   actions: string[];
   conditions?: PolicyConditions;
-  organizationId: string;
+  organizationId?: string; // Optional - only required for organization-scoped policies
   policySetId?: string;
   isActive: boolean;
   version: number;
@@ -119,13 +125,14 @@ export interface PolicyEvaluationResult {
 export interface CreatePolicyDto {
   name: string;
   description?: string;
+  scope: PolicyScope;
   effect: PolicyEffect;
   priority?: number;
   subjects: PolicySubjects;
   resources: PolicyResources;
   actions: string[];
   conditions?: PolicyConditions;
-  organizationId: string;
+  organizationId?: string; // Optional - only required for organization-scoped policies
   policySetId?: string;
 }
 

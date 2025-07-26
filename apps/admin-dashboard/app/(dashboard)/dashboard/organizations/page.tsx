@@ -32,11 +32,26 @@ import { OrganizationTree } from '@/components/organizations/organization-tree';
 import { useBreadcrumb } from '@/hooks/use-breadcrumb';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 
+/**
+ * Organization node interface that extends the base Organization type with children
+ * @interface OrganizationNode
+ * @extends {Organization}
+ */
 interface OrganizationNode extends Organization {
+  /** Child organizations in the hierarchy */
   children?: OrganizationNode[];
 }
 
-// Build tree structure from flat list
+/**
+ * Builds a hierarchical tree structure from a flat list of organizations
+ * @function buildOrganizationTree
+ * @param {Organization[]} organizations - Flat array of organizations with parent relationships
+ * @returns {OrganizationNode[]} Array of root organizations with nested children
+ * @description
+ * This function takes a flat array of organizations where each organization may have
+ * a parentId or parent object reference, and transforms it into a hierarchical tree
+ * structure. Organizations without parents become root nodes.
+ */
 function buildOrganizationTree(organizations: Organization[]): OrganizationNode[] {
   const orgMap = new Map<string, OrganizationNode>();
   const rootOrgs: OrganizationNode[] = [];
@@ -84,6 +99,19 @@ function buildOrganizationTree(organizations: Organization[]): OrganizationNode[
   return rootOrgs;
 }
 
+/**
+ * Organizations management page component
+ * @component OrganizationsPage
+ * @returns {JSX.Element} The organizations page with tree/list view
+ * @description
+ * This page provides a comprehensive interface for managing organizational hierarchies.
+ * Features include:
+ * - Tree view with expand/collapse functionality
+ * - List view with sortable columns
+ * - Search functionality
+ * - Create, edit, and delete operations
+ * - Parent-child relationship management with constraints
+ */
 export default function OrganizationsPage() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -101,6 +129,17 @@ export default function OrganizationsPage() {
     { label: 'Organizations', icon: <Building2 className="h-4 w-4" /> },
   ]);
 
+  /**
+   * Fetches organizations from the API and updates state
+   * @async
+   * @function fetchOrganizations
+   * @returns {Promise<void>}
+   * @description
+   * Attempts to fetch organizations using the hierarchy endpoint first for better
+   * tree structure support. Falls back to the standard list endpoint if hierarchy
+   * is not available. Automatically adds parentId to organizations that only have
+   * parent object references.
+   */
   const fetchOrganizations = useCallback(async () => {
     try {
       // Debug auth state

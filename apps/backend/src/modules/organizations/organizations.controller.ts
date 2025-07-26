@@ -11,6 +11,7 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
 import { 
   ApiTags, 
@@ -73,6 +74,20 @@ export class OrganizationsController {
   @ApiOperation({ summary: 'Get organization hierarchy' })
   getHierarchy(@Query('rootId') rootId?: string) {
     return this.organizationsService.getHierarchy(rootId);
+  }
+
+  @Get('search')
+  @ApiOperation({ summary: 'Search organizations by name' })
+  @ApiQuery({ name: 'name', required: true, type: String, description: 'Organization name to search (min 3 chars)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Maximum results to return (default: 10)' })
+  async search(
+    @Query('name') name: string,
+    @Query('limit') limit?: number,
+  ) {
+    if (!name || name.length < 3) {
+      throw new BadRequestException('Search query must be at least 3 characters long');
+    }
+    return this.organizationsService.searchByName(name, limit || 10);
   }
 
   @Get(':id')

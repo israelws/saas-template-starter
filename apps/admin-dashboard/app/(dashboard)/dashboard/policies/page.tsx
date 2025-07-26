@@ -112,7 +112,7 @@ export default function PoliciesPage() {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Policies</h1>
-          <p className="text-gray-500">Manage access control policies</p>
+          <p className="text-gray-500">Manage system and organization access control policies</p>
         </div>
         <Button onClick={() => router.push('/dashboard/policies/new')}>
           <Plus className="mr-2 h-4 w-4" />
@@ -126,22 +126,22 @@ export default function PoliciesPage() {
             <div>
               <CardTitle>All Policies</CardTitle>
               <CardDescription>View and manage ABAC policies for your system</CardDescription>
+              </div>
+              <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'list' | 'flow')}>
+                <TabsList>
+                  <TabsTrigger value="list">
+                    <List className="mr-1 h-4 w-4" />
+                    List View
+                  </TabsTrigger>
+                  <TabsTrigger value="flow">
+                    <GitBranch className="mr-1 h-4 w-4" />
+                    Flow View
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
-            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'list' | 'flow')}>
-              <TabsList>
-                <TabsTrigger value="list">
-                  <List className="mr-1 h-4 w-4" />
-                  List View
-                </TabsTrigger>
-                <TabsTrigger value="flow">
-                  <GitBranch className="mr-1 h-4 w-4" />
-                  Flow View
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-        </CardHeader>
-        <CardContent>
+          </CardHeader>
+          <CardContent>
           {viewMode === 'list' && (
             <div className="mb-4">
               <div className="relative">
@@ -174,6 +174,7 @@ export default function PoliciesPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
+                  <TableHead>Scope</TableHead>
                   <TableHead>Effect</TableHead>
                   <TableHead>Resource</TableHead>
                   <TableHead>Action</TableHead>
@@ -194,6 +195,15 @@ export default function PoliciesPage() {
                         <Shield className="mr-2 h-4 w-4 text-gray-400" />
                         {policy.name}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                        policy.scope === 'system' 
+                          ? 'bg-purple-100 text-purple-800' 
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {policy.scope || 'organization'}
+                      </span>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center">
