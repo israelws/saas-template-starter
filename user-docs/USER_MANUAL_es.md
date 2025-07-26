@@ -297,6 +297,35 @@ Esta política permite a los gerentes gestionar todos los recursos dentro de su 
 
 ### Características Avanzadas de Políticas
 
+#### Acciones Específicas por Recurso (Resource-Specific Actions)
+
+Ahora puede definir acciones diferentes para diferentes tipos de recursos dentro de una sola política:
+
+1. Haga clic en "Añadir Recurso" (Add Resource) en la pestaña Reglas de Política
+2. Seleccione un tipo de recurso (por ejemplo: "User")
+3. Marque acciones específicas para ese recurso (por ejemplo: "read", "update")
+4. Añada otro recurso con acciones diferentes (por ejemplo: "Product" con "create", "read", "update", "delete")
+
+Esto permite un control preciso donde una sola política puede otorgar permisos diferentes para recursos diferentes.
+
+#### Permisos a Nivel de Campo (Field-Level Permissions)
+
+Controle el acceso a campos específicos dentro de los recursos:
+
+1. Habilite "Permisos a nivel de campo" (Field-level permissions) en la pestaña Permisos de Campo
+2. Seleccione un tipo de recurso
+3. Para cada tipo de permiso (Legible/Escribible/Denegado - Readable/Writable/Denied):
+   - Haga clic en el menú desplegable "Seleccionar campos" (Select fields)
+   - Elija campos específicos de listas categorizadas
+   - Los campos seleccionados aparecen como insignias debajo
+   - Haga clic en "Añadir Seleccionados" (Add Selected) para aplicar
+
+**Reglas de Permisos de Campo:**
+- **Legible (Readable)**: Solo estos campos serán devueltos en las respuestas API
+- **Escribible (Writable)**: Solo estos campos pueden ser modificados en actualizaciones
+- **Denegado (Denied)**: Estos campos están completamente bloqueados (anula otros permisos)
+- Use "*" para permitir todos los campos excepto los explícitamente denegados
+
 #### Uso de Variables Dinámicas
 
 Las variables dinámicas permiten que las políticas se adapten al contexto del usuario:
@@ -515,6 +544,47 @@ subject.clearanceLevel >= resource.classification
   actions: ["leer", "actualizar", "comentar"]
 }
 ```
+
+## 9. Auditoría de Acceso a Campos (Field Access Audit)
+
+La función de Auditoría de Acceso a Campos proporciona monitoreo integral de los intentos de acceso a nivel de campo en toda su organización.
+
+### Acceso al Registro de Auditoría
+
+1. Navegue a **Panel** → **Auditoría de Acceso a Campos (Field Access Audit)**
+2. El registro de auditoría muestra todos los intentos de acceso a campos
+
+### Comprensión de las Entradas de Auditoría
+
+Cada entrada de auditoría muestra:
+- **Marca de Tiempo (Timestamp)**: Cuándo ocurrió el acceso
+- **Usuario (User)**: Quién intentó el acceso
+- **Acción (Action)**: Tipo de acceso (Leer/Escribir/Denegado - Read/Write/Denied)
+- **Recurso (Resource)**: A qué se accedió
+- **Campos (Fields)**: Qué campos específicos se accedieron
+- **Organización (Organization)**: Contexto del acceso
+- **Dirección IP (IP Address)**: Origen de la solicitud
+
+### Filtrado de Registros de Auditoría
+
+Use filtros para encontrar patrones de acceso específicos:
+- **Búsqueda (Search)**: Encuentre por nombre de usuario o ID de recurso
+- **Tipo de Recurso (Resource Type)**: Filtre por Cliente, Usuario, Producto, etc.
+- **Acción (Action)**: Muestre solo intentos de Lectura, Escritura o Denegados
+- **Rango de Fechas (Date Range)**: Seleccione período de tiempo específico
+
+### Monitoreo de Seguridad
+
+Preste especial atención a:
+- **Intentos de Acceso Denegados (Denied Access Attempts)**: Pueden indicar intentos de acceso no autorizado
+- **Acceso a Campos Sensibles (Sensitive Field Access)**: Monitoree acceso a SSN, puntajes crediticios, etc.
+- **Patrones Inusuales (Unusual Patterns)**: Múltiples intentos denegados o tiempos de acceso inusuales
+
+### Exportación de Datos
+
+1. Aplique los filtros deseados
+2. Haga clic en **Exportar CSV (Export CSV)** para descargar datos de auditoría
+3. Use para informes de cumplimiento o análisis adicional
 
 ---
 

@@ -297,6 +297,35 @@ This policy allows managers to manage all resources within their department.
 
 ### Advanced Policy Features
 
+#### Resource-Specific Actions
+
+You can now define different actions for different resource types within a single policy:
+
+1. Click "Add Resource" in the Policy Rules tab
+2. Select a resource type (e.g., "User")
+3. Check specific actions for that resource (e.g., "read", "update")
+4. Add another resource with different actions (e.g., "Product" with "create", "read", "update", "delete")
+
+This allows fine-grained control where a single policy can grant different permissions for different resources.
+
+#### Field-Level Permissions
+
+Control access to specific fields within resources:
+
+1. Enable "Field-level permissions" in the Field Permissions tab
+2. Select a resource type
+3. For each permission type (Readable/Writable/Denied):
+   - Click "Select fields" dropdown
+   - Choose specific fields from categorized lists
+   - Selected fields appear as badges below
+   - Click "Add Selected" to apply
+
+**Field Permission Rules:**
+- **Readable**: Only these fields will be returned in API responses
+- **Writable**: Only these fields can be modified in updates
+- **Denied**: These fields are completely blocked (overrides other permissions)
+- Use "*" to allow all fields except those explicitly denied
+
 #### Using Dynamic Variables
 
 Dynamic variables allow policies to adapt to user context:
@@ -515,6 +544,47 @@ subject.clearanceLevel >= resource.classification
   actions: ["read", "update", "comment"]
 }
 ```
+
+## 9. Field Access Audit
+
+The Field Access Audit feature provides comprehensive monitoring of field-level access attempts across your organization.
+
+### Accessing the Audit Log
+
+1. Navigate to **Dashboard** → **Field Access Audit**
+2. The audit log displays all field access attempts
+
+### Understanding Audit Entries
+
+Each audit entry shows:
+- **Timestamp**: When the access occurred
+- **User**: Who attempted the access
+- **Action**: Type of access (Read/Write/Denied)
+- **Resource**: What was accessed
+- **Fields**: Which specific fields were accessed
+- **Organization**: Context of the access
+- **IP Address**: Source of the request
+
+### Filtering Audit Logs
+
+Use filters to find specific access patterns:
+- **Search**: Find by user name or resource ID
+- **Resource Type**: Filter by Customer, User, Product, etc.
+- **Action**: Show only Read, Write, or Denied attempts
+- **Date Range**: Select specific time period
+
+### Security Monitoring
+
+Pay special attention to:
+- **Denied Access Attempts**: May indicate unauthorized access attempts
+- **Sensitive Field Access**: Monitor access to SSN, credit scores, etc.
+- **Unusual Patterns**: Multiple denied attempts or unusual access times
+
+### Exporting Data
+
+1. Apply desired filters
+2. Click **Export CSV** to download audit data
+3. Use for compliance reporting or further analysis
 
 ---
 

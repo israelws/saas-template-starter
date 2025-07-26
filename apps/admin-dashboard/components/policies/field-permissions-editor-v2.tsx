@@ -363,7 +363,7 @@ function FieldSelector({
               className="w-full justify-between"
             >
               {selectedFields.length > 0
-                ? `${selectedFields.length} field(s) selected`
+                ? `Select more fields (${selectedFields.length} selected)`
                 : "Select fields..."}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
@@ -421,6 +421,32 @@ function FieldSelector({
           Add All (*)
         </Button>
       </div>
+      {selectedFields.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-xs text-muted-foreground font-medium">Selected fields:</p>
+          <div className="flex flex-wrap gap-1">
+            {selectedFields.map((field) => (
+              <Badge
+                key={field}
+                variant="secondary"
+                className={cn(
+                  "text-xs",
+                  isFieldSensitive(resourceType, field) &&
+                    "border-amber-500 bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
+                )}
+              >
+                {field}
+                <button
+                  onClick={() => onToggleField(field)}
+                  className="ml-1 rounded-full p-0.5 hover:bg-black/10 dark:hover:bg-white/10"
+                >
+                  <X className="h-2.5 w-2.5" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
       <p className="text-xs text-muted-foreground">
         Select fields from the dropdown or add all fields with the wildcard (*).
       </p>

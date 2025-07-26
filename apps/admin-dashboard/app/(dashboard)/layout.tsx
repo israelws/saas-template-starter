@@ -38,7 +38,6 @@ const navigation = [
   { name: 'Users', href: '/dashboard/users', icon: Users },
   { name: 'Roles', href: '/dashboard/roles', icon: Shield },
   { name: 'Policies', href: '/dashboard/policies', icon: Shield },
-  { name: 'Field Permissions', href: '/dashboard/policies/field-permissions', icon: Shield },
   { name: 'Attributes', href: '/dashboard/attributes', icon: FileText },
   { name: 'Field Access Audit', href: '/dashboard/audit/field-access', icon: FileSearch },
   // Insurance Section

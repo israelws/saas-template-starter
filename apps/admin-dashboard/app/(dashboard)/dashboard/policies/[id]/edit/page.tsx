@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { policyAPI, attributeAPI } from '@/lib/api';
-import { PolicyBuilder } from '@/components/policies/policy-builder';
+import { EnhancedPolicyBuilderV2 } from '@/components/policies/enhanced-policy-builder-v2';
 import { ArrowLeft } from 'lucide-react';
 import { Policy } from '@saas-template/shared';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -127,7 +127,7 @@ export default function EditPolicyPage() {
         <p className="text-gray-500">Use the visual builder to update the access control policy</p>
       </div>
 
-      <PolicyBuilder
+      <EnhancedPolicyBuilderV2
         initialPolicy={policy}
         onSave={handleSave}
         onCancel={handleCancel}

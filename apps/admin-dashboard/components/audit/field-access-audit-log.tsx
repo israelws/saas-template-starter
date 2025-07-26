@@ -66,8 +66,8 @@ export function FieldAccessAuditLog() {
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
     userId: '',
-    resourceType: '',
-    action: '',
+    resourceType: 'all',
+    action: 'all',
     startDate: subDays(new Date(), 7),
     endDate: new Date(),
     searchTerm: '',
@@ -182,8 +182,8 @@ export function FieldAccessAuditLog() {
 
   const filteredLogs = logs.filter((log) => {
     if (filters.userId && !log.userId.includes(filters.userId)) return false;
-    if (filters.resourceType && log.resourceType !== filters.resourceType) return false;
-    if (filters.action && log.action !== filters.action) return false;
+    if (filters.resourceType !== 'all' && log.resourceType !== filters.resourceType) return false;
+    if (filters.action !== 'all' && log.action !== filters.action) return false;
     if (
       filters.searchTerm &&
       !log.userName.toLowerCase().includes(filters.searchTerm.toLowerCase()) &&
@@ -228,7 +228,7 @@ export function FieldAccessAuditLog() {
                   <SelectValue placeholder="All resources" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All resources</SelectItem>
+                  <SelectItem value="all">All resources</SelectItem>
                   <SelectItem value="Customer">Customer</SelectItem>
                   <SelectItem value="Product">Product</SelectItem>
                   <SelectItem value="Order">Order</SelectItem>
@@ -247,7 +247,7 @@ export function FieldAccessAuditLog() {
                   <SelectValue placeholder="All actions" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All actions</SelectItem>
+                  <SelectItem value="all">All actions</SelectItem>
                   <SelectItem value="read">Read</SelectItem>
                   <SelectItem value="write">Write</SelectItem>
                   <SelectItem value="denied">Denied</SelectItem>

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { policyAPI, attributeAPI } from '@/lib/api';
-import { EnhancedPolicyBuilder } from '@/components/policies/enhanced-policy-builder';
+import { EnhancedPolicyBuilderV2 } from '@/components/policies/enhanced-policy-builder-v2';
 import { ArrowLeft } from 'lucide-react';
 import { Policy } from '@saas-template/shared';
 
@@ -79,7 +79,7 @@ export default function NewPolicyPage() {
         </p>
       </div>
 
-      <EnhancedPolicyBuilder
+      <EnhancedPolicyBuilderV2
         onSave={handleSave}
         onCancel={handleCancel}
         availableAttributes={availableAttributes}
