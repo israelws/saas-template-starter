@@ -2,6 +2,8 @@ import { AxiosError, AxiosRequestConfig } from 'axios';
 import { store } from '@/store';
 import { loginSuccess, logout } from '@/store/slices/authSlice';
 import { api, authAPI } from './api';
+import { logTokenStatus } from './token-utils';
+import { setCookie } from './cookies';
 
 interface FailedRequest {
   resolve: (token: string | null) => void;
@@ -99,7 +101,6 @@ export const setupAuthInterceptor = () => {
           );
 
           // Debug current token status
-          const { logTokenStatus } = await import('@/lib/token-utils');
           logTokenStatus();
 
           const response = await authAPI.refreshToken(refreshToken);
@@ -110,7 +111,6 @@ export const setupAuthInterceptor = () => {
           localStorage.setItem('authToken', accessToken);
 
           // Set cookie using the setCookie function
-          const { setCookie } = await import('@/lib/cookies');
           setCookie('authToken', accessToken, 7);
 
           // Also set via server for reliability

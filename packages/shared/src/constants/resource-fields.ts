@@ -46,21 +46,26 @@ export const RESOURCE_FIELDS = {
 
 // Helper to get all fields for a resource
 export function getAllFieldsForResource(resourceType: string): string[] {
-  const resource = RESOURCE_FIELDS[resourceType];
+  const resource = RESOURCE_FIELDS[resourceType as keyof typeof RESOURCE_FIELDS];
   if (!resource) return [];
   
-  return Object.values(resource).flat();
+  return Object.values(resource).flat() as string[];
 }
 
 // Helper to get field categories
 export function getFieldCategories(resourceType: string): Record<string, string[]> {
-  return RESOURCE_FIELDS[resourceType] || {};
+  return RESOURCE_FIELDS[resourceType as keyof typeof RESOURCE_FIELDS] || {};
 }
 
 // Helper to check if a field is sensitive
 export function isFieldSensitive(resourceType: string, field: string): boolean {
-  const resource = RESOURCE_FIELDS[resourceType];
-  if (!resource || !resource.sensitive) return false;
+  const resource = RESOURCE_FIELDS[resourceType as keyof typeof RESOURCE_FIELDS];
+  if (!resource) return false;
   
-  return resource.sensitive.includes(field);
+  // Check if the resource has a sensitive property
+  if ('sensitive' in resource && Array.isArray(resource.sensitive)) {
+    return resource.sensitive.includes(field);
+  }
+  
+  return false;
 }
