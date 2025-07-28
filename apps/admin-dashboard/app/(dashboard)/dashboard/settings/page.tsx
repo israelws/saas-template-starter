@@ -1,8 +1,33 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, Bell, Shield, Database, Globe } from 'lucide-react';
+import { Settings, Bell, Shield, Database, Globe, Mail } from 'lucide-react';
+import { EmailServiceIntegrations } from './email-service-integrations';
 
 export default function SettingsPage() {
+  const currentUser = useSelector((state: RootState) => state.auth.user);
+  const currentOrganizationId = useSelector((state: RootState) => state.auth.currentOrganizationId);
+  const isSuperAdmin = currentUser?.metadata?.isSuperAdmin === true;
+  
+  const isOrgAdmin = (() => {
+    if (!currentUser || !currentOrganizationId) return false;
+    const membership = currentUser.organizationMemberships?.find(
+      m => m.organizationId === currentOrganizationId
+    );
+    return membership?.role === 'admin' || membership?.role === 'owner';
+  })();
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Settings page - Current user:', currentUser);
+    console.log('Settings page - Is super admin:', isSuperAdmin);
+    console.log('Settings page - Is org admin:', isOrgAdmin);
+    console.log('Settings page - Current org ID:', currentOrganizationId);
+  }, [currentUser, isSuperAdmin, isOrgAdmin, currentOrganizationId]);
   return (
     <div>
       <div className="mb-8">
@@ -17,6 +42,9 @@ export default function SettingsPage() {
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="database">Database</TabsTrigger>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
+          {(isSuperAdmin || isOrgAdmin) && (
+            <TabsTrigger value="email-services">Email Services</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="general">
@@ -103,6 +131,15 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {(isSuperAdmin || isOrgAdmin) && (
+          <TabsContent value="email-services">
+            <EmailServiceIntegrations 
+              organizationId={isOrgAdmin && !isSuperAdmin ? currentOrganizationId : undefined}
+              isSystemLevel={isSuperAdmin}
+            />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

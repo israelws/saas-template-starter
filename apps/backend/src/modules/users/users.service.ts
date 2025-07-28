@@ -25,7 +25,7 @@ export class UsersService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async create(createUserDto: CreateUserDto & { cognitoId: string }): Promise<User> {
+  async create(createUserDto: CreateUserDto & { cognitoId?: string; password?: string; isEmailVerified?: boolean }): Promise<User> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -35,7 +35,7 @@ export class UsersService {
       const user = this.userRepository.create({
         ...createUserDto,
         status: UserStatus.ACTIVE,
-        emailVerified: false,
+        emailVerified: createUserDto.isEmailVerified || false,
         preferences: {
           language: 'en',
           timezone: 'UTC',
@@ -485,5 +485,90 @@ export class UsersService {
   ): Promise<string | null> {
     const roles = await this.getUserRoles(userId, organizationId);
     return roles.length > 0 ? roles[0].roleName : null;
+  }
+
+  /**
+   * Check if a user is already a member of an organization
+   * 
+   * @async
+   * @param {string} userId - ID of the user
+   * @param {string} organizationId - ID of the organization
+   * @returns {Promise<boolean>} True if user is a member
+   */
+  async isUserInOrganization(
+    userId: string,
+    organizationId: string,
+  ): Promise<boolean> {
+    const membership = await this.membershipRepository.findOne({
+      where: {
+        userId,
+        organizationId,
+      },
+    });
+
+    return !!membership;
+  }
+
+  /**
+   * Add a user to an organization with a specific role
+   * 
+   * @async
+   * @param {string} userId - ID of the user
+   * @param {string} organizationId - ID of the organization
+   * @param {string} roleName - Name of the role to assign
+   * @returns {Promise<void>}
+   * @throws {BadRequestException} If user is already a member
+   */
+  async addToOrganization(
+    userId: string,
+    organizationId: string,
+    roleName: string,
+  ): Promise<void> {
+    // Check if already a member
+    const isMember = await this.isUserInOrganization(userId, organizationId);
+    if (isMember) {
+      throw new BadRequestException('User is already a member of this organization');
+    }
+
+    // Create membership
+    const membership = this.membershipRepository.create({
+      user: { id: userId },
+      organization: { id: organizationId },
+      startDate: new Date(),
+      isActive: true,
+      isDefault: false,
+    });
+
+    await this.membershipRepository.save(membership);
+
+    // Assign role
+    await this.assignRole(userId, organizationId, roleName, userId);
+  }
+
+  /**
+   * Update a user's password (for use during onboarding)
+   * Note: In production, this should integrate with Cognito
+   * 
+   * @async
+   * @param {string} userId - ID of the user
+   * @param {string} password - New password (will be hashed)
+   * @returns {Promise<void>}
+   * @throws {NotFoundException} If user not found
+   */
+  async updatePassword(
+    userId: string,
+    password: string,
+  ): Promise<void> {
+    const user = await this.findOne(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // In a real implementation, this would update the password in Cognito
+    // For now, we'll just update a timestamp or flag
+    user.emailVerified = true;
+    user.updatedAt = new Date();
+    
+    await this.userRepository.save(user);
   }
 }

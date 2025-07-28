@@ -13,6 +13,8 @@ import { CustomersModule } from './modules/customers/customers.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { InsuranceModule } from './modules/insurance/insurance.module';
+import { InvitationsModule } from './modules/invitations/invitations.module';
+import { EmailModule } from './modules/email/email.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { LoggerModule } from './common/logger/logger.module';
 import { CacheModule } from './common/cache/cache.module';
@@ -59,6 +61,8 @@ import { ValidationPipe } from '@nestjs/common';
     UsersModule,
     OrganizationsModule,
     AbacModule,
+    EmailModule,
+    InvitationsModule,
     ProductsModule,
     CustomersModule,
     OrdersModule,

@@ -32,12 +32,14 @@ import {
   Briefcase,
   MapPin,
   Languages,
+  Mail,
 } from 'lucide-react';
 
 const navigationItems = [
   { key: 'navigation.dashboard', href: '/dashboard', icon: Home },
   { key: 'navigation.organizations', href: '/dashboard/organizations', icon: Building2 },
   { key: 'navigation.users', href: '/dashboard/users', icon: Users },
+  { key: 'navigation.invitations', href: '/dashboard/invitations', icon: Mail },
   { key: 'navigation.roles', href: '/dashboard/roles', icon: Shield },
   { key: 'navigation.policies', href: '/dashboard/policies', icon: Shield },
   { key: 'navigation.attributes', href: '/dashboard/attributes', icon: FileText },

@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.840.0",
+    "@aws-sdk/client-ses": "^3.848.0",
     "@casl/ability": "^6.7.3",
     "@nestjs-modules/ioredis": "^2.0.2",
     "@nestjs/cache-manager": "^3.0.1",
