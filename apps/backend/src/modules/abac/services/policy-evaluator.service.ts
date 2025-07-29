@@ -174,7 +174,7 @@ export class PolicyEvaluatorService {
 
     // Check subject attributes
     if (subjects.attributes) {
-      if (!this.matchesAttributes(subjects.attributes, subject.attributes)) {
+      if (!this.matchesAttributes(subjects.attributes, subject.attributes, context)) {
         return false;
       }
     }
@@ -202,7 +202,7 @@ export class PolicyEvaluatorService {
 
     // Check resource attributes
     if (resources.attributes) {
-      if (!this.matchesAttributes(resources.attributes, resource.attributes)) {
+      if (!this.matchesAttributes(resources.attributes, resource.attributes, context)) {
         return false;
       }
     }
@@ -255,11 +255,17 @@ export class PolicyEvaluatorService {
   private matchesAttributes(
     policyAttributes: Record<string, any>,
     contextAttributes: Record<string, any>,
+    context?: PolicyEvaluationContext,
   ): boolean {
     for (const [key, expectedValue] of Object.entries(policyAttributes)) {
       const actualValue = this.resolveAttributeValue(key, contextAttributes);
       
-      if (!this.compareAttributeValues(expectedValue, actualValue)) {
+      // Resolve variables in expected value if context is provided
+      const resolvedExpectedValue = context 
+        ? this.resolveVariables(expectedValue, context)
+        : expectedValue;
+      
+      if (!this.compareAttributeValues(resolvedExpectedValue, actualValue)) {
         return false;
       }
     }
@@ -389,6 +395,52 @@ export class PolicyEvaluatorService {
     };
     
     return `policy:eval:${JSON.stringify(key)}`;
+  }
+
+  /**
+   * Resolves variables in values like ${subject.organizationId}
+   */
+  private resolveVariables(value: any, context: PolicyEvaluationContext): any {
+    if (typeof value !== 'string') {
+      return value;
+    }
+
+    // Check if the value contains variables
+    if (!value.includes('${')) {
+      return value;
+    }
+
+    // Replace all variables in the string
+    return value.replace(/\$\{([^}]+)\}/g, (match, path) => {
+      const resolved = this.resolveVariablePath(path, context);
+      return resolved !== undefined ? resolved : match;
+    });
+  }
+
+  /**
+   * Resolves a variable path like "subject.organizationId" from the context
+   */
+  private resolveVariablePath(path: string, context: PolicyEvaluationContext): any {
+    const parts = path.split('.');
+    let current: any = context;
+
+    for (const part of parts) {
+      if (current && typeof current === 'object' && part in current) {
+        current = current[part];
+      } else if (part === 'self') {
+        // Handle special "self" keyword
+        current = context.subject;
+      } else {
+        // Try to resolve from subject attributes
+        if (parts[0] === 'subject' && parts.length > 1) {
+          const attrPath = parts.slice(1).join('.');
+          return this.resolveAttributeValue(attrPath, context.subject.attributes);
+        }
+        return undefined;
+      }
+    }
+
+    return current;
   }
 
   async clearCache(): Promise<void> {

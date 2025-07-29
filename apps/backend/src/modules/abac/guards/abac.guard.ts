@@ -68,19 +68,26 @@ export class AbacGuard implements CanActivate {
         roles: [userRole],
         groups: [], // Could be populated from a groups service
         attributes: {
-          'user.id': user.id,
-          'user.email': user.email,
-          'user.role': userRole,
-          'user.organizationId': organizationId,
+          id: user.id,
+          email: user.email,
+          role: userRole,
+          organizationId: organizationId,
+          // Add more user attributes
+          firstName: user.firstName,
+          lastName: user.lastName,
+          departmentId: user.departmentId || user.metadata?.departmentId,
         },
       },
       resource: {
         type: permission.resource,
         id: request.params.id,
         attributes: {
-          'resource.type': permission.resource,
-          'resource.id': request.params.id,
-          'resource.organizationId': organizationId,
+          type: permission.resource,
+          id: request.params.id,
+          organizationId: organizationId,
+          // Add more resource attributes based on the request body/params
+          ...(request.body?.organizationId && { organizationId: request.body.organizationId }),
+          ...(request.params?.organizationId && { organizationId: request.params.organizationId }),
         },
       },
       action: permission.action,
