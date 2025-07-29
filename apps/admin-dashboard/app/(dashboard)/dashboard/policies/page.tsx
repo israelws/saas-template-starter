@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
@@ -221,9 +222,19 @@ export default function PoliciesPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <code className="rounded bg-gray-100 px-2 py-1 text-xs">
-                        {policy.resources?.types?.join(', ') || 'Any'}
-                      </code>
+                      <div className="space-y-1">
+                        <code className="rounded bg-gray-100 px-2 py-1 text-xs">
+                          {policy.resources?.types?.join(', ') || 'Any'}
+                        </code>
+                        {policy.resources?.attributes && Object.keys(policy.resources.attributes).length > 0 && (
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-muted-foreground">with conditions</span>
+                            <Badge variant="outline" className="text-xs px-1 py-0">
+                              {Object.keys(policy.resources.attributes).length}
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <code className="rounded bg-gray-100 px-2 py-1 text-xs">

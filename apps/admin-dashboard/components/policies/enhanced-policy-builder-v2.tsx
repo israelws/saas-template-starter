@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Trash2, AlertCircle, X, Shield, Eye, Edit, ChevronDown, ChevronRight, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, AlertCircle, X, Shield, Eye, Edit, ChevronDown, ChevronRight, AlertTriangle, Filter, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Policy, PolicyEffect } from '@saas-template/shared';
 import { FieldPermissionsEditorV2 } from './field-permissions-editor-v2';
@@ -38,6 +38,15 @@ interface PolicyCondition {
 interface ResourceRule {
   resource: string;
   actions: string[];
+  attributeConditions?: ResourceAttributeCondition[];
+}
+
+interface ResourceAttributeCondition {
+  id: string;
+  attribute: string;
+  operator: string;
+  value: string | string[] | number | boolean;
+  type: 'string' | 'number' | 'boolean' | 'array';
 }
 
 interface EnhancedPolicyBuilderV2Props {
@@ -55,7 +64,7 @@ interface EnhancedPolicyBuilderV2Props {
   isLoading?: boolean;
 }
 
-const OPERATORS = {
+const OPERATORS: Record<string, Array<{ value: string; label: string }>> = {
   string: [
     { value: 'equals', label: 'Equals' },
     { value: 'not_equals', label: 'Not Equals' },
@@ -76,6 +85,12 @@ const OPERATORS = {
     { value: 'between', label: 'Between' },
   ],
   boolean: [{ value: 'equals', label: 'Is' }],
+  array: [
+    { value: 'contains', label: 'Contains' },
+    { value: 'not_contains', label: 'Does Not Contain' },
+    { value: 'in', label: 'In' },
+    { value: 'not_in', label: 'Not In' },
+  ],
 };
 
 const DEFAULT_RESOURCES = [
@@ -138,9 +153,20 @@ export const EnhancedPolicyBuilderV2: React.FC<EnhancedPolicyBuilderV2Props> = (
   const [resourceRules, setResourceRules] = useState<ResourceRule[]>(() => {
     // Initialize from existing policy if available
     if (initialPolicy.resources?.types && initialPolicy.actions) {
+      // Check if we have resource-specific rules in metadata
+      const metadataRules = initialPolicy.metadata?.resourceRules;
+      if (metadataRules) {
+        return metadataRules.map((rule: any) => ({
+          resource: rule.resource,
+          actions: rule.actions,
+          attributeConditions: rule.attributeConditions || []
+        }));
+      }
+      // Fallback to simple format
       return initialPolicy.resources.types.map(resource => ({
         resource,
-        actions: [...initialPolicy.actions!]
+        actions: [...initialPolicy.actions!],
+        attributeConditions: []
       }));
     }
     return [];
@@ -157,7 +183,8 @@ export const EnhancedPolicyBuilderV2: React.FC<EnhancedPolicyBuilderV2Props> = (
 
     setResourceRules([...resourceRules, {
       resource: availableResourcesForNew[0],
-      actions: []
+      actions: [],
+      attributeConditions: []
     }]);
     
     clearFieldError('resources');
@@ -207,6 +234,53 @@ export const EnhancedPolicyBuilderV2: React.FC<EnhancedPolicyBuilderV2Props> = (
 
   const removeCondition = (id: string) => {
     setConditions(conditions.filter((c) => c.id !== id));
+  };
+
+  const addResourceAttributeCondition = (
+    resourceIndex: number,
+    template?: Partial<ResourceAttributeCondition>
+  ) => {
+    const newCondition: ResourceAttributeCondition = {
+      id: Date.now().toString(),
+      attribute: template?.attribute || '',
+      operator: template?.operator || 'equals',
+      value: template?.value || '',
+      type: template?.type || 'string',
+    };
+    
+    const newRules = [...resourceRules];
+    if (!newRules[resourceIndex].attributeConditions) {
+      newRules[resourceIndex].attributeConditions = [];
+    }
+    newRules[resourceIndex].attributeConditions.push(newCondition);
+    setResourceRules(newRules);
+  };
+
+  const updateResourceAttributeCondition = (
+    resourceIndex: number,
+    conditionId: string,
+    updates: Partial<ResourceAttributeCondition>
+  ) => {
+    const newRules = [...resourceRules];
+    const rule = newRules[resourceIndex];
+    if (rule.attributeConditions) {
+      rule.attributeConditions = rule.attributeConditions.map(c =>
+        c.id === conditionId ? { ...c, ...updates } : c
+      );
+    }
+    setResourceRules(newRules);
+  };
+
+  const removeResourceAttributeCondition = (
+    resourceIndex: number,
+    conditionId: string
+  ) => {
+    const newRules = [...resourceRules];
+    const rule = newRules[resourceIndex];
+    if (rule.attributeConditions) {
+      rule.attributeConditions = rule.attributeConditions.filter(c => c.id !== conditionId);
+    }
+    setResourceRules(newRules);
   };
 
   const getErrorTab = (errors: Record<string, string>): string | null => {
@@ -273,6 +347,25 @@ export const EnhancedPolicyBuilderV2: React.FC<EnhancedPolicyBuilderV2Props> = (
       rule => JSON.stringify(rule.actions.sort()) === JSON.stringify(resourceRules[0].actions.sort())
     );
 
+    // Build resource attributes from attribute conditions
+    const resourceAttributes: Record<string, any> = {};
+    const hasAttributeConditions = resourceRules.some(
+      rule => rule.attributeConditions && rule.attributeConditions.length > 0
+    );
+    
+    if (hasAttributeConditions) {
+      // Merge all attribute conditions across resources
+      resourceRules.forEach(rule => {
+        rule.attributeConditions?.forEach(condition => {
+          if (condition.attribute && condition.value) {
+            resourceAttributes[condition.attribute] = {
+              [condition.operator]: condition.value
+            };
+          }
+        });
+      });
+    }
+
     const policy: Partial<Policy> = {
       ...initialPolicy,
       name: policyName,
@@ -280,7 +373,7 @@ export const EnhancedPolicyBuilderV2: React.FC<EnhancedPolicyBuilderV2Props> = (
       resources: {
         types: resourceRules.map(rule => rule.resource),
         ids: initialPolicy.resources?.ids || [],
-        attributes: initialPolicy.resources?.attributes || {},
+        attributes: Object.keys(resourceAttributes).length > 0 ? resourceAttributes : undefined,
       },
       actions: allActionsEqual ? resourceRules[0].actions : resourceRules.flatMap(r => r.actions),
       effect,
@@ -291,8 +384,8 @@ export const EnhancedPolicyBuilderV2: React.FC<EnhancedPolicyBuilderV2Props> = (
       metadata: {
         ...initialPolicy.metadata,
         fieldPermissions: enableFieldPermissions ? fieldPermissions : undefined,
-        // Store resource-specific rules if they differ
-        resourceRules: !allActionsEqual ? resourceRules : undefined,
+        // Store resource-specific rules with attribute conditions
+        resourceRules: (!allActionsEqual || hasAttributeConditions) ? resourceRules : undefined,
       },
     };
 
@@ -513,6 +606,151 @@ export const EnhancedPolicyBuilderV2: React.FC<EnhancedPolicyBuilderV2Props> = (
                             </div>
                           </CollapsibleContent>
                         </Collapsible>
+                        
+                        {/* Resource Attribute Conditions */}
+                        <Collapsible className="mt-4">
+                          <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium mb-2 hover:text-primary">
+                            <ChevronRight className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-90" />
+                            <Filter className="h-4 w-4" />
+                            Resource Attribute Conditions
+                            {rule.attributeConditions && rule.attributeConditions.length > 0 && (
+                              <Badge variant="secondary" className="ml-2">
+                                {rule.attributeConditions.length} condition{rule.attributeConditions.length !== 1 ? 's' : ''}
+                              </Badge>
+                            )}
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <div className="space-y-3 bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                              <div className="flex items-start gap-2">
+                                <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                                <p className="text-xs text-muted-foreground">
+                                  Add conditions to limit access to specific resources based on their attributes.
+                                  For example, limit access to resources owned by the user's organization.
+                                </p>
+                              </div>
+                              
+                              {/* Common Templates */}
+                              <div className="flex flex-wrap gap-2">
+                                <p className="text-xs font-medium text-muted-foreground w-full">Quick templates:</p>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => addResourceAttributeCondition(index, {
+                                    attribute: 'organizationId',
+                                    operator: 'equals',
+                                    value: '${subject.organizationId}',
+                                    type: 'string'
+                                  })}
+                                  className="text-xs"
+                                >
+                                  <Sparkles className="h-3 w-3 mr-1" />
+                                  User's Organization
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => addResourceAttributeCondition(index, {
+                                    attribute: 'departmentId',
+                                    operator: 'equals',
+                                    value: '${subject.departmentId}',
+                                    type: 'string'
+                                  })}
+                                  className="text-xs"
+                                >
+                                  <Sparkles className="h-3 w-3 mr-1" />
+                                  User's Department
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => addResourceAttributeCondition(index, {
+                                    attribute: 'ownerId',
+                                    operator: 'equals',
+                                    value: '${subject.id}',
+                                    type: 'string'
+                                  })}
+                                  className="text-xs"
+                                >
+                                  <Sparkles className="h-3 w-3 mr-1" />
+                                  Owned by User
+                                </Button>
+                              </div>
+                              
+                              {rule.attributeConditions?.map((condition) => (
+                                <div key={condition.id} className="flex gap-2 items-end">
+                                  <div className="flex-1">
+                                    <Label className="text-xs">Attribute</Label>
+                                    <Input
+                                      value={condition.attribute}
+                                      onChange={(e) => updateResourceAttributeCondition(index, condition.id, {
+                                        attribute: e.target.value
+                                      })}
+                                      placeholder="e.g., organizationId"
+                                      className="h-8 text-sm"
+                                    />
+                                  </div>
+                                  
+                                  <div className="w-[140px]">
+                                    <Label className="text-xs">Operator</Label>
+                                    <Select
+                                      value={condition.operator}
+                                      onValueChange={(value) => updateResourceAttributeCondition(index, condition.id, {
+                                        operator: value
+                                      })}
+                                    >
+                                      <SelectTrigger className="h-8 text-sm">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {(OPERATORS[condition.type] || OPERATORS.string).map((op: { value: string; label: string }) => (
+                                          <SelectItem key={op.value} value={op.value}>
+                                            {op.label}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  
+                                  <div className="flex-1">
+                                    <Label className="text-xs">Value</Label>
+                                    <Input
+                                      value={condition.value as string}
+                                      onChange={(e) => updateResourceAttributeCondition(index, condition.id, {
+                                        value: e.target.value
+                                      })}
+                                      placeholder="Value or ${variable}"
+                                      className="h-8 text-sm"
+                                    />
+                                  </div>
+                                  
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => removeResourceAttributeCondition(index, condition.id)}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ))}
+                              
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => addResourceAttributeCondition(index)}
+                                className="w-full"
+                              >
+                                <Plus className="mr-2 h-3 w-3" />
+                                Add Attribute Condition
+                              </Button>
+                            </div>
+                          </CollapsibleContent>
+                        </Collapsible>
                       </CardContent>
                     </Card>
                   ))}
@@ -581,7 +819,7 @@ export const EnhancedPolicyBuilderV2: React.FC<EnhancedPolicyBuilderV2Props> = (
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {(OPERATORS[condition.type] || OPERATORS.string).map((op) => (
+                        {(OPERATORS[condition.type] || OPERATORS.string).map((op: { value: string; label: string }) => (
                           <SelectItem key={op.value} value={op.value}>
                             {op.label}
                           </SelectItem>
