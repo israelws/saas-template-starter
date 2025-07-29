@@ -54,6 +54,17 @@ export class InvitationsController {
     return this.invitationsService.findAll(organizationId);
   }
 
+  @Get('statistics')
+  @UseGuards(JwtAuthGuard, CaslAbacGuard)
+  @CheckAbility({ action: 'read', subject: 'Invitation' })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get invitation statistics' })
+  @ApiQuery({ name: 'organizationId', required: false, description: 'Filter by organization' })
+  @ApiResponse({ status: 200, description: 'Invitation statistics' })
+  getStatistics(@Query('organizationId') organizationId?: string) {
+    return this.invitationsService.getStatistics(organizationId);
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard, CaslAbacGuard)
   @CheckAbility({ action: 'read', subject: 'Invitation' })
@@ -70,7 +81,7 @@ export class InvitationsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Validate an invitation token' })
   @ApiResponse({ status: 200, description: 'Validation result' })
-  async validate(@Body() validateDto: ValidateInvitationDto): Promise<{ valid: boolean; invitation?: any }> {
+  async validate(@Body() validateDto: ValidateInvitationDto): Promise<{ valid: boolean; invitation?: any; reason?: string }> {
     const result = await this.invitationsService.validate(validateDto);
     if (result.valid && result.invitation) {
       // Return limited information for public endpoint
@@ -82,10 +93,11 @@ export class InvitationsController {
           lastName: result.invitation.lastName,
           organizationName: result.invitation.organization?.name,
           expiresAt: result.invitation.expiresAt,
+          roleId: result.invitation.roleId,
         },
       };
     }
-    return { valid: false };
+    return { valid: false, reason: result.reason };
   }
 
   @Post('accept')
@@ -118,5 +130,18 @@ export class InvitationsController {
   @ApiResponse({ status: 400, description: 'Cannot revoke invitation' })
   revoke(@Param('id') id: string): Promise<Invitation> {
     return this.invitationsService.revoke(id);
+  }
+
+  @Post('cleanup')
+  @UseGuards(JwtAuthGuard, CaslAbacGuard)
+  @CheckAbility({ action: 'manage', subject: 'Invitation' })
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Manually trigger invitation cleanup (expire and delete old)' })
+  @ApiResponse({ status: 200, description: 'Cleanup completed successfully' })
+  async cleanup(): Promise<{ expired: number; deleted: number }> {
+    const expired = await this.invitationsService.expireInvitations();
+    const deleted = await this.invitationsService.deleteExpired();
+    return { expired, deleted };
   }
 }

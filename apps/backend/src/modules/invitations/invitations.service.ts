@@ -6,8 +6,9 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, LessThan } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { randomBytes } from 'crypto';
 import { Invitation, InvitationStatus } from './entities/invitation.entity';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
@@ -185,25 +186,52 @@ export class InvitationsService {
     return invitation;
   }
 
-  async validate(validateDto: ValidateInvitationDto): Promise<{ valid: boolean; invitation?: Invitation }> {
+  async validate(validateDto: ValidateInvitationDto): Promise<{ valid: boolean; invitation?: Invitation; reason?: string }> {
     try {
       const invitation = await this.findByToken(validateDto.token);
 
       // Check if invitation is expired
       if (new Date() > invitation.expiresAt) {
-        invitation.status = InvitationStatus.EXPIRED;
-        await this.invitationRepository.save(invitation);
-        return { valid: false };
+        // Update status if not already expired
+        if (invitation.status === InvitationStatus.PENDING) {
+          invitation.status = InvitationStatus.EXPIRED;
+          await this.invitationRepository.save(invitation);
+        }
+        return { valid: false, reason: 'Invitation has expired' };
       }
 
       // Check if invitation is still pending
       if (invitation.status !== InvitationStatus.PENDING) {
-        return { valid: false };
+        const reasons = {
+          [InvitationStatus.ACCEPTED]: 'Invitation has already been accepted',
+          [InvitationStatus.EXPIRED]: 'Invitation has expired',
+          [InvitationStatus.REVOKED]: 'Invitation has been revoked',
+        };
+        return { valid: false, reason: reasons[invitation.status] || 'Invalid invitation status' };
+      }
+
+      // Additional check: Verify email hasn't been changed
+      const existingUser = await this.usersService.findByEmail(invitation.email);
+      if (existingUser) {
+        // For organization invitations, check if user is already a member
+        if (invitation.organizationId) {
+          const isMember = await this.usersService.isUserInOrganization(
+            existingUser.id,
+            invitation.organizationId,
+          );
+          if (isMember) {
+            return { valid: false, reason: 'User is already a member of this organization' };
+          }
+        }
+        // For system invitations, check if user is already a super admin
+        else if (existingUser.isSuperAdmin()) {
+          return { valid: false, reason: 'User is already a system administrator' };
+        }
       }
 
       return { valid: true, invitation };
     } catch (error) {
-      return { valid: false };
+      return { valid: false, reason: 'Invalid invitation token' };
     }
   }
 
@@ -211,9 +239,9 @@ export class InvitationsService {
     const invitation = await this.findByToken(acceptDto.token);
 
     // Validate invitation
-    const { valid } = await this.validate({ token: acceptDto.token });
-    if (!valid) {
-      throw new BadRequestException('Invalid or expired invitation');
+    const validationResult = await this.validate({ token: acceptDto.token });
+    if (!validationResult.valid) {
+      throw new BadRequestException(validationResult.reason || 'Invalid or expired invitation');
     }
 
     // Check if user already exists
@@ -352,22 +380,141 @@ export class InvitationsService {
     return this.invitationRepository.save(invitation);
   }
 
+  async expireInvitations(): Promise<number> {
+    // Update pending invitations that have expired
+    const result = await this.invitationRepository
+      .createQueryBuilder()
+      .update(Invitation)
+      .set({ status: InvitationStatus.EXPIRED })
+      .where('status = :status', { status: InvitationStatus.PENDING })
+      .andWhere('expiresAt < :now', { now: new Date() })
+      .execute();
+
+    const expiredCount = result.affected || 0;
+    
+    if (expiredCount > 0) {
+      this.logger.log(`Expired ${expiredCount} invitation(s)`);
+    }
+    
+    return expiredCount;
+  }
+
   async deleteExpired(): Promise<number> {
+    // Delete invitations that have been expired for more than 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
     const result = await this.invitationRepository
       .createQueryBuilder()
       .delete()
       .where('status = :status', { status: InvitationStatus.EXPIRED })
-      .orWhere('(status = :pendingStatus AND expiresAt < :now)', {
-        pendingStatus: InvitationStatus.PENDING,
-        now: new Date(),
-      })
+      .andWhere('updatedAt < :date', { date: thirtyDaysAgo })
       .execute();
 
-    return result.affected || 0;
+    const deletedCount = result.affected || 0;
+    
+    if (deletedCount > 0) {
+      this.logger.log(`Deleted ${deletedCount} old expired invitation(s)`);
+    }
+
+    return deletedCount;
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async handleExpiredInvitations() {
+    try {
+      this.logger.debug('Running invitation expiry check...');
+      
+      // First, expire any pending invitations that have passed their expiry date
+      const expiredCount = await this.expireInvitations();
+      
+      // Then, delete old expired invitations to keep the database clean
+      const deletedCount = await this.deleteExpired();
+      
+      if (expiredCount > 0 || deletedCount > 0) {
+        this.logger.log(
+          `Invitation cleanup completed: ${expiredCount} expired, ${deletedCount} deleted`
+        );
+      }
+    } catch (error) {
+      this.logger.error('Failed to handle expired invitations', error);
+    }
   }
 
   private generateInvitationToken(): string {
     return randomBytes(32).toString('hex');
+  }
+
+  async getStatistics(organizationId?: string): Promise<{
+    total: number;
+    pending: number;
+    accepted: number;
+    expired: number;
+    revoked: number;
+    acceptanceRate: number;
+    averageTimeToAccept: number;
+  }> {
+    const query = this.invitationRepository.createQueryBuilder('invitation');
+    
+    if (organizationId) {
+      query.where('invitation.organizationId = :organizationId', { organizationId });
+    }
+
+    // Get counts by status
+    const statusCounts = await query
+      .select('invitation.status', 'status')
+      .addSelect('COUNT(*)', 'count')
+      .groupBy('invitation.status')
+      .getRawMany();
+
+    const stats = {
+      total: 0,
+      pending: 0,
+      accepted: 0,
+      expired: 0,
+      revoked: 0,
+      acceptanceRate: 0,
+      averageTimeToAccept: 0,
+    };
+
+    // Process status counts
+    statusCounts.forEach(({ status, count }) => {
+      const countNum = parseInt(count, 10);
+      stats.total += countNum;
+      stats[status] = countNum;
+    });
+
+    // Calculate acceptance rate
+    if (stats.total > 0) {
+      stats.acceptanceRate = (stats.accepted / stats.total) * 100;
+    }
+
+    // Calculate average time to accept (in hours)
+    if (stats.accepted > 0) {
+      const acceptedQuery = this.invitationRepository.createQueryBuilder('invitation')
+        .where('invitation.status = :status', { status: InvitationStatus.ACCEPTED })
+        .andWhere('invitation.acceptedAt IS NOT NULL');
+      
+      if (organizationId) {
+        acceptedQuery.andWhere('invitation.organizationId = :organizationId', { organizationId });
+      }
+
+      const acceptedInvitations = await acceptedQuery
+        .select('invitation.createdAt', 'createdAt')
+        .addSelect('invitation.acceptedAt', 'acceptedAt')
+        .getRawMany();
+
+      const totalHours = acceptedInvitations.reduce((sum, inv) => {
+        const created = new Date(inv.createdAt);
+        const accepted = new Date(inv.acceptedAt);
+        const diffHours = (accepted.getTime() - created.getTime()) / (1000 * 60 * 60);
+        return sum + diffHours;
+      }, 0);
+
+      stats.averageTimeToAccept = Math.round(totalHours / acceptedInvitations.length);
+    }
+
+    return stats;
   }
 
   private async sendInvitationEmail(

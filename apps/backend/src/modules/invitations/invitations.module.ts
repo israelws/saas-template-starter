@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { InvitationsService } from './invitations.service';
 import { InvitationsController } from './invitations.controller';
 import { Invitation } from './entities/invitation.entity';
@@ -11,6 +12,7 @@ import { User } from '../users/entities/user.entity';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Invitation, User]),
+    ScheduleModule.forRoot(),
     EmailModule,
     UsersModule,
     OrganizationsModule,
