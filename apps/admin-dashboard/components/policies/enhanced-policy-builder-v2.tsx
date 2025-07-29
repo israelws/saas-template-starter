@@ -940,25 +940,29 @@ export const EnhancedPolicyBuilderV2: React.FC<EnhancedPolicyBuilderV2Props> = (
                 </Alert>
               )}
               
-              {conditions.map((condition) => {
+              {conditions.map((condition, index) => {
                 const isResourceCondition = resourceConditionIds.has(condition.id);
                 
                 return (
                   <div key={condition.id} className={cn(
-                    "flex gap-2 items-end relative",
-                    isResourceCondition && "pl-20"
+                    "space-y-2",
+                    index > 0 && "pt-4 border-t"
                   )}>
                     {isResourceCondition && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2">
+                      <div className="flex items-center gap-2 mb-2">
                         <Badge variant="secondary" className="text-xs">
                           From Resource
                         </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          This condition is defined in the Policy Rules tab
+                        </span>
                       </div>
                     )}
                     
-                    <div className="flex-1">
-                      <Label>Attribute</Label>
-                      <Select
+                    <div className="flex gap-2 items-end">
+                      <div className="flex-1">
+                        <Label>Attribute</Label>
+                        <Select
                         value={condition.attribute}
                         onValueChange={(value) => {
                           if (!isResourceCondition) {
@@ -1019,15 +1023,16 @@ export const EnhancedPolicyBuilderV2: React.FC<EnhancedPolicyBuilderV2Props> = (
                       />
                     </div>
 
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => !isResourceCondition && removeCondition(condition.id)}
-                      disabled={isResourceCondition}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => !isResourceCondition && removeCondition(condition.id)}
+                        disabled={isResourceCondition}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 );
               })}
