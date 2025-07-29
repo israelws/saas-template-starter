@@ -17,6 +17,8 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Trash2, AlertCircle, X, Shield, Eye, Edit, ChevronDown, ChevronRight, AlertTriangle, Filter, Sparkles } from 'lucide-react';
+import { AttributeValueSelector } from './attribute-value-selector';
+import { ConditionPreview } from './condition-preview';
 import { cn } from '@/lib/utils';
 import { Policy, PolicyEffect } from '@saas-template/shared';
 import { FieldPermissionsEditorV2 } from './field-permissions-editor-v2';
@@ -630,53 +632,96 @@ export const EnhancedPolicyBuilderV2: React.FC<EnhancedPolicyBuilderV2Props> = (
                               </div>
                               
                               {/* Common Templates */}
-                              <div className="flex flex-wrap gap-2">
-                                <p className="text-xs font-medium text-muted-foreground w-full">Quick templates:</p>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => addResourceAttributeCondition(index, {
-                                    attribute: 'organizationId',
-                                    operator: 'equals',
-                                    value: '${subject.organizationId}',
-                                    type: 'string'
-                                  })}
-                                  className="text-xs"
-                                >
-                                  <Sparkles className="h-3 w-3 mr-1" />
-                                  User's Organization
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => addResourceAttributeCondition(index, {
-                                    attribute: 'departmentId',
-                                    operator: 'equals',
-                                    value: '${subject.departmentId}',
-                                    type: 'string'
-                                  })}
-                                  className="text-xs"
-                                >
-                                  <Sparkles className="h-3 w-3 mr-1" />
-                                  User's Department
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => addResourceAttributeCondition(index, {
-                                    attribute: 'ownerId',
-                                    operator: 'equals',
-                                    value: '${subject.id}',
-                                    type: 'string'
-                                  })}
-                                  className="text-xs"
-                                >
-                                  <Sparkles className="h-3 w-3 mr-1" />
-                                  Owned by User
-                                </Button>
+                              <div className="space-y-3">
+                                <div>
+                                  <p className="text-xs font-medium text-muted-foreground mb-2">Quick templates:</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => addResourceAttributeCondition(index, {
+                                        attribute: 'organizationId',
+                                        operator: 'equals',
+                                        value: '${subject.organizationId}',
+                                        type: 'string'
+                                      })}
+                                      className="text-xs"
+                                    >
+                                      <Sparkles className="h-3 w-3 mr-1" />
+                                      Own Organization Only
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => addResourceAttributeCondition(index, {
+                                        attribute: 'departmentId',
+                                        operator: 'equals',
+                                        value: '${subject.departmentId}',
+                                        type: 'string'
+                                      })}
+                                      className="text-xs"
+                                    >
+                                      <Sparkles className="h-3 w-3 mr-1" />
+                                      Department Scope
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => addResourceAttributeCondition(index, {
+                                        attribute: 'ownerId',
+                                        operator: 'equals',
+                                        value: '${subject.id}',
+                                        type: 'string'
+                                      })}
+                                      className="text-xs"
+                                    >
+                                      <Sparkles className="h-3 w-3 mr-1" />
+                                      Personal Resources
+                                    </Button>
+                                  </div>
+                                </div>
+                                
+                                {/* Healthcare specific templates if applicable */}
+                                {(rule.resource === 'Patient' || rule.resource === 'Therapist' || rule.resource === 'Treatment') && (
+                                  <div>
+                                    <p className="text-xs font-medium text-muted-foreground mb-2">Healthcare templates:</p>
+                                    <div className="flex flex-wrap gap-2">
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => addResourceAttributeCondition(index, {
+                                          attribute: 'patientId',
+                                          operator: 'in',
+                                          value: '${subject.patientIds}',
+                                          type: 'array'
+                                        })}
+                                        className="text-xs"
+                                      >
+                                        <Sparkles className="h-3 w-3 mr-1" />
+                                        Therapist's Patients
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => addResourceAttributeCondition(index, {
+                                          attribute: 'patientId',
+                                          operator: 'in',
+                                          value: '${organization.patientIds}',
+                                          type: 'array'
+                                        })}
+                                        className="text-xs"
+                                      >
+                                        <Sparkles className="h-3 w-3 mr-1" />
+                                        All Organization Patients
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                               
                               {rule.attributeConditions?.map((condition) => (
@@ -716,13 +761,14 @@ export const EnhancedPolicyBuilderV2: React.FC<EnhancedPolicyBuilderV2Props> = (
                                   
                                   <div className="flex-1">
                                     <Label className="text-xs">Value</Label>
-                                    <Input
+                                    <AttributeValueSelector
+                                      attribute={condition.attribute}
+                                      resourceType={rule.resource}
                                       value={condition.value as string}
-                                      onChange={(e) => updateResourceAttributeCondition(index, condition.id, {
-                                        value: e.target.value
+                                      onChange={(value) => updateResourceAttributeCondition(index, condition.id, {
+                                        value
                                       })}
-                                      placeholder="Value or ${variable}"
-                                      className="h-8 text-sm"
+                                      operator={condition.operator}
                                     />
                                   </div>
                                   
@@ -748,6 +794,15 @@ export const EnhancedPolicyBuilderV2: React.FC<EnhancedPolicyBuilderV2Props> = (
                                 <Plus className="mr-2 h-3 w-3" />
                                 Add Attribute Condition
                               </Button>
+                              
+                              {/* Condition Preview */}
+                              {rule.attributeConditions && rule.attributeConditions.length > 0 && (
+                                <ConditionPreview
+                                  resourceType={rule.resource}
+                                  conditions={rule.attributeConditions}
+                                  effect={effect}
+                                />
+                              )}
                             </div>
                           </CollapsibleContent>
                         </Collapsible>
