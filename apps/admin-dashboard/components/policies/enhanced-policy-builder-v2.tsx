@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -132,7 +132,29 @@ export const EnhancedPolicyBuilderV2: React.FC<EnhancedPolicyBuilderV2Props> = (
   const [description, setDescription] = useState(initialPolicy.description || '');
   const [effect, setEffect] = useState<PolicyEffect>(initialPolicy.effect || PolicyEffect.ALLOW);
   const [priority, setPriority] = useState(initialPolicy.priority?.toString() || '50');
-  const [conditions, setConditions] = useState<PolicyCondition[]>([]);
+  const [conditions, setConditions] = useState<PolicyCondition[]>(() => {
+    // Initialize from existing policy conditions
+    const initialConditions: PolicyCondition[] = [];
+    
+    // Load conditions from the policy
+    if (initialPolicy.conditions?.customConditions) {
+      Object.entries(initialPolicy.conditions.customConditions).forEach(([attribute, operators]) => {
+        Object.entries(operators as any).forEach(([operator, value]) => {
+          initialConditions.push({
+            id: Date.now().toString() + Math.random(),
+            attribute,
+            operator,
+            value,
+            type: typeof value === 'number' ? 'number' : 
+                  typeof value === 'boolean' ? 'boolean' :
+                  Array.isArray(value) ? 'array' : 'string'
+          });
+        });
+      });
+    }
+    
+    return initialConditions;
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [enableFieldPermissions, setEnableFieldPermissions] = useState(false);
   const [fieldPermissions, setFieldPermissions] = useState<Record<string, any>>({});
@@ -164,11 +186,30 @@ export const EnhancedPolicyBuilderV2: React.FC<EnhancedPolicyBuilderV2Props> = (
           attributeConditions: rule.attributeConditions || []
         }));
       }
-      // Fallback to simple format
+      
+      // Check if we have resource attributes that should be converted to attribute conditions
+      const resourceAttributeConditions: ResourceAttributeCondition[] = [];
+      if (initialPolicy.resources.attributes) {
+        Object.entries(initialPolicy.resources.attributes).forEach(([attribute, operators]) => {
+          Object.entries(operators as any).forEach(([operator, value]) => {
+            resourceAttributeConditions.push({
+              id: Date.now().toString() + Math.random(),
+              attribute,
+              operator,
+              value,
+              type: typeof value === 'number' ? 'number' : 
+                    typeof value === 'boolean' ? 'boolean' :
+                    Array.isArray(value) ? 'array' : 'string'
+            });
+          });
+        });
+      }
+      
+      // Fallback to simple format with attribute conditions if any
       return initialPolicy.resources.types.map(resource => ({
         resource,
         actions: [...initialPolicy.actions!],
-        attributeConditions: []
+        attributeConditions: resourceAttributeConditions.length > 0 ? [...resourceAttributeConditions] : []
       }));
     }
     return [];
@@ -284,6 +325,61 @@ export const EnhancedPolicyBuilderV2: React.FC<EnhancedPolicyBuilderV2Props> = (
     }
     setResourceRules(newRules);
   };
+
+  // Track which conditions are from resource rules
+  const [resourceConditionIds, setResourceConditionIds] = useState<Set<string>>(new Set());
+
+  // Sync resource attribute conditions with general conditions tab
+  useEffect(() => {
+    // Collect all resource attribute conditions
+    const resourceConditions: PolicyCondition[] = [];
+    const newResourceConditionIds = new Set<string>();
+    
+    resourceRules.forEach(rule => {
+      rule.attributeConditions?.forEach(condition => {
+        // Check if this condition already exists in the general conditions
+        const exists = conditions.some(c => 
+          c.attribute === condition.attribute && 
+          c.operator === condition.operator && 
+          c.value === condition.value
+        );
+        
+        if (!exists) {
+          resourceConditions.push({
+            id: condition.id,
+            attribute: condition.attribute,
+            operator: condition.operator,
+            value: condition.value,
+            type: condition.type
+          });
+          newResourceConditionIds.add(condition.id);
+        } else {
+          // Find the existing condition and mark it as a resource condition
+          const existingCondition = conditions.find(c => 
+            c.attribute === condition.attribute && 
+            c.operator === condition.operator && 
+            c.value === condition.value
+          );
+          if (existingCondition) {
+            newResourceConditionIds.add(existingCondition.id);
+          }
+        }
+      });
+    });
+    
+    // Update the set of resource condition IDs
+    setResourceConditionIds(newResourceConditionIds);
+    
+    // If there are new resource conditions, add them to the general conditions
+    if (resourceConditions.length > 0) {
+      setConditions(prev => [...prev, ...resourceConditions]);
+    }
+    
+    // Remove conditions that are no longer in resource rules
+    setConditions(prev => prev.filter(c => 
+      !resourceConditionIds.has(c.id) || newResourceConditionIds.has(c.id)
+    ));
+  }, [resourceRules]);
 
   const getErrorTab = (errors: Record<string, string>): string | null => {
     if (errors.name || errors.priority) return 'basic';
@@ -832,76 +928,109 @@ export const EnhancedPolicyBuilderV2: React.FC<EnhancedPolicyBuilderV2Props> = (
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {conditions.map((condition) => (
-                <div key={condition.id} className="flex gap-2 items-end">
-                  <div className="flex-1">
-                    <Label>Attribute</Label>
-                    <Select
-                      value={condition.attribute}
-                      onValueChange={(value) => {
-                        const attr = availableAttributes.find((a) => a.key === value);
-                        updateCondition(condition.id, {
-                          attribute: value,
-                          type: (attr?.type as any) || 'string',
-                        });
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select attribute" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableAttributes.map((attr) => (
-                          <SelectItem key={attr.key} value={attr.key}>
-                            <div>
-                              <div className="font-medium">{attr.name}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {attr.category} · {attr.type}
+              {/* Show info about resource conditions being synced */}
+              {resourceRules.some(rule => rule.attributeConditions && rule.attributeConditions.length > 0) && (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Resource Conditions Included</AlertTitle>
+                  <AlertDescription>
+                    Conditions defined in the Policy Rules tab for resource attributes are automatically included here.
+                    These conditions work together to control access.
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {conditions.map((condition) => {
+                const isResourceCondition = resourceConditionIds.has(condition.id);
+                
+                return (
+                  <div key={condition.id} className={cn(
+                    "flex gap-2 items-end relative",
+                    isResourceCondition && "pl-20"
+                  )}>
+                    {isResourceCondition && (
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2">
+                        <Badge variant="secondary" className="text-xs">
+                          From Resource
+                        </Badge>
+                      </div>
+                    )}
+                    
+                    <div className="flex-1">
+                      <Label>Attribute</Label>
+                      <Select
+                        value={condition.attribute}
+                        onValueChange={(value) => {
+                          if (!isResourceCondition) {
+                            const attr = availableAttributes.find((a) => a.key === value);
+                            updateCondition(condition.id, {
+                              attribute: value,
+                              type: (attr?.type as any) || 'string',
+                            });
+                          }
+                        }}
+                        disabled={isResourceCondition}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select attribute" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableAttributes.map((attr) => (
+                            <SelectItem key={attr.key} value={attr.key}>
+                              <div>
+                                <div className="font-medium">{attr.name}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {attr.category} · {attr.type}
+                                </div>
                               </div>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  <div className="flex-1">
-                    <Label>Operator</Label>
-                    <Select
-                      value={condition.operator}
-                      onValueChange={(value) => updateCondition(condition.id, { operator: value })}
+                    <div className="flex-1">
+                      <Label>Operator</Label>
+                      <Select
+                        value={condition.operator}
+                        onValueChange={(value) => !isResourceCondition && updateCondition(condition.id, { operator: value })}
+                        disabled={isResourceCondition}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(OPERATORS[condition.type] || OPERATORS.string).map((op: { value: string; label: string }) => (
+                            <SelectItem key={op.value} value={op.value}>
+                              {op.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex-1">
+                      <Label>Value</Label>
+                      <Input
+                        value={condition.value as string}
+                        onChange={(e) => !isResourceCondition && updateCondition(condition.id, { value: e.target.value })}
+                        placeholder="Enter value"
+                        disabled={isResourceCondition}
+                      />
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => !isResourceCondition && removeCondition(condition.id)}
+                      disabled={isResourceCondition}
                     >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(OPERATORS[condition.type] || OPERATORS.string).map((op: { value: string; label: string }) => (
-                          <SelectItem key={op.value} value={op.value}>
-                            {op.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-
-                  <div className="flex-1">
-                    <Label>Value</Label>
-                    <Input
-                      value={condition.value as string}
-                      onChange={(e) => updateCondition(condition.id, { value: e.target.value })}
-                      placeholder="Enter value"
-                    />
-                  </div>
-
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeCondition(condition.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
 
               <Button type="button" variant="outline" onClick={addCondition}>
                 <Plus className="mr-2 h-4 w-4" />
