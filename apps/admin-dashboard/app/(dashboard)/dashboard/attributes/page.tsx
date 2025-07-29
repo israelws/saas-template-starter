@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Search, Code, Database, Shield } from 'lucide-react';
+import { Plus, Search, Code, Database, Shield, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -23,6 +23,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { attributeAPI } from '@/lib/api';
 import { useBreadcrumb } from '@/hooks/use-breadcrumb';
 
@@ -96,24 +97,33 @@ export default function AttributesPage() {
     fetchAttributes();
   }, [fetchAttributes]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this attribute?')) {
-      return;
-    }
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; attributeId: string | null; attributeName?: string }>({ 
+    open: false, 
+    attributeId: null,
+    attributeName: undefined
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
 
+  const handleDelete = async () => {
+    if (!deleteDialog.attributeId) return;
+    
+    setIsDeleting(true);
     try {
-      await attributeAPI.delete(id);
+      await attributeAPI.delete(deleteDialog.attributeId);
       toast({
         title: 'Success',
         description: 'Attribute deleted successfully',
       });
       fetchAttributes();
+      setDeleteDialog({ open: false, attributeId: null, attributeName: undefined });
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to delete attribute',
         variant: 'destructive',
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -254,7 +264,7 @@ export default function AttributesPage() {
                 <TableHead>Type</TableHead>
                 <TableHead>Required</TableHead>
                 <TableHead>System</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -309,26 +319,33 @@ export default function AttributesPage() {
                           {attribute.isSystem ? 'System' : 'Custom'}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end space-x-2">
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            onClick={() =>
-                              router.push(`/dashboard/attributes/${attribute.id}/edit`)
-                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/dashboard/attributes/${attribute.id}/edit`);
+                            }}
                             disabled={attribute.isSystem}
                           >
-                            Edit
+                            <Edit className="h-4 w-4" />
                           </Button>
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            onClick={() => handleDelete(attribute.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteDialog({ 
+                                open: true, 
+                                attributeId: attribute.id,
+                                attributeName: attribute.name 
+                              });
+                            }}
                             disabled={attribute.isSystem}
-                            className="text-destructive hover:text-destructive"
                           >
-                            Delete
+                            <Trash2 className="h-4 w-4 text-red-600" />
                           </Button>
                         </div>
                       </TableCell>
@@ -340,6 +357,18 @@ export default function AttributesPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <ConfirmationDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => !open && setDeleteDialog({ open: false, attributeId: null, attributeName: undefined })}
+        onConfirm={handleDelete}
+        title="Delete Attribute"
+        description={`Are you sure you want to delete the attribute "${deleteDialog.attributeName || 'this attribute'}"? This action cannot be undone and may affect policies using this attribute.`}
+        confirmText="Delete Attribute"
+        cancelText="Cancel"
+        variant="destructive"
+        loading={isDeleting}
+      />
     </div>
   );
 }

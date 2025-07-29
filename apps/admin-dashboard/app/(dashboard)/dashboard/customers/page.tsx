@@ -17,11 +17,18 @@ import { useToast } from '@/hooks/use-toast';
 import { customerAPI } from '@/lib/api';
 import { Customer } from '@saas-template/shared';
 import { Plus, Search, Edit, Trash2, Mail, Phone, CreditCard, ShoppingBag } from 'lucide-react';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; customerId: string | null; customerName?: string }>({ 
+    open: false, 
+    customerId: null,
+    customerName: undefined
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -45,24 +52,26 @@ export default function CustomersPage() {
     fetchCustomers();
   }, [fetchCustomers]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this customer?')) {
-      return;
-    }
-
+  const handleDelete = async () => {
+    if (!deleteDialog.customerId) return;
+    
+    setIsDeleting(true);
     try {
-      await customerAPI.delete(id);
+      await customerAPI.delete(deleteDialog.customerId);
       toast({
         title: 'Success',
         description: 'Customer deleted successfully',
       });
       fetchCustomers();
+      setDeleteDialog({ open: false, customerId: null, customerName: undefined });
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to delete customer',
         variant: 'destructive',
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -216,7 +225,11 @@ export default function CustomersPage() {
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDelete(customer.id);
+                            setDeleteDialog({ 
+                              open: true, 
+                              customerId: customer.id,
+                              customerName: getCustomerName(customer)
+                            });
                           }}
                         >
                           <Trash2 className="h-4 w-4 text-red-600" />
@@ -230,6 +243,18 @@ export default function CustomersPage() {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmationDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => !open && setDeleteDialog({ open: false, customerId: null, customerName: undefined })}
+        onConfirm={handleDelete}
+        title="Delete Customer"
+        description={`Are you sure you want to delete the customer "${deleteDialog.customerName || 'this customer'}"? This action cannot be undone and all associated data will be lost.`}
+        confirmText="Delete Customer"
+        cancelText="Cancel"
+        variant="destructive"
+        loading={isDeleting}
+      />
     </div>
   );
 }

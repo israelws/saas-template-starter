@@ -283,7 +283,7 @@ export default function RolesPage() {
                 <TableHead>Description</TableHead>
                 <TableHead>Users</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -329,27 +329,32 @@ export default function RolesPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
+                      <div className="flex items-center justify-end space-x-2">
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
-                          onClick={() => router.push(`/dashboard/roles/${role.id}/edit`)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/dashboard/roles/${role.id}/edit`);
+                          }}
                           disabled={role.isSystem}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
-                          onClick={() => setDeleteDialog({ 
-                            open: true, 
-                            roleId: role.id,
-                            roleName: role.displayName 
-                          })}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteDialog({ 
+                              open: true, 
+                              roleId: role.id,
+                              roleName: role.displayName 
+                            });
+                          }}
                           disabled={role.isSystem || (role.userCount || 0) > 0}
-                          className="text-destructive hover:text-destructive"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 text-red-600" />
                         </Button>
                       </div>
                     </TableCell>

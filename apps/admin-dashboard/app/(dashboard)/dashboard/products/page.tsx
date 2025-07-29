@@ -17,11 +17,18 @@ import { useToast } from '@/hooks/use-toast';
 import { productAPI } from '@/lib/api';
 import { Product } from '@saas-template/shared';
 import { Plus, Search, Edit, Trash2, Package, DollarSign } from 'lucide-react';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; productId: string | null; productName?: string }>({ 
+    open: false, 
+    productId: null,
+    productName: undefined
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -46,24 +53,26 @@ export default function ProductsPage() {
     fetchProducts();
   }, [fetchProducts]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) {
-      return;
-    }
-
+  const handleDelete = async () => {
+    if (!deleteDialog.productId) return;
+    
+    setIsDeleting(true);
     try {
-      await productAPI.delete(id);
+      await productAPI.delete(deleteDialog.productId);
       toast({
         title: 'Success',
         description: 'Product deleted successfully',
       });
       fetchProducts();
+      setDeleteDialog({ open: false, productId: null, productName: undefined });
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to delete product',
         variant: 'destructive',
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -201,7 +210,11 @@ export default function ProductsPage() {
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDelete(product.id);
+                            setDeleteDialog({ 
+                              open: true, 
+                              productId: product.id,
+                              productName: product.name 
+                            });
                           }}
                         >
                           <Trash2 className="h-4 w-4 text-red-600" />
@@ -215,6 +228,18 @@ export default function ProductsPage() {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmationDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => !open && setDeleteDialog({ open: false, productId: null, productName: undefined })}
+        onConfirm={handleDelete}
+        title="Delete Product"
+        description={`Are you sure you want to delete the product "${deleteDialog.productName || 'this product'}"? This action cannot be undone.`}
+        confirmText="Delete Product"
+        cancelText="Cancel"
+        variant="destructive"
+        loading={isDeleting}
+      />
     </div>
   );
 }
