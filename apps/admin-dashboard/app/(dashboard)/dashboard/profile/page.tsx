@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/store';
+import { RootState } from '@/store/index';
 import { updateUser } from '@/store/slices/authSlice';
 import { useToast } from '@/hooks/use-toast';
 import { useBreadcrumb } from '@/hooks/use-breadcrumb';

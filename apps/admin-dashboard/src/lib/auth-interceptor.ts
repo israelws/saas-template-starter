@@ -1,5 +1,5 @@
 import { AxiosError, AxiosRequestConfig } from 'axios';
-import { store } from '@/store';
+import { store } from '@/store/index';
 import { loginSuccess, logout } from '@/store/slices/authSlice';
 import { api, authAPI } from './api';
 import { logTokenStatus } from './token-utils';

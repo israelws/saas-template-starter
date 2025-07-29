@@ -9,7 +9,7 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-zinc-900" />
         <div className="relative z-20 flex items-center">
           <Image
-            src="/logo_main.png"
+            src="/images/logo_main.png"
             alt="Logo"
             width={200}
             height={60}

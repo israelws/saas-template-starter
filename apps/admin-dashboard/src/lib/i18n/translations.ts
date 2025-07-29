@@ -82,6 +82,12 @@ export const translations = {
       language: 'Language',
       signOut: 'Sign Out',
     },
+    theme: {
+      toggle: 'Toggle theme',
+      light: 'Light',
+      dark: 'Dark',
+      system: 'System',
+    },
     footer: {
       copyright: '© {{year}} SAAS Template. All rights reserved.',
       termsOfService: 'Terms of Service',
@@ -175,6 +181,12 @@ export const translations = {
       notifications: 'התראות',
       language: 'שפה',
       signOut: 'התנתק',
+    },
+    theme: {
+      toggle: 'החלף ערכת נושא',
+      light: 'בהיר',
+      dark: 'כהה',
+      system: 'מערכת',
     },
     footer: {
       copyright: '© {{year}} SAAS Template. כל הזכויות שמורות.',
@@ -270,6 +282,12 @@ export const translations = {
       language: 'اللغة',
       signOut: 'تسجيل الخروج',
     },
+    theme: {
+      toggle: 'تبديل المظهر',
+      light: 'فاتح',
+      dark: 'داكن',
+      system: 'النظام',
+    },
     footer: {
       copyright: '© {{year}} SAAS Template. جميع الحقوق محفوظة.',
       termsOfService: 'شروط الخدمة',
@@ -363,6 +381,12 @@ export const translations = {
       notifications: 'Notificaciones',
       language: 'Idioma',
       signOut: 'Cerrar sesión',
+    },
+    theme: {
+      toggle: 'Cambiar tema',
+      light: 'Claro',
+      dark: 'Oscuro',
+      system: 'Sistema',
     },
     footer: {
       copyright: '© {{year}} SAAS Template. Todos los derechos reservados.',
@@ -458,6 +482,12 @@ export const translations = {
       language: 'Langue',
       signOut: 'Se déconnecter',
     },
+    theme: {
+      toggle: 'Changer de thème',
+      light: 'Clair',
+      dark: 'Sombre',
+      system: 'Système',
+    },
     footer: {
       copyright: '© {{year}} SAAS Template. Tous droits réservés.',
       termsOfService: 'Conditions d\'utilisation',
@@ -551,6 +581,12 @@ export const translations = {
       notifications: 'Benachrichtigungen',
       language: 'Sprache',
       signOut: 'Abmelden',
+    },
+    theme: {
+      toggle: 'Design umschalten',
+      light: 'Hell',
+      dark: 'Dunkel',
+      system: 'System',
     },
     footer: {
       copyright: '© {{year}} SAAS Template. Alle Rechte vorbehalten.',

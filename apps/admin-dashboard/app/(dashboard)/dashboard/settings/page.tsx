@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { RootState } from '@/store';
+import { RootState } from '@/store/index';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Settings, Bell, Shield, Database, Globe, Mail } from 'lucide-react';

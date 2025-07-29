@@ -34,21 +34,44 @@ COGNITO_CLIENT_ID=your-client-id
 docker-compose up -d
 
 # Or run services individually
-npm run backend:dev    # Backend on http://localhost:3000
-npm run admin:dev     # Admin Dashboard on http://localhost:3001
-npm run frontend:dev  # Frontend on http://localhost:3002
+npm run backend:dev    # Backend on http://localhost:3002
+npm run admin:dev     # Admin Dashboard on http://localhost:3000
+npm run frontend:dev  # Frontend on http://localhost:3001
 ```
 
 ## Project Structure
 
 ### Apps
 - **backend**: NestJS API server with TypeORM
-- **admin-dashboard**: Next.js admin panel with shadcn/ui
-- **frontend**: Customer-facing Next.js application
+  - Full ABAC implementation with policy inheritance
+  - WebSocket support for real-time updates
+  - Redis caching for performance
+  - Comprehensive error handling
+
+- **admin-dashboard**: Next.js 14+ admin panel with shadcn/ui
+  ```
+  apps/admin-dashboard/
+  ├── app/                   # Next.js App Router
+  ├── src/                   # Source code
+  │   ├── components/        # React components
+  │   ├── contexts/          # React contexts  
+  │   ├── hooks/             # Custom hooks
+  │   ├── lib/               # Utilities and configs
+  │   ├── store/             # Redux store
+  │   └── types/             # TypeScript types
+  ├── public/                # Static assets
+  │   └── images/            # Logo and image files
+  └── tests/                 # Test files
+      ├── unit/              # Unit tests
+      ├── integration/       # Integration tests
+      └── e2e/               # End-to-end tests
+  ```
+
+- **frontend**: Customer-facing Next.js application (planned)
 
 ### Packages
 - **shared**: Shared TypeScript types and utilities
-- **ui**: Reusable React components
+- **ui**: Shared UI components (planned)
 
 ### Key Directories
 ```

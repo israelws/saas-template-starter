@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { RootState } from '@/store';
+import { RootState } from '@/store/index';
 import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
 import {

@@ -330,8 +330,77 @@
 3. Performance optimization and CDN configuration
 4. Security audit and load testing
 
+## Recent Accomplishments (2025-07-29 Session) - UI/UX and Infrastructure Updates
+
+### Major Features Implemented:
+1. **Policy Builder Enhancement**:
+   - Added resource attribute conditions with dynamic variable substitution
+   - Created intuitive semantic value selectors (e.g., "User Organization" instead of `${subject.organizationId}`)
+   - Synchronized Policy Rules and Conditions tabs bidirectionally
+   - Fixed UI overlap issues in conditions tab
+
+2. **UI Consistency Updates**:
+   - Standardized edit/delete icons across all list views
+   - Updated all components to use shadcn/ui AlertDialog for confirmations
+   - Removed all browser native confirm/alert dialogs
+   - Enhanced field permissions UI with dropdown field selector
+
+3. **Style Guide Implementation**:
+   - Updated global CSS from HSL to OKLCH color format
+   - Added new typography with Google Fonts (Inter, JetBrains Mono, Source Serif 4)
+   - Updated Tailwind configuration with new color scheme
+   - Updated sidebar and layout styling
+
+4. **Dark Mode Support**:
+   - Created ThemeProvider with system/light/dark modes
+   - Added theme toggle component with persistence
+   - Created Logo component with dynamic dark/light switching
+   - Updated copyright to "Committed Ltd"
+
+5. **Admin Dashboard Restructuring**:
+   - Removed duplicate nested folders
+   - Consolidated to App Router (removed pages directory)
+   - Created src directory for better organization
+   - Centralized all tests in tests directory
+   - Cleaned up i18n (removed old locale files)
+   - Organized public assets into folders
+
+6. **User Invitation System**:
+   - Implemented complete invitation flow with expiry
+   - Added scheduled task for automatic invitation cleanup
+   - Created invitation management UI with resend/revoke
+   - Added comprehensive validation and error handling
+
+### Technical Implementation Details:
+- **Frontend Structure**:
+  ```
+  apps/admin-dashboard/
+  ├── app/                   # Next.js App Router
+  ├── src/                   # Source code
+  │   ├── components/        # React components
+  │   ├── contexts/          # React contexts
+  │   ├── hooks/             # Custom hooks
+  │   ├── lib/               # Utilities
+  │   ├── store/             # Redux store
+  │   └── types/             # TypeScript types
+  ├── public/                # Static assets
+  │   └── images/            # Logo files
+  └── tests/                 # All tests
+  ```
+
+- **Policy System Enhancements**:
+  - Dynamic variable resolution in policy evaluation
+  - Resource-scoped access control
+  - Visual policy testing with real-time evaluation
+  - Comprehensive backend validation
+
+### Testing Status:
+- Policy system fully tested with backend guards
+- Invitation flow requires test implementation
+- E2E tests for policy flow pending
+
 ---
-**Last Updated**: 2025-07-24
+**Last Updated**: 2025-07-29
 **Updated By**: AI Assistant
 
 ## Recent Accomplishments (2025-07-21 Session) - Enhanced ABAC Implementation

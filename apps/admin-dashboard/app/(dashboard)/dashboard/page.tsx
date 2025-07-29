@@ -8,18 +8,18 @@ export default function DashboardPage() {
   const { t } = useTranslation();
   
   const stats = [
-    { key: 'dashboard.stats.totalOrganizations', value: '12', icon: Building2, color: 'text-blue-600' },
-    { key: 'dashboard.stats.totalUsers', value: '248', icon: Users, color: 'text-green-600' },
-    { key: 'dashboard.stats.activePolicies', value: '64', icon: Shield, color: 'text-purple-600' },
-    { key: 'dashboard.stats.products', value: '156', icon: Package, color: 'text-yellow-600' },
-    { key: 'dashboard.stats.ordersToday', value: '24', icon: ShoppingCart, color: 'text-pink-600' },
-    { key: 'dashboard.stats.revenueToday', value: '$12,450', icon: CreditCard, color: 'text-indigo-600' },
+    { key: 'dashboard.stats.totalOrganizations', value: '12', icon: Building2, color: 'text-primary' },
+    { key: 'dashboard.stats.totalUsers', value: '248', icon: Users, color: 'text-chart-1' },
+    { key: 'dashboard.stats.activePolicies', value: '64', icon: Shield, color: 'text-chart-2' },
+    { key: 'dashboard.stats.products', value: '156', icon: Package, color: 'text-chart-3' },
+    { key: 'dashboard.stats.ordersToday', value: '24', icon: ShoppingCart, color: 'text-chart-4' },
+    { key: 'dashboard.stats.revenueToday', value: '$12,450', icon: CreditCard, color: 'text-chart-5' },
   ];
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.title')}</h1>
-        <p className="text-gray-500">{t('dashboard.welcome')}</p>
+        <h1 className="text-3xl font-bold">{t('dashboard.title')}</h1>
+        <p className="text-muted-foreground">{t('dashboard.welcome')}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -45,24 +45,24 @@ export default function DashboardPage() {
           <CardContent>
             <div className="space-y-4">
               <div className="flex items-center space-x-4">
-                <div className="h-2 w-2 rounded-full bg-green-500" />
+                <div className="h-2 w-2 rounded-full bg-chart-1" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">{t('dashboard.recentActivity.newUserRegistered')}</p>
-                  <p className="text-xs text-gray-500">john.doe@example.com - {t('time.minutesAgo', { count: 2 })}</p>
+                  <p className="text-xs text-muted-foreground">john.doe@example.com - {t('time.minutesAgo', { count: 2 })}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-4">
-                <div className="h-2 w-2 rounded-full bg-blue-500" />
+                <div className="h-2 w-2 rounded-full bg-chart-2" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">{t('dashboard.recentActivity.organizationCreated')}</p>
-                  <p className="text-xs text-gray-500">Acme Corp - {t('time.minutesAgo', { count: 15 })}</p>
+                  <p className="text-xs text-muted-foreground">Acme Corp - {t('time.minutesAgo', { count: 15 })}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-4">
-                <div className="h-2 w-2 rounded-full bg-purple-500" />
+                <div className="h-2 w-2 rounded-full bg-chart-3" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">{t('dashboard.recentActivity.policyUpdated')}</p>
-                  <p className="text-xs text-gray-500">Admin Access Policy - {t('time.hoursAgo', { count: 1 })}</p>
+                  <p className="text-xs text-muted-foreground">Admin Access Policy - {t('time.hoursAgo', { count: 1 })}</p>
                 </div>
               </div>
             </div>
@@ -79,28 +79,28 @@ export default function DashboardPage() {
               <div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">{t('dashboard.systemHealth.apiResponseTime')}</span>
-                  <span className="text-sm text-green-600">45ms</span>
+                  <span className="text-sm text-chart-1">45ms</span>
                 </div>
-                <div className="mt-1 h-2 w-full rounded-full bg-gray-200">
-                  <div className="h-2 w-3/4 rounded-full bg-green-600" />
+                <div className="mt-1 h-2 w-full rounded-full bg-muted">
+                  <div className="h-2 w-3/4 rounded-full bg-chart-1" />
                 </div>
               </div>
               <div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">{t('dashboard.systemHealth.databaseLoad')}</span>
-                  <span className="text-sm text-yellow-600">62%</span>
+                  <span className="text-sm text-chart-3">62%</span>
                 </div>
-                <div className="mt-1 h-2 w-full rounded-full bg-gray-200">
-                  <div className="h-2 w-3/5 rounded-full bg-yellow-600" />
+                <div className="mt-1 h-2 w-full rounded-full bg-muted">
+                  <div className="h-2 w-3/5 rounded-full bg-chart-3" />
                 </div>
               </div>
               <div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">{t('dashboard.systemHealth.cacheHitRate')}</span>
-                  <span className="text-sm text-green-600">94%</span>
+                  <span className="text-sm text-chart-1">94%</span>
                 </div>
-                <div className="mt-1 h-2 w-full rounded-full bg-gray-200">
-                  <div className="h-2 w-11/12 rounded-full bg-green-600" />
+                <div className="mt-1 h-2 w-full rounded-full bg-muted">
+                  <div className="h-2 w-11/12 rounded-full bg-chart-1" />
                 </div>
               </div>
             </div>

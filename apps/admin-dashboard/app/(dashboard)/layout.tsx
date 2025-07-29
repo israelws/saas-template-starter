@@ -12,7 +12,8 @@ import { useTranslation } from '@/hooks/use-translation';
 import { BreadcrumbProvider } from '@/contexts/breadcrumb-context';
 import { BreadcrumbNav } from '@/components/layout/breadcrumb-nav';
 import { UserProfileMenu } from '@/components/layout/user-profile-menu';
-import Image from 'next/image';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
+import { Logo } from '@/components/layout/logo';
 import {
   Building2,
   Users,
@@ -99,22 +100,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="flex h-screen overflow-hidden">
         {/* Sidebar for desktop */}
         <div className={cn('hidden lg:flex lg:flex-col', sidebarOpen ? 'lg:w-64' : 'lg:w-16')}>
-          <div className="flex flex-1 flex-col bg-gray-900">
+          <div className="flex flex-1 flex-col bg-sidebar border-e">
             <div className="flex h-16 items-center justify-between px-4">
-              {sidebarOpen && (
-                <Image
-                  src="/logo_main.png"
-                  alt="Logo"
-                  width={150}
-                  height={40}
-                  className="h-8 w-auto"
-                  priority
-                />
-              )}
+              {sidebarOpen && <Logo />}
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-400 hover:text-white"
+                className="text-sidebar-foreground/60 hover:text-sidebar-foreground"
                 onClick={() => setSidebarOpen(!sidebarOpen)}
               >
                 <ChevronLeft
@@ -132,8 +124,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     className={cn(
                       'group flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors',
                       isActive
-                        ? 'bg-gray-800 text-white'
-                        : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                        ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
                     )}
                   >
                     <item.icon className={cn('h-5 w-5 flex-shrink-0', sidebarOpen && 'me-3')} />
@@ -142,10 +134,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 );
               })}
             </nav>
-            <div className="border-t border-gray-700 p-4">
+            <div className="border-t border-sidebar-border p-4">
               <Button
                 variant="ghost"
-                className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white"
+                className="w-full justify-start text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
                 onClick={handleLogout}
               >
                 <LogOut className={cn('h-5 w-5', sidebarOpen && 'me-3')} />
@@ -159,30 +151,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="lg:hidden">
           <div
             className={cn(
-              'fixed inset-0 z-40 bg-gray-600 bg-opacity-75 transition-opacity',
+              'fixed inset-0 z-40 bg-black/50 transition-opacity',
               mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none',
             )}
             onClick={() => setMobileMenuOpen(false)}
           />
           <div
             className={cn(
-              'fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 transition-transform',
+              'fixed inset-y-0 left-0 z-50 w-64 bg-sidebar transition-transform',
               mobileMenuOpen ? 'translate-x-0' : '-translate-x-full',
             )}
           >
             <div className="flex h-16 items-center justify-between px-4">
-              <Image
-                src="/logo_main.png"
-                alt="Logo"
-                width={150}
-                height={40}
-                className="h-8 w-auto"
-                priority
-              />
+              <Logo />
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-400 hover:text-white"
+                className="text-sidebar-foreground/60 hover:text-sidebar-foreground"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <X className="h-5 w-5" />
@@ -198,8 +183,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     className={cn(
                       'group flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors',
                       isActive
-                        ? 'bg-gray-800 text-white'
-                        : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                        ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
                     )}
                     onClick={() => setMobileMenuOpen(false)}
                   >
@@ -209,10 +194,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 );
               })}
             </nav>
-            <div className="border-t border-gray-700 p-4">
+            <div className="border-t border-sidebar-border p-4">
               <Button
                 variant="ghost"
-                className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white"
+                className="w-full justify-start text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                onClick={handleLogout}
               >
                 <LogOut className="h-5 w-5 me-3" />
                 <span>{t('navigation.signOut')}</span>
@@ -224,7 +210,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Main content */}
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* Top bar */}
-          <header className="flex h-16 items-center justify-between border-b bg-white px-4 shadow-sm lg:px-6">
+          <header className="flex h-16 items-center justify-between border-b bg-background px-4 shadow-sm lg:px-6">
             <div className="flex items-center">
               <Button
                 variant="ghost"
@@ -236,21 +222,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Button>
             </div>
             <div className="flex items-center gap-4">
+              <ThemeToggle />
               <UserProfileMenu />
             </div>
           </header>
 
           {/* Page content */}
-          <main className="flex-1 overflow-y-auto bg-gray-50">
+          <main className="flex-1 overflow-y-auto bg-muted/30">
             <div className="flex min-h-full flex-col">
               <div className="flex-1 p-4 lg:p-6">
                 <BreadcrumbNav />
                 {children}
               </div>
               {/* Footer */}
-              <footer className="border-t bg-white px-4 py-4 lg:px-6">
+              <footer className="border-t bg-background px-4 py-4 lg:px-6">
                 <div className="flex flex-col items-center justify-between space-y-2 text-sm text-muted-foreground sm:flex-row sm:space-y-0">
-                  <p>{t('footer.copyright', { year: new Date().getFullYear() })}</p>
+                  <p>© {new Date().getFullYear()} Committed Ltd. All rights reserved.</p>
                   <div className="flex space-x-4">
                     <Link href="/terms" className="hover:text-primary">
                       {t('footer.termsOfService')}

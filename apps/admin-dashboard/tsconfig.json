@@ -21,7 +21,13 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"],
+      "@/components/*": ["./src/components/*"],
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/store/*": ["./src/store/*"],
+      "@/contexts/*": ["./src/contexts/*"],
+      "@/types/*": ["./src/types/*"],
+      "@/test-utils": ["./tests/test-utils"],
       "@saas-template/shared": ["../../packages/shared/src"],
       "@saas-template/shared/*": ["../../packages/shared/src/*"],
       "@saas-template/ui": ["../../packages/ui/src"],
