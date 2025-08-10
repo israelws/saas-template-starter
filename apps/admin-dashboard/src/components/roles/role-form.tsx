@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,21 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { ExternalLink } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Shield, Search, AlertCircle, Check, X } from 'lucide-react';
+import { policyAPI } from '@/lib/api';
+import { Policy, PolicyEffect } from '@saas-template/shared';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 interface RoleFormProps {
   initialRole?: {
@@ -17,6 +31,7 @@ interface RoleFormProps {
     displayName?: string;
     description?: string;
     isActive?: boolean;
+    policyIds?: string[];
     metadata?: Record<string, any>;
   };
   onSave: (role: any) => void;
@@ -30,11 +45,75 @@ export const RoleForm: React.FC<RoleFormProps> = ({
   onCancel,
   isLoading = false,
 }) => {
+  const { toast } = useToast();
   const [name, setName] = useState(initialRole.name || '');
   const [displayName, setDisplayName] = useState(initialRole.displayName || '');
   const [description, setDescription] = useState(initialRole.description || '');
   const [isActive, setIsActive] = useState(initialRole.isActive ?? true);
+  const [selectedPolicyIds, setSelectedPolicyIds] = useState<string[]>(initialRole.policyIds || []);
+  const [policies, setPolicies] = useState<Policy[]>([]);
+  const [policiesLoading, setPoliciesLoading] = useState(false);
+  const [policySearch, setPolicySearch] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
+  const [tempSelectedPolicyIds, setTempSelectedPolicyIds] = useState<string[]>([]);
+
+  const loadPolicies = async () => {
+    try {
+      setPoliciesLoading(true);
+      const response = await policyAPI.getAll();
+      console.log('Policy API response:', response.data); // Debug log
+      // The backend returns data in response.data.data, not response.data.items
+      const policiesData = response.data.data || response.data.items || [];
+      setPolicies(policiesData);
+      console.log('Loaded policies:', policiesData.length); // Debug log
+    } catch (error) {
+      console.error('Failed to load policies:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load policies',
+        variant: 'destructive',
+      });
+    } finally {
+      setPoliciesLoading(false);
+    }
+  };
+
+  const filteredPolicies = policies.filter(policy => {
+    const searchLower = policySearch.toLowerCase();
+    return (
+      policy.name.toLowerCase().includes(searchLower) ||
+      policy.description?.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const togglePolicy = (policyId: string) => {
+    setTempSelectedPolicyIds(prev => 
+      prev.includes(policyId) 
+        ? prev.filter(id => id !== policyId)
+        : [...prev, policyId]
+    );
+  };
+
+  const openPolicyModal = async () => {
+    setTempSelectedPolicyIds(selectedPolicyIds);
+    setShowPolicyModal(true);
+    if (policies.length === 0) {
+      await loadPolicies();
+    }
+  };
+
+  const handlePolicyModalSave = () => {
+    setSelectedPolicyIds(tempSelectedPolicyIds);
+    setShowPolicyModal(false);
+    setPolicySearch('');
+  };
+
+  const handlePolicyModalCancel = () => {
+    setShowPolicyModal(false);
+    setTempSelectedPolicyIds([]);
+    setPolicySearch('');
+  };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -64,6 +143,7 @@ export const RoleForm: React.FC<RoleFormProps> = ({
       displayName,
       description,
       isActive,
+      policyIds: selectedPolicyIds,
     };
 
     onSave(roleData);
@@ -139,36 +219,49 @@ export const RoleForm: React.FC<RoleFormProps> = ({
 
       <Card>
         <CardHeader>
-          <CardTitle>Permissions Management</CardTitle>
+          <CardTitle>Policy Assignment</CardTitle>
           <CardDescription>
-            Permissions are managed through policies, not roles
+            Assign policies to this role. Users with this role will inherit all assigned policies.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-lg border bg-muted/50 p-4">
-            <p className="text-sm font-medium mb-2">Role-Based Access Control</p>
-            <p className="text-sm text-muted-foreground mb-4">
-              This role defines a job function or position. To grant permissions to this role,
-              create or modify policies that apply to it.
-            </p>
+          <div className="space-y-4">
+            {selectedPolicyIds.length > 0 ? (
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground mb-3">
+                  {selectedPolicyIds.length} {selectedPolicyIds.length === 1 ? 'policy' : 'policies'} assigned
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {selectedPolicyIds.map((policyId) => {
+                    const policy = policies.find(p => p.id === policyId);
+                    return policy ? (
+                      <Badge key={policyId} variant="secondary">
+                        {policy.name}
+                      </Badge>
+                    ) : (
+                      <Badge key={policyId} variant="outline">
+                        Policy ID: {policyId}
+                      </Badge>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-6 text-sm text-muted-foreground">
+                No policies assigned to this role
+              </div>
+            )}
+            
             <Button
+              type="button"
               variant="outline"
-              size="sm"
-              onClick={() => window.location.href = '/dashboard/policies'}
+              className="w-full"
+              onClick={openPolicyModal}
             >
-              Manage Policies
+              <Shield className="mr-2 h-4 w-4" />
+              Select Policies
             </Button>
           </div>
-          
-          {initialRole.id && (
-            <div className="mt-4 space-y-2">
-              <p className="text-sm font-medium">Quick Links:</p>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• <a href="/dashboard/policies/new" className="text-primary hover:underline">Create a new policy</a> for this role</li>
-                <li>• <a href={`/dashboard/policies?role=${initialRole.name}`} className="text-primary hover:underline">View policies</a> that apply to this role</li>
-              </ul>
-            </div>
-          )}
         </CardContent>
       </Card>
 
@@ -180,6 +273,136 @@ export const RoleForm: React.FC<RoleFormProps> = ({
           {isLoading ? 'Saving...' : initialRole.id ? 'Update Role' : 'Create Role'}
         </Button>
       </div>
+
+      {/* Policy Selection Modal */}
+      <Dialog open={showPolicyModal} onOpenChange={setShowPolicyModal}>
+        <DialogContent className="max-w-3xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Select Policies</DialogTitle>
+            <DialogDescription>
+              Choose policies to assign to this role. Selected policies will grant permissions to users with this role.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by policy name or description..."
+                  value={policySearch}
+                  onChange={(e) => setPolicySearch(e.target.value)}
+                  className="pl-9 pr-9"
+                />
+                {policySearch && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0"
+                    onClick={() => setPolicySearch('')}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              
+              {/* Show total count and search results */}
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>Total policies: {policies.length}</span>
+                {policySearch && (
+                  <span className="text-primary">
+                    {filteredPolicies.length} match{filteredPolicies.length !== 1 ? 'es' : ''} found
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">{/* Removed duplicate space-y-4 wrapper */}
+              
+              <ScrollArea className="h-[400px] pr-4">
+                {policiesLoading ? (
+                  <div className="space-y-3">
+                    {[...Array(5)].map((_, i) => (
+                      <Skeleton key={i} className="h-20 w-full" />
+                    ))}
+                  </div>
+                ) : policies.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-sm text-muted-foreground">
+                      No policies available. Please create policies first.
+                    </p>
+                  </div>
+                ) : (policySearch && filteredPolicies.length === 0) ? (
+                  <div className="text-center py-12">
+                    <Search className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-sm text-muted-foreground">
+                      No policies found matching "{policySearch}"
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {(policySearch ? filteredPolicies : policies).map((policy) => (
+                    <div
+                      key={policy.id}
+                      className="flex items-start space-x-3 p-4 rounded-lg border hover:bg-accent/50 transition-colors cursor-pointer"
+                      onClick={() => togglePolicy(policy.id)}
+                    >
+                      <Checkbox
+                        checked={tempSelectedPolicyIds.includes(policy.id)}
+                        onCheckedChange={() => togglePolicy(policy.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="mt-1"
+                      />
+                      <div className="flex-1 space-y-1">
+                        <div className="font-medium text-sm">{policy.name}</div>
+                        {policy.description && (
+                          <p className="text-sm text-muted-foreground">
+                            {policy.description}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant={policy.effect === PolicyEffect.ALLOW ? 'default' : 'destructive'} className="text-xs">
+                            {policy.effect}
+                          </Badge>
+                          {policy.resources?.types && policy.resources.types.length > 0 && (
+                            <Badge variant="outline" className="text-xs">
+                              {policy.resources.types.length} resource{policy.resources.types.length > 1 ? 's' : ''}
+                            </Badge>
+                          )}
+                          {policy.actions && policy.actions.length > 0 && (
+                            <Badge variant="outline" className="text-xs">
+                              {policy.actions.length} action{policy.actions.length > 1 ? 's' : ''}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+            </div>
+
+            <div className="flex items-center justify-between pt-4 border-t">
+              <p className="text-sm text-muted-foreground">
+                {tempSelectedPolicyIds.length} {tempSelectedPolicyIds.length === 1 ? 'policy' : 'policies'} selected
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={handlePolicyModalCancel}>
+              Cancel
+            </Button>
+            <Button onClick={handlePolicyModalSave}>
+              <Check className="mr-2 h-4 w-4" />
+              Apply Selection
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
