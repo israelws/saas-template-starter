@@ -43,10 +43,7 @@ export class TestDatabaseModule {
 
 export const createTestingModule = async (providers: any[] = [], imports: any[] = []) => {
   const module: TestingModule = await Test.createTestingModule({
-    imports: [
-      TestDatabaseModule.forRoot(),
-      ...imports,
-    ],
+    imports: [TestDatabaseModule.forRoot(), ...imports],
     providers,
   }).compile();
 
@@ -55,7 +52,7 @@ export const createTestingModule = async (providers: any[] = [], imports: any[] 
 
 export const cleanupDatabase = async (dataSource: DataSource) => {
   const entities = dataSource.entityMetadatas;
-  
+
   for (const entity of entities) {
     const repository = dataSource.getRepository(entity.name);
     await repository.clear();
@@ -125,7 +122,9 @@ export const createMockPolicySet = (overrides: Partial<PolicySet> = {}): PolicyS
   return policySet;
 };
 
-export const createMockAttributeDefinition = (overrides: Partial<AttributeDefinition> = {}): AttributeDefinition => {
+export const createMockAttributeDefinition = (
+  overrides: Partial<AttributeDefinition> = {},
+): AttributeDefinition => {
   const attr = new AttributeDefinition();
   attr.id = overrides.id || 'test-attr-id';
   attr.name = overrides.name || 'Test Attribute';
@@ -180,28 +179,28 @@ export const mockAbacContext = {
     attributes: {
       role: 'admin',
       clearanceLevel: 'high',
-      department: 'engineering'
+      department: 'engineering',
     },
     organizationId: 'test-org-id',
-    authenticated: true
+    authenticated: true,
   },
   resource: {
     id: 'test-resource-id',
     type: 'organization',
     attributes: {
       owner: 'test-user-id',
-      classificationLevel: 'internal'
-    }
+      classificationLevel: 'internal',
+    },
   },
   environment: {
     time: new Date().toISOString(),
     ipAddress: '192.168.1.100',
     location: {
       country: 'US',
-      state: 'CA'
-    }
+      state: 'CA',
+    },
   },
-  action: 'read'
+  action: 'read',
 };
 
-export const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

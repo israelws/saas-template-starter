@@ -18,20 +18,8 @@ import { OrganizationsModule } from '../organizations/organizations.module';
     UsersModule,
     OrganizationsModule,
   ],
-  controllers: [
-    InsuranceAgentController,
-    InsuranceBranchController,
-    TerritoryController,
-  ],
-  providers: [
-    InsuranceAgentService,
-    InsuranceBranchService,
-    TerritoryService,
-  ],
-  exports: [
-    InsuranceAgentService,
-    InsuranceBranchService,
-    TerritoryService,
-  ],
+  controllers: [InsuranceAgentController, InsuranceBranchController, TerritoryController],
+  providers: [InsuranceAgentService, InsuranceBranchService, TerritoryService],
+  exports: [InsuranceAgentService, InsuranceBranchService, TerritoryService],
 })
 export class InsuranceModule {}

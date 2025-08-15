@@ -30,7 +30,7 @@ export class LoggerService implements NestLoggerService {
     if (typeof message === 'object') {
       this.logger.error({ ...message, trace, context: ctx });
     } else {
-      this.logger.error({ message: message, trace, context: ctx});
+      this.logger.error({ message: message, trace, context: ctx });
     }
   }
 
@@ -39,7 +39,7 @@ export class LoggerService implements NestLoggerService {
     if (typeof message === 'object') {
       this.logger.warn({ ...message, context: ctx });
     } else {
-      this.logger.warn({ message: message, context: ctx});
+      this.logger.warn({ message: message, context: ctx });
     }
   }
 
@@ -48,7 +48,7 @@ export class LoggerService implements NestLoggerService {
     if (typeof message === 'object') {
       this.logger.debug({ ...message, context: ctx });
     } else {
-      this.logger.debug({ message: message, context: ctx});
+      this.logger.debug({ message: message, context: ctx });
     }
   }
 
@@ -57,12 +57,12 @@ export class LoggerService implements NestLoggerService {
     if (typeof message === 'object') {
       this.logger.verbose({ ...message, context: ctx });
     } else {
-      this.logger.verbose({ message: message, context: ctx});
+      this.logger.verbose({ message: message, context: ctx });
     }
   }
 
   // Additional utility methods
-  
+
   /**
    * Log HTTP request details
    */
@@ -85,12 +85,7 @@ export class LoggerService implements NestLoggerService {
   /**
    * Log database query
    */
-  logQuery(query: {
-    sql: string;
-    parameters?: any[];
-    duration?: number;
-    error?: any;
-  }) {
+  logQuery(query: { sql: string; parameters?: any[]; duration?: number; error?: any }) {
     const level = query.error ? 'error' : 'debug';
     this.logger[level]('Database Query', {
       ...query,
@@ -131,9 +126,12 @@ export class LoggerService implements NestLoggerService {
     duration?: number;
     conditions?: any;
   }) {
-    this.logger.debug({ message: "Policy Evaluation", ...evaluation,
+    this.logger.debug({
+      message: 'Policy Evaluation',
+      ...evaluation,
       context: 'ABAC',
-      timestamp: new Date().toISOString(),});
+      timestamp: new Date().toISOString(),
+    });
   }
 
   /**

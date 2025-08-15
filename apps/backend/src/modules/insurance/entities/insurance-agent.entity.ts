@@ -37,7 +37,7 @@ export class InsuranceAgent {
   @Column({ name: 'branch_id' })
   branchId: string;
 
-  @ManyToOne(() => InsuranceBranch, branch => branch.agents)
+  @ManyToOne(() => InsuranceBranch, (branch) => branch.agents)
   @JoinColumn({ name: 'branch_id' })
   branch: InsuranceBranch;
 

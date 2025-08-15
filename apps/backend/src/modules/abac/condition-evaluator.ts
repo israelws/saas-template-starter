@@ -77,7 +77,7 @@ export class ConditionEvaluator {
     // Contains any condition
     if (condition.contains_any !== undefined) {
       if (Array.isArray(value)) {
-        return condition.contains_any.some(item => value.includes(item));
+        return condition.contains_any.some((item) => value.includes(item));
       }
       return false;
     }
@@ -130,14 +130,14 @@ export class ConditionEvaluator {
    */
   evaluateAll(value: any, conditions: Condition): boolean {
     const conditionKeys = Object.keys(conditions) as (keyof Condition)[];
-    
+
     for (const key of conditionKeys) {
       const singleCondition: Condition = { [key]: conditions[key] };
       if (!this.evaluate(value, singleCondition)) {
         return false;
       }
     }
-    
+
     return true;
   }
 
@@ -146,7 +146,12 @@ export class ConditionEvaluator {
    */
   private compareValues(a: any, b: any): number {
     // Handle time strings (HH:MM format)
-    if (typeof a === 'string' && typeof b === 'string' && this.isTimeString(a) && this.isTimeString(b)) {
+    if (
+      typeof a === 'string' &&
+      typeof b === 'string' &&
+      this.isTimeString(a) &&
+      this.isTimeString(b)
+    ) {
       return this.compareTimeStrings(a, b);
     }
 
@@ -182,10 +187,10 @@ export class ConditionEvaluator {
   private compareTimeStrings(a: string, b: string): number {
     const [aHours, aMinutes] = a.split(':').map(Number);
     const [bHours, bMinutes] = b.split(':').map(Number);
-    
+
     const aTotal = aHours * 60 + aMinutes;
     const bTotal = bHours * 60 + bMinutes;
-    
+
     return aTotal - bTotal;
   }
 }

@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  NestInterceptor,
-  ExecutionContext,
-  CallHandler,
-} from '@nestjs/common';
+import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LoggerService } from '../logger/logger.service';
@@ -23,19 +18,22 @@ export class LoggingInterceptor implements NestInterceptor {
 
     // Log request details (excluding sensitive data)
     const sanitizedBody = this.sanitizeBody(body);
-    
-    this.logger.debug({ message: "Incoming Request", method,
+
+    this.logger.debug({
+      message: 'Incoming Request',
+      method,
       url,
       body: sanitizedBody,
       ip,
-      userAgent,});
+      userAgent,
+    });
 
     return next.handle().pipe(
       tap({
         next: (data) => {
           const duration = Date.now() - startTime;
           const { statusCode } = response;
-          
+
           this.logger.logHttpRequest({
             method,
             url,
@@ -48,17 +46,20 @@ export class LoggingInterceptor implements NestInterceptor {
 
           // Log response data in debug mode
           if (process.env.LOG_LEVEL === 'debug') {
-            this.logger.debug({ message: "Response Data", method,
+            this.logger.debug({
+              message: 'Response Data',
+              method,
               url,
               statusCode,
               duration,
-              data: this.sanitizeBody(data),});
+              data: this.sanitizeBody(data),
+            });
           }
         },
         error: (error) => {
           const duration = Date.now() - startTime;
           const statusCode = error.status || 500;
-          
+
           this.logger.error({
             message: 'Request Failed',
             method,
@@ -80,7 +81,7 @@ export class LoggingInterceptor implements NestInterceptor {
 
   private sanitizeBody(body: any): any {
     if (!body) return body;
-    
+
     const sensitiveFields = [
       'password',
       'token',
@@ -93,7 +94,7 @@ export class LoggingInterceptor implements NestInterceptor {
     ];
 
     const sanitized = { ...body };
-    
+
     sensitiveFields.forEach((field) => {
       if (sanitized[field]) {
         sanitized[field] = '[REDACTED]';

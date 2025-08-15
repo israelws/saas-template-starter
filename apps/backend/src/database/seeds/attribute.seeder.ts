@@ -42,9 +42,18 @@ export class AttributeSeeder {
         required: true,
         defaultValue: 'employee',
         validationRules: {
-          enum: ['admin', 'executive', 'director', 'manager', 'developer', 'employee', 'consultant', 'contractor']
+          enum: [
+            'admin',
+            'executive',
+            'director',
+            'manager',
+            'developer',
+            'employee',
+            'consultant',
+            'contractor',
+          ],
         },
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Security Clearance Level',
@@ -55,9 +64,9 @@ export class AttributeSeeder {
         required: true,
         defaultValue: 'low',
         validationRules: {
-          enum: ['low', 'medium', 'high', 'top-secret']
+          enum: ['low', 'medium', 'high', 'top-secret'],
         },
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Department',
@@ -67,9 +76,20 @@ export class AttributeSeeder {
         description: 'User department or functional area',
         required: false,
         validationRules: {
-          enum: ['executive', 'engineering', 'sales', 'marketing', 'hr', 'finance', 'operations', 'risk', 'customer_success', 'external']
+          enum: [
+            'executive',
+            'engineering',
+            'sales',
+            'marketing',
+            'hr',
+            'finance',
+            'operations',
+            'risk',
+            'customer_success',
+            'external',
+          ],
         },
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Employee ID',
@@ -79,9 +99,9 @@ export class AttributeSeeder {
         description: 'Unique employee identifier',
         required: false,
         validationRules: {
-          pattern: '^[A-Z]{2}\\d{3,6}$'
+          pattern: '^[A-Z]{2}\\d{3,6}$',
         },
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Job Title',
@@ -91,9 +111,9 @@ export class AttributeSeeder {
         description: 'Official job title',
         required: false,
         validationRules: {
-          maxLength: 100
+          maxLength: 100,
         },
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Hire Date',
@@ -102,7 +122,7 @@ export class AttributeSeeder {
         category: 'subject',
         description: 'Date when employee was hired',
         required: false,
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Work Location',
@@ -112,9 +132,9 @@ export class AttributeSeeder {
         description: 'Primary work location',
         required: false,
         validationRules: {
-          pattern: '^[A-Za-z\\s]+,\\s[A-Z]{2}$'
+          pattern: '^[A-Za-z\\s]+,\\s[A-Z]{2}$',
         },
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Technical Skills',
@@ -123,7 +143,7 @@ export class AttributeSeeder {
         category: 'subject',
         description: 'Technical skills and competencies',
         required: false,
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Certifications',
@@ -132,7 +152,7 @@ export class AttributeSeeder {
         category: 'subject',
         description: 'Professional certifications held',
         required: false,
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
 
       // Engineering Specific Attributes
@@ -144,9 +164,9 @@ export class AttributeSeeder {
         description: 'Engineering experience level',
         required: false,
         validationRules: {
-          enum: ['junior', 'mid', 'senior', 'staff', 'principal', 'distinguished']
+          enum: ['junior', 'mid', 'senior', 'staff', 'principal', 'distinguished'],
         },
-        organizationCode: 'ENG_DIV'
+        organizationCode: 'ENG_DIV',
       },
       {
         name: 'Team Specialization',
@@ -156,9 +176,19 @@ export class AttributeSeeder {
         description: 'Engineering team specialization',
         required: false,
         validationRules: {
-          enum: ['frontend', 'backend', 'fullstack', 'devops', 'qa', 'mobile', 'data', 'ml', 'security']
+          enum: [
+            'frontend',
+            'backend',
+            'fullstack',
+            'devops',
+            'qa',
+            'mobile',
+            'data',
+            'ml',
+            'security',
+          ],
         },
-        organizationCode: 'ENG_DIV'
+        organizationCode: 'ENG_DIV',
       },
       {
         name: 'Code Review Authority',
@@ -168,7 +198,7 @@ export class AttributeSeeder {
         description: 'Authorization to approve code reviews',
         required: false,
         defaultValue: false,
-        organizationCode: 'ENG_DIV'
+        organizationCode: 'ENG_DIV',
       },
 
       // Sales Specific Attributes
@@ -181,9 +211,9 @@ export class AttributeSeeder {
         required: false,
         validationRules: {
           minimum: 0,
-          maximum: 10000000
+          maximum: 10000000,
         },
-        organizationCode: 'SALES_DIV'
+        organizationCode: 'SALES_DIV',
       },
       {
         name: 'Sales Territory',
@@ -193,9 +223,9 @@ export class AttributeSeeder {
         description: 'Assigned sales territory',
         required: false,
         validationRules: {
-          enum: ['east_coast', 'west_coast', 'central', 'international', 'enterprise', 'smb']
+          enum: ['east_coast', 'west_coast', 'central', 'international', 'enterprise', 'smb'],
         },
-        organizationCode: 'SALES_DIV'
+        organizationCode: 'SALES_DIV',
       },
 
       // RetailMax Specific Attributes
@@ -206,7 +236,7 @@ export class AttributeSeeder {
         category: 'subject',
         description: 'List of store IDs user can access',
         required: false,
-        organizationCode: 'RETAILMAX'
+        organizationCode: 'RETAILMAX',
       },
       {
         name: 'Regional Authority',
@@ -216,9 +246,9 @@ export class AttributeSeeder {
         description: 'Regional management authority',
         required: false,
         validationRules: {
-          enum: ['north_america', 'europe', 'apac', 'global']
+          enum: ['north_america', 'europe', 'apac', 'global'],
         },
-        organizationCode: 'RETAILMAX'
+        organizationCode: 'RETAILMAX',
       },
 
       // FinanceFlow Specific Attributes
@@ -231,10 +261,10 @@ export class AttributeSeeder {
         required: false,
         validationRules: {
           items: {
-            enum: ['pci_dss', 'sox', 'gdpr', 'basel', 'coso', 'iso27001']
-          }
+            enum: ['pci_dss', 'sox', 'gdpr', 'basel', 'coso', 'iso27001'],
+          },
         },
-        organizationCode: 'FINFLOW'
+        organizationCode: 'FINFLOW',
       },
       {
         name: 'Risk Assessment Authority',
@@ -244,7 +274,7 @@ export class AttributeSeeder {
         description: 'Authority to perform risk assessments',
         required: false,
         defaultValue: false,
-        organizationCode: 'FINFLOW'
+        organizationCode: 'FINFLOW',
       },
 
       // Resource Attributes
@@ -255,7 +285,7 @@ export class AttributeSeeder {
         category: 'resource',
         description: 'User ID of the resource owner',
         required: false,
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Classification Level',
@@ -266,9 +296,9 @@ export class AttributeSeeder {
         required: false,
         defaultValue: 'public',
         validationRules: {
-          enum: ['public', 'internal', 'confidential', 'restricted', 'top-secret']
+          enum: ['public', 'internal', 'confidential', 'restricted', 'top-secret'],
         },
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Resource Type',
@@ -278,9 +308,9 @@ export class AttributeSeeder {
         description: 'Type of the resource',
         required: false,
         validationRules: {
-          enum: ['document', 'api', 'database', 'system', 'application', 'file', 'repository']
+          enum: ['document', 'api', 'database', 'system', 'application', 'file', 'repository'],
         },
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Data Sensitivity',
@@ -290,9 +320,17 @@ export class AttributeSeeder {
         description: 'Sensitivity level of the data',
         required: false,
         validationRules: {
-          enum: ['public', 'internal', 'sensitive', 'highly-sensitive', 'pii', 'financial', 'medical']
+          enum: [
+            'public',
+            'internal',
+            'sensitive',
+            'highly-sensitive',
+            'pii',
+            'financial',
+            'medical',
+          ],
         },
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Retention Period',
@@ -303,9 +341,9 @@ export class AttributeSeeder {
         required: false,
         validationRules: {
           minimum: 1,
-          maximum: 3650
+          maximum: 3650,
         },
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Compliance Tags',
@@ -316,10 +354,10 @@ export class AttributeSeeder {
         required: false,
         validationRules: {
           items: {
-            enum: ['gdpr', 'ccpa', 'hipaa', 'pci_dss', 'sox', 'ferpa']
-          }
+            enum: ['gdpr', 'ccpa', 'hipaa', 'pci_dss', 'sox', 'ferpa'],
+          },
         },
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
 
       // Environment Attributes
@@ -331,9 +369,9 @@ export class AttributeSeeder {
         description: 'Time of access (HH:MM format)',
         required: false,
         validationRules: {
-          pattern: '^([01]?[0-9]|2[0-3]):[0-5][0-9]$'
+          pattern: '^([01]?[0-9]|2[0-3]):[0-5][0-9]$',
         },
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Access Date',
@@ -342,7 +380,7 @@ export class AttributeSeeder {
         category: 'environment',
         description: 'Date of access',
         required: false,
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'IP Address',
@@ -352,9 +390,10 @@ export class AttributeSeeder {
         description: 'Client IP address',
         required: false,
         validationRules: {
-          pattern: '^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
+          pattern:
+            '^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$',
         },
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Network Zone',
@@ -364,9 +403,9 @@ export class AttributeSeeder {
         description: 'Network security zone',
         required: false,
         validationRules: {
-          enum: ['public', 'dmz', 'internal', 'secure_zone', 'isolated']
+          enum: ['public', 'dmz', 'internal', 'secure_zone', 'isolated'],
         },
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Device Type',
@@ -376,9 +415,9 @@ export class AttributeSeeder {
         description: 'Type of device used for access',
         required: false,
         validationRules: {
-          enum: ['desktop', 'laptop', 'mobile', 'tablet', 'server', 'api_client']
+          enum: ['desktop', 'laptop', 'mobile', 'tablet', 'server', 'api_client'],
         },
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Geographic Location',
@@ -396,12 +435,12 @@ export class AttributeSeeder {
               type: 'object',
               properties: {
                 latitude: { type: 'number', minimum: -90, maximum: 90 },
-                longitude: { type: 'number', minimum: -180, maximum: 180 }
-              }
-            }
-          }
+                longitude: { type: 'number', minimum: -180, maximum: 180 },
+              },
+            },
+          },
         },
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Authentication Method',
@@ -411,9 +450,9 @@ export class AttributeSeeder {
         description: 'Authentication method used',
         required: false,
         validationRules: {
-          enum: ['password', 'mfa', 'sso', 'api_key', 'certificate', 'biometric']
+          enum: ['password', 'mfa', 'sso', 'api_key', 'certificate', 'biometric'],
         },
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Session Risk Score',
@@ -424,9 +463,9 @@ export class AttributeSeeder {
         required: false,
         validationRules: {
           minimum: 0,
-          maximum: 100
+          maximum: 100,
         },
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
 
       // Action Attributes
@@ -439,9 +478,9 @@ export class AttributeSeeder {
         required: false,
         validationRules: {
           minimum: 1,
-          maximum: 10000
+          maximum: 10000,
         },
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Data Export Format',
@@ -451,9 +490,9 @@ export class AttributeSeeder {
         description: 'Format for data export operations',
         required: false,
         validationRules: {
-          enum: ['csv', 'json', 'xml', 'pdf', 'xlsx']
+          enum: ['csv', 'json', 'xml', 'pdf', 'xlsx'],
         },
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Approval Required',
@@ -463,7 +502,7 @@ export class AttributeSeeder {
         description: 'Whether the action requires approval',
         required: false,
         defaultValue: false,
-        organizationCode: 'TECHCORP'
+        organizationCode: 'TECHCORP',
       },
       {
         name: 'Audit Level',
@@ -474,10 +513,10 @@ export class AttributeSeeder {
         required: false,
         defaultValue: 'standard',
         validationRules: {
-          enum: ['none', 'basic', 'standard', 'detailed', 'comprehensive']
+          enum: ['none', 'basic', 'standard', 'detailed', 'comprehensive'],
         },
-        organizationCode: 'TECHCORP'
-      }
+        organizationCode: 'TECHCORP',
+      },
     ];
 
     // Create attribute definitions
@@ -489,10 +528,12 @@ export class AttributeSeeder {
     this.logger.log(`Created ${attributeData.length} attribute definitions across all categories`);
   }
 
-  private async createAttributeDefinition(attributeInfo: AttributeDefinitionSeedData): Promise<void> {
+  private async createAttributeDefinition(
+    attributeInfo: AttributeDefinitionSeedData,
+  ): Promise<void> {
     // Find organization by code
     const organization = await this.organizationRepository.findOne({
-      where: { code: attributeInfo.organizationCode }
+      where: { code: attributeInfo.organizationCode },
     });
 
     if (!organization) {

@@ -23,7 +23,9 @@ export class CustomersService {
     // Validate required fields based on customer type
     if (createCustomerDto.type === CustomerType.INDIVIDUAL) {
       if (!createCustomerDto.firstName || !createCustomerDto.lastName) {
-        throw new BadRequestException('First name and last name are required for individual customers');
+        throw new BadRequestException(
+          'First name and last name are required for individual customers',
+        );
       }
     } else if (createCustomerDto.type === CustomerType.BUSINESS) {
       if (!createCustomerDto.companyName) {
@@ -70,22 +72,14 @@ export class CustomersService {
       search?: string;
     },
   ): Promise<PaginatedResponse<Customer>> {
-    const {
-      page,
-      limit,
-      sortBy = 'createdAt',
-      sortOrder = 'DESC',
-      type,
-      status,
-      search,
-    } = params;
+    const { page, limit, sortBy = 'createdAt', sortOrder = 'DESC', type, status, search } = params;
 
     // Ensure page and limit are numbers
     const pageNum = Number(page) || 1;
     const limitNum = Number(limit) || 10;
 
     const query = this.customerRepository.createQueryBuilder('customer');
-    
+
     query.where('customer.organizationId = :organizationId', { organizationId });
 
     if (type) {
@@ -149,11 +143,8 @@ export class CustomersService {
 
     // If updating email, check for duplicates
     if (updateCustomerDto.email && updateCustomerDto.email !== customer.email) {
-      const existing = await this.findByEmail(
-        updateCustomerDto.email,
-        customer.organizationId,
-      );
-      
+      const existing = await this.findByEmail(updateCustomerDto.email, customer.organizationId);
+
       if (existing) {
         throw new BadRequestException('Customer with this email already exists');
       }
@@ -200,7 +191,7 @@ export class CustomersService {
 
       const updated = await queryRunner.manager.save(customer);
       await queryRunner.commitTransaction();
-      
+
       return updated;
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -218,12 +209,12 @@ export class CustomersService {
     }
 
     const totalOwed = customer.balance;
-    return (totalOwed + amount) <= customer.creditLimit;
+    return totalOwed + amount <= customer.creditLimit;
   }
 
   async remove(id: string): Promise<void> {
     const customer = await this.findOne(id);
-    
+
     // Check if customer has active orders
     const activeOrdersCount = await this.customerRepository
       .createQueryBuilder('customer')
@@ -259,7 +250,7 @@ export class CustomersService {
       .limit(limit)
       .getRawMany();
 
-    return customers.map(c => ({
+    return customers.map((c) => ({
       ...c,
       totalSpent: parseFloat(c.totalSpent),
     }));
@@ -275,10 +266,7 @@ export class CustomersService {
       .getMany();
   }
 
-  async mergeDuplicates(
-    primaryId: string,
-    duplicateIds: string[],
-  ): Promise<Customer> {
+  async mergeDuplicates(primaryId: string, duplicateIds: string[]): Promise<Customer> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -316,7 +304,7 @@ export class CustomersService {
         .execute();
 
       await queryRunner.commitTransaction();
-      
+
       return primary;
     } catch (error) {
       await queryRunner.rollbackTransaction();

@@ -113,10 +113,12 @@ describe('AbacGuard', () => {
 
       const user = {
         id: 'user-123',
-        memberships: [{
-          organizationId: 'org-456',
-          role: 'user',
-        }],
+        memberships: [
+          {
+            organizationId: 'org-456',
+            role: 'user',
+          },
+        ],
       };
 
       const evaluationResult: PolicyEvaluationResult = {
@@ -129,11 +131,7 @@ describe('AbacGuard', () => {
 
       mockHierarchicalAbacService.evaluateWithHierarchy.mockResolvedValue(evaluationResult);
 
-      const context = createMockExecutionContext(
-        user,
-        {},
-        { organizationId: 'org-456' },
-      );
+      const context = createMockExecutionContext(user, {}, { organizationId: 'org-456' });
 
       const result = await guard.canActivate(context);
 
@@ -153,10 +151,12 @@ describe('AbacGuard', () => {
 
       const user = {
         id: 'user-123',
-        memberships: [{
-          organizationId: 'org-789',
-          role: 'manager',
-        }],
+        memberships: [
+          {
+            organizationId: 'org-789',
+            role: 'manager',
+          },
+        ],
       };
 
       const evaluationResult: PolicyEvaluationResult = {
@@ -169,12 +169,7 @@ describe('AbacGuard', () => {
 
       mockHierarchicalAbacService.evaluateWithHierarchy.mockResolvedValue(evaluationResult);
 
-      const context = createMockExecutionContext(
-        user,
-        {},
-        {},
-        { organizationId: 'org-789' },
-      );
+      const context = createMockExecutionContext(user, {}, {}, { organizationId: 'org-789' });
 
       const result = await guard.canActivate(context);
 
@@ -216,10 +211,12 @@ describe('AbacGuard', () => {
         email: 'user@example.com',
         firstName: 'John',
         lastName: 'Doe',
-        memberships: [{
-          organizationId: 'org-456',
-          role: 'manager',
-        }],
+        memberships: [
+          {
+            organizationId: 'org-456',
+            role: 'manager',
+          },
+        ],
         metadata: {
           departmentId: 'dept-sales',
         },
@@ -292,10 +289,12 @@ describe('AbacGuard', () => {
 
       const user = {
         id: 'user-123',
-        memberships: [{
-          organizationId: 'org-456',
-          role: 'user',
-        }],
+        memberships: [
+          {
+            organizationId: 'org-456',
+            role: 'user',
+          },
+        ],
       };
 
       const evaluationResult: PolicyEvaluationResult = {
@@ -308,11 +307,7 @@ describe('AbacGuard', () => {
 
       mockHierarchicalAbacService.evaluateWithHierarchy.mockResolvedValue(evaluationResult);
 
-      const context = createMockExecutionContext(
-        user,
-        {},
-        { organizationId: 'org-456' },
-      );
+      const context = createMockExecutionContext(user, {}, { organizationId: 'org-456' });
 
       const result = await guard.canActivate(context);
 
@@ -327,10 +322,12 @@ describe('AbacGuard', () => {
 
       const user = {
         id: 'user-123',
-        memberships: [{
-          organizationId: 'org-456',
-          role: 'user',
-        }],
+        memberships: [
+          {
+            organizationId: 'org-456',
+            role: 'user',
+          },
+        ],
       };
 
       const evaluationResult: PolicyEvaluationResult = {
@@ -343,11 +340,7 @@ describe('AbacGuard', () => {
 
       mockHierarchicalAbacService.evaluateWithHierarchy.mockResolvedValue(evaluationResult);
 
-      const context = createMockExecutionContext(
-        user,
-        {},
-        { organizationId: 'org-456' },
-      );
+      const context = createMockExecutionContext(user, {}, { organizationId: 'org-456' });
 
       await expect(guard.canActivate(context)).rejects.toThrow(ForbiddenException);
       await expect(guard.canActivate(context)).rejects.toThrow(
@@ -365,21 +358,19 @@ describe('AbacGuard', () => {
 
       const adminUser = {
         id: 'admin-123',
-        memberships: [{
-          organizationId: 'org-456',
-          role: 'admin',
-        }],
+        memberships: [
+          {
+            organizationId: 'org-456',
+            role: 'admin',
+          },
+        ],
       };
 
       mockHierarchicalAbacService.evaluateWithHierarchy.mockRejectedValue(
         new Error('Database connection error'),
       );
 
-      const context = createMockExecutionContext(
-        adminUser,
-        {},
-        { organizationId: 'org-456' },
-      );
+      const context = createMockExecutionContext(adminUser, {}, { organizationId: 'org-456' });
 
       const result = await guard.canActivate(context);
 
@@ -394,21 +385,19 @@ describe('AbacGuard', () => {
 
       const regularUser = {
         id: 'user-123',
-        memberships: [{
-          organizationId: 'org-456',
-          role: 'user',
-        }],
+        memberships: [
+          {
+            organizationId: 'org-456',
+            role: 'user',
+          },
+        ],
       };
 
       mockHierarchicalAbacService.evaluateWithHierarchy.mockRejectedValue(
         new Error('Database connection error'),
       );
 
-      const context = createMockExecutionContext(
-        regularUser,
-        {},
-        { organizationId: 'org-456' },
-      );
+      const context = createMockExecutionContext(regularUser, {}, { organizationId: 'org-456' });
 
       await expect(guard.canActivate(context)).rejects.toThrow(ForbiddenException);
       await expect(guard.canActivate(context)).rejects.toThrow(
@@ -426,10 +415,12 @@ describe('AbacGuard', () => {
 
       const user = {
         id: 'user-123',
-        memberships: [{
-          organizationId: 'org-456',
-          role: 'user',
-        }],
+        memberships: [
+          {
+            organizationId: 'org-456',
+            role: 'user',
+          },
+        ],
       };
 
       const evaluationResult: PolicyEvaluationResult = {

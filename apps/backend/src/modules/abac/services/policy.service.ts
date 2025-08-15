@@ -30,7 +30,9 @@ export class PolicyService {
     }
 
     if (createPolicyDto.scope === PolicyScope.SYSTEM && createPolicyDto.organizationId) {
-      throw new BadRequestException('Organization ID should not be provided for system-scoped policies');
+      throw new BadRequestException(
+        'Organization ID should not be provided for system-scoped policies',
+      );
     }
 
     const policy = this.policyRepository.create({
@@ -53,11 +55,8 @@ export class PolicyService {
     const limitNum = Number(limit) || 10;
 
     // Build where clause based on whether organizationId is provided
-    const whereClause: any = organizationId 
-      ? [
-          { scope: PolicyScope.SYSTEM },
-          { scope: PolicyScope.ORGANIZATION, organizationId }
-        ]
+    const whereClause: any = organizationId
+      ? [{ scope: PolicyScope.SYSTEM }, { scope: PolicyScope.ORGANIZATION, organizationId }]
       : {}; // If no organizationId, fetch all policies (for admin views)
 
     const [policies, total] = await this.policyRepository.findAndCount({
@@ -95,7 +94,7 @@ export class PolicyService {
     return this.policyRepository.find({
       where: [
         { scope: PolicyScope.SYSTEM, isActive: true },
-        { scope: PolicyScope.ORGANIZATION, organizationId, isActive: true }
+        { scope: PolicyScope.ORGANIZATION, organizationId, isActive: true },
       ],
       order: { priority: 'ASC' },
     });
@@ -108,7 +107,7 @@ export class PolicyService {
   ): Promise<Policy[]> {
     // Normalize roles to array
     const roleArray = Array.isArray(roles) ? roles : [roles];
-    
+
     // Build query for policies
     const queryBuilder = this.policyRepository
       .createQueryBuilder('policy')
@@ -117,14 +116,17 @@ export class PolicyService {
       .andWhere('policy.isActive = :isActive', { isActive: true });
 
     // Add role conditions
-    const roleConditions = roleArray.map((role, index) => 
-      `policy.subjects->'roles' @> :role${index}`
-    ).join(' OR ');
-    
-    const roleParams = roleArray.reduce((acc, role, index) => ({
-      ...acc,
-      [`role${index}`]: JSON.stringify([role])
-    }), {});
+    const roleConditions = roleArray
+      .map((role, index) => `policy.subjects->'roles' @> :role${index}`)
+      .join(' OR ');
+
+    const roleParams = roleArray.reduce(
+      (acc, role, index) => ({
+        ...acc,
+        [`role${index}`]: JSON.stringify([role]),
+      }),
+      {},
+    );
 
     // Also check for wildcard roles or user-specific policies
     queryBuilder.andWhere(
@@ -133,13 +135,11 @@ export class PolicyService {
         policy.subjects->'roles' @> '"*"' OR
         (policy.subjects->'users' @> :userId AND :userId IS NOT NULL)
       )`,
-      { ...roleParams, userId: userId ? JSON.stringify([userId]) : null }
+      { ...roleParams, userId: userId ? JSON.stringify([userId]) : null },
     );
 
     // Order by priority and effect
-    queryBuilder
-      .orderBy('policy.priority', 'ASC')
-      .addOrderBy('policy.effect', 'DESC'); // DENY policies first
+    queryBuilder.orderBy('policy.priority', 'ASC').addOrderBy('policy.effect', 'DESC'); // DENY policies first
 
     return queryBuilder.getMany();
   }
@@ -177,7 +177,7 @@ export class PolicyService {
     }
 
     // Increment version on significant changes
-    const significantChange = 
+    const significantChange =
       updatePolicyDto.effect !== undefined ||
       updatePolicyDto.subjects !== undefined ||
       updatePolicyDto.resources !== undefined ||
@@ -196,7 +196,7 @@ export class PolicyService {
 
   async remove(id: string): Promise<void> {
     const policy = await this.findOne(id);
-    
+
     // Soft delete by setting isActive to false
     policy.isActive = false;
     await this.policyRepository.save(policy);
@@ -204,7 +204,7 @@ export class PolicyService {
 
   async clone(id: string, name: string): Promise<Policy> {
     const originalPolicy = await this.findOne(id);
-    
+
     const clonedPolicy = this.policyRepository.create({
       ...originalPolicy,
       id: undefined,
@@ -222,7 +222,7 @@ export class PolicyService {
     context: any, // PolicyEvaluationContext
   ): Promise<{ matches: boolean; reason: string }> {
     const policy = await this.findOne(policyId);
-    
+
     // This would use the PolicyEvaluatorService to test a single policy
     // For now, return a simple response
     return {

@@ -19,7 +19,7 @@ describe('Field Permissions Integration Tests', () => {
   let usersService: UsersService;
   let policyService: PolicyService;
   let jwtService: JwtService;
-  
+
   let testOrganization: Organization;
   let adminUser: User;
   let agentUser: User;
@@ -76,29 +76,17 @@ describe('Field Permissions Integration Tests', () => {
     });
 
     // Assign roles
-    await usersService.assignRole(
-      adminUser.id,
-      testOrganization.id,
-      'admin',
-      adminUser.id,
-      { priority: 300 }
-    );
+    await usersService.assignRole(adminUser.id, testOrganization.id, 'admin', adminUser.id, {
+      priority: 300,
+    });
 
-    await usersService.assignRole(
-      agentUser.id,
-      testOrganization.id,
-      'agent',
-      adminUser.id,
-      { priority: 100 }
-    );
+    await usersService.assignRole(agentUser.id, testOrganization.id, 'agent', adminUser.id, {
+      priority: 100,
+    });
 
-    await usersService.assignRole(
-      customerUser.id,
-      testOrganization.id,
-      'customer',
-      adminUser.id,
-      { priority: 50 }
-    );
+    await usersService.assignRole(customerUser.id, testOrganization.id, 'customer', adminUser.id, {
+      priority: 50,
+    });
 
     // Create test product with sensitive fields
     testProduct = await dataSource.getRepository(Product).save({
@@ -107,7 +95,7 @@ describe('Field Permissions Integration Tests', () => {
       description: 'Comprehensive coverage',
       sku: 'INS-PREM-001',
       price: 199.99,
-      costPrice: 120.00, // Sensitive field
+      costPrice: 120.0, // Sensitive field
       profitMargin: 0.4, // Sensitive field
       supplierNotes: 'Confidential supplier info', // Sensitive field
       quantity: 100,
@@ -234,7 +222,7 @@ describe('Field Permissions Integration Tests', () => {
   describe('Product Field Permissions', () => {
     it('should return all fields for admin user', async () => {
       const token = generateToken(adminUser);
-      
+
       const response = await request(app.getHttpServer())
         .get(`/products/${testProduct.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -245,14 +233,14 @@ describe('Field Permissions Integration Tests', () => {
       expect(response.body).toHaveProperty('id');
       expect(response.body).toHaveProperty('name');
       expect(response.body).toHaveProperty('price');
-      expect(response.body).toHaveProperty('costPrice', 120.00);
+      expect(response.body).toHaveProperty('costPrice', 120.0);
       expect(response.body).toHaveProperty('profitMargin', 0.4);
       expect(response.body).toHaveProperty('supplierNotes');
     });
 
     it('should filter sensitive fields for agent user', async () => {
       const token = generateToken(agentUser);
-      
+
       const response = await request(app.getHttpServer())
         .get(`/products/${testProduct.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -264,7 +252,7 @@ describe('Field Permissions Integration Tests', () => {
       expect(response.body).toHaveProperty('name');
       expect(response.body).toHaveProperty('price');
       expect(response.body).toHaveProperty('quantity');
-      
+
       // Agent should NOT see sensitive fields
       expect(response.body).not.toHaveProperty('costPrice');
       expect(response.body).not.toHaveProperty('profitMargin');
@@ -273,7 +261,7 @@ describe('Field Permissions Integration Tests', () => {
 
     it('should return only public fields for customer user', async () => {
       const token = generateToken(customerUser);
-      
+
       const response = await request(app.getHttpServer())
         .get(`/products/${testProduct.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -285,7 +273,7 @@ describe('Field Permissions Integration Tests', () => {
       expect(response.body).toHaveProperty('name');
       expect(response.body).toHaveProperty('description');
       expect(response.body).toHaveProperty('price');
-      
+
       // Customer should NOT see any other fields
       expect(response.body).not.toHaveProperty('sku');
       expect(response.body).not.toHaveProperty('quantity');
@@ -295,7 +283,7 @@ describe('Field Permissions Integration Tests', () => {
 
     it('should check field permissions endpoint', async () => {
       const token = generateToken(agentUser);
-      
+
       const response = await request(app.getHttpServer())
         .get(`/products/${testProduct.id}/field-permissions`)
         .set('Authorization', `Bearer ${token}`)
@@ -324,7 +312,7 @@ describe('Field Permissions Integration Tests', () => {
         testOrganization.id,
         'manager',
         adminUser.id,
-        { priority: 200 } // Higher priority than agent
+        { priority: 200 }, // Higher priority than agent
       );
 
       // Create manager policy with more permissions
@@ -350,7 +338,7 @@ describe('Field Permissions Integration Tests', () => {
       });
 
       const token = generateToken(agentUser);
-      
+
       const response = await request(app.getHttpServer())
         .get(`/products/${testProduct.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -371,7 +359,7 @@ describe('Field Permissions Integration Tests', () => {
   describe('Field Filtering in Lists', () => {
     it('should filter fields in product list based on role', async () => {
       const token = generateToken(agentUser);
-      
+
       const response = await request(app.getHttpServer())
         .get('/products')
         .query({ organizationId: testOrganization.id })
@@ -381,7 +369,7 @@ describe('Field Permissions Integration Tests', () => {
 
       expect(response.body.data).toBeInstanceOf(Array);
       expect(response.body.data.length).toBeGreaterThan(0);
-      
+
       const product = response.body.data[0];
       // Agent should see allowed fields
       expect(product).toHaveProperty('name');

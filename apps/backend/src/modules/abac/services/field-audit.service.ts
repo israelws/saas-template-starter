@@ -51,7 +51,7 @@ const SENSITIVE_FIELDS: Record<string, string[]> = {
 /**
  * Service for auditing field-level access and security monitoring
  * Tracks access to sensitive fields and unauthorized access attempts
- * 
+ *
  * @class FieldAuditService
  * @injectable
  */
@@ -69,20 +69,17 @@ export class FieldAuditService {
   /**
    * Log field access for audit purposes
    * Automatically detects and flags sensitive field access
-   * 
+   *
    * @async
    * @param {FieldAccessLog} log - The field access log entry
    * @returns {Promise<void>}
-   * 
+   *
    * @emits field.access - When any field is accessed
    * @emits field.access.sensitive - When sensitive fields are accessed
    */
   async logFieldAccess(log: FieldAccessLog): Promise<void> {
     // Identify sensitive fields that were accessed
-    const sensitiveFields = this.identifySensitiveFields(
-      log.resourceType,
-      log.fields
-    );
+    const sensitiveFields = this.identifySensitiveFields(log.resourceType, log.fields);
 
     if (sensitiveFields.length > 0) {
       log.sensitiveFieldsAccessed = sensitiveFields;
@@ -98,20 +95,17 @@ export class FieldAuditService {
     // await this.auditLogRepository.save(log);
 
     // For now, just log
-    this.logger.log(
-      `Field access: ${log.action} on ${log.resourceType} by user ${log.userId}`,
-      {
-        fields: log.fields.length,
-        denied: log.deniedFields?.length || 0,
-        sensitive: sensitiveFields.length,
-      }
-    );
+    this.logger.log(`Field access: ${log.action} on ${log.resourceType} by user ${log.userId}`, {
+      fields: log.fields.length,
+      denied: log.deniedFields?.length || 0,
+      sensitive: sensitiveFields.length,
+    });
   }
 
   /**
    * Log when fields are denied access
    * Used for security monitoring and compliance reporting
-   * 
+   *
    * @async
    * @param {string} userId - ID of the user who was denied access
    * @param {string} organizationId - Organization context
@@ -119,7 +113,7 @@ export class FieldAuditService {
    * @param {string[]} deniedFields - Fields that were denied
    * @param {any} [context] - Additional context information
    * @returns {Promise<void>}
-   * 
+   *
    * @emits field.access.denied - When field access is denied
    */
   async logFieldDenial(
@@ -127,7 +121,7 @@ export class FieldAuditService {
     organizationId: string,
     resourceType: string,
     deniedFields: string[],
-    context?: any
+    context?: any,
   ): Promise<void> {
     const log: FieldAccessLog = {
       userId,
@@ -154,7 +148,7 @@ export class FieldAuditService {
   /**
    * Get field access statistics for a user
    * Provides aggregated metrics for security monitoring and compliance
-   * 
+   *
    * @async
    * @param {string} userId - User ID to get statistics for
    * @param {string} organizationId - Organization context
@@ -170,7 +164,7 @@ export class FieldAuditService {
   async getFieldAccessStats(
     userId: string,
     organizationId: string,
-    dateRange?: { start: Date; end: Date }
+    dateRange?: { start: Date; end: Date },
   ): Promise<{
     totalAccess: number;
     sensitiveAccess: number;
@@ -202,49 +196,35 @@ export class FieldAuditService {
   /**
    * Identify sensitive fields in the accessed field list
    * Checks both resource-specific and global sensitive field patterns
-   * 
+   *
    * @private
    * @param {string} resourceType - Type of resource
    * @param {string[]} fields - Fields to check
    * @returns {string[]} Array of sensitive fields found
    */
-  private identifySensitiveFields(
-    resourceType: string,
-    fields: string[]
-  ): string[] {
+  private identifySensitiveFields(resourceType: string, fields: string[]): string[] {
     const sensitiveFieldsForType = SENSITIVE_FIELDS[resourceType] || [];
-    const globalSensitiveFields = [
-      'password',
-      'ssn',
-      'creditCard',
-      'bankAccount',
-      'medicalRecord',
-    ];
+    const globalSensitiveFields = ['password', 'ssn', 'creditCard', 'bankAccount', 'medicalRecord'];
 
-    const allSensitiveFields = [
-      ...sensitiveFieldsForType,
-      ...globalSensitiveFields,
-    ];
+    const allSensitiveFields = [...sensitiveFieldsForType, ...globalSensitiveFields];
 
-    return fields.filter(field => 
-      allSensitiveFields.some(sensitive => 
-        field.toLowerCase().includes(sensitive.toLowerCase())
-      )
+    return fields.filter((field) =>
+      allSensitiveFields.some((sensitive) => field.toLowerCase().includes(sensitive.toLowerCase())),
     );
   }
 
   /**
    * Enhanced field access interceptor with audit logging
    * Creates an interceptor that logs all field access operations
-   * 
+   *
    * @returns {Object} NestJS interceptor object
-   * 
+   *
    * @example
    * ```typescript
    * providers: [
    *   {
    *     provide: APP_INTERCEPTOR,
-   *     useFactory: (auditService: FieldAuditService) => 
+   *     useFactory: (auditService: FieldAuditService) =>
    *       auditService.createAuditingInterceptor(),
    *     inject: [FieldAuditService],
    *   },
@@ -261,7 +241,7 @@ export class FieldAuditService {
           tap({
             next: (data: any) => {
               const duration = Date.now() - startTime;
-              
+
               // Log successful field access
               if (request.fieldAccessLog) {
                 this.logFieldAccess({
@@ -291,17 +271,17 @@ export class FieldAuditService {
 /**
  * Decorator to mark fields as sensitive for audit logging
  * Applied to entity properties to trigger enhanced audit logging
- * 
+ *
  * @decorator
  * @param {string} [fieldName] - Optional custom field name (defaults to property name)
  * @returns {PropertyDecorator}
- * 
+ *
  * @example
  * ```typescript
  * class Customer {
  *   @SensitiveField()
  *   ssn: string;
- *   
+ *
  *   @SensitiveField('credit_score')
  *   creditScore: number;
  * }
@@ -318,7 +298,7 @@ export function SensitiveField(fieldName?: string) {
 /**
  * Event listeners for field access monitoring
  * Handles real-time monitoring and alerting for field access events
- * 
+ *
  * @class FieldAccessMonitor
  * @injectable
  */
@@ -351,7 +331,7 @@ export class FieldAccessMonitor {
   /**
    * Handles sensitive field access events
    * Triggers security alerts and monitoring workflows
-   * 
+   *
    * @private
    * @async
    * @param {FieldAccessLog} log - The field access log entry
@@ -377,7 +357,7 @@ export class FieldAccessMonitor {
   /**
    * Handles denied field access events
    * Tracks unauthorized access attempts for security monitoring
-   * 
+   *
    * @private
    * @async
    * @param {FieldAccessLog} log - The field access log entry
@@ -397,11 +377,11 @@ export class FieldAccessMonitor {
 
 /**
  * Get the list of sensitive fields for a specific resource type
- * 
+ *
  * @function getSensitiveFields
  * @param {string} resourceType - The resource type to get sensitive fields for
  * @returns {string[]} Array of sensitive field names
- * 
+ *
  * @example
  * ```typescript
  * const sensitiveFields = getSensitiveFields('Customer');

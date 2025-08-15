@@ -4,12 +4,7 @@ import { PolicyEvaluatorService } from './policy-evaluator.service';
 import { PolicyService } from './policy.service';
 import { AttributeService } from './attribute.service';
 import { LoggerService } from '../../../common/logger/logger.service';
-import {
-  Policy,
-  PolicyEffect,
-  PolicyEvaluationContext,
-  PolicyScope,
-} from '@saas-template/shared';
+import { Policy, PolicyEffect, PolicyEvaluationContext, PolicyScope } from '@saas-template/shared';
 
 describe('PolicyEvaluatorService', () => {
   let service: PolicyEvaluatorService;

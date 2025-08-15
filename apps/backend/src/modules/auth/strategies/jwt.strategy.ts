@@ -15,7 +15,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   ) {
     const region = configService.get('AWS_REGION');
     const userPoolId = configService.get('COGNITO_USER_POOL_ID');
-    
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -29,7 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         jwksUri: `https://cognito-idp.${region}.amazonaws.com/${userPoolId}/.well-known/jwks.json`,
       }),
     });
-    
+
     console.log('JWT Strategy initialized with config:', {
       region,
       userPoolId,
@@ -39,9 +39,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    console.log('JWT Strategy validate called with payload:', { sub: payload.sub, exp: payload.exp, iat: payload.iat });
+    console.log('JWT Strategy validate called with payload:', {
+      sub: payload.sub,
+      exp: payload.exp,
+      iat: payload.iat,
+    });
     const cognitoId = payload.sub;
-    
+
     if (!cognitoId) {
       console.error('JWT validation failed: Missing cognitoId');
       throw new UnauthorizedException('Invalid token');
@@ -50,11 +54,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // Validate user exists and is active
     const user = await this.authService.validateUser(cognitoId);
     console.log('User validated successfully:', { id: user.id, email: user.email });
-    
+
     // Get user with their organization memberships
     const userWithMemberships = await this.authService.getProfile(user.id);
-    console.log('User profile loaded with memberships:', { membershipCount: userWithMemberships.memberships?.length });
-    
+    console.log('User profile loaded with memberships:', {
+      membershipCount: userWithMemberships.memberships?.length,
+    });
+
     return {
       id: user.id,
       cognitoId: user.cognitoId,

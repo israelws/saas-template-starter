@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, TreeRepository, IsNull, DataSource, QueryRunner } from 'typeorm';
 import { Organization } from './entities/organization.entity';
@@ -49,7 +55,7 @@ export class OrganizationsService {
     // Validate parent-child relationship if parent is provided
     if (createOrganizationDto.parentId) {
       const parent = await this.findOne(createOrganizationDto.parentId);
-      
+
       // Check if the parent type can have this child type
       const allowedChildTypes = ORGANIZATION_TYPE_HIERARCHY[parent.type];
       if (!allowedChildTypes.includes(createOrganizationDto.type)) {
@@ -130,7 +136,7 @@ export class OrganizationsService {
    */
   async searchByName(name: string, limit: number = 10): Promise<Organization[]> {
     const searchQuery = `%${name}%`;
-    
+
     const organizations = await this.organizationRepository
       .createQueryBuilder('org')
       .leftJoinAndSelect('org.parent', 'parent')
@@ -139,7 +145,7 @@ export class OrganizationsService {
       .orderBy('org.name', 'ASC')
       .limit(limit)
       .getMany();
-    
+
     // Add parentId to each organization
     return organizations;
   }
@@ -194,7 +200,7 @@ export class OrganizationsService {
     const total = parseInt(countResult[0].count, 10);
 
     // Transform raw results to Organization entities with parentId
-    const organizationsWithParentId = organizations.map(row => {
+    const organizationsWithParentId = organizations.map((row) => {
       const org = this.organizationRepository.create({
         id: row.id,
         name: row.name,
@@ -209,7 +215,7 @@ export class OrganizationsService {
         updatedAt: row.updatedAt,
         parentId: row.parent_id || null,
       });
-      
+
       // Add parent object if exists
       if (row.parent_id) {
         org.parent = {
@@ -218,7 +224,7 @@ export class OrganizationsService {
           type: row.parent_type,
         } as Organization;
       }
-      
+
       return org;
     });
 
@@ -246,7 +252,7 @@ export class OrganizationsService {
 
   async findWithFullHierarchy(id: string): Promise<Organization> {
     const organization = await this.findOne(id);
-    
+
     // Get all descendants
     const descendants = await this.organizationRepository.findDescendants(organization);
     organization.children = this.buildTree(descendants, organization.id);
@@ -315,10 +321,10 @@ export class OrganizationsService {
    */
   async move(id: string, newParentId: string | null): Promise<Organization> {
     const organization = await this.findOne(id);
-    
+
     if (newParentId) {
       const newParent = await this.findOne(newParentId);
-      
+
       // Validate the move
       if (await this.isDescendantOf(newParent, organization)) {
         throw new BadRequestException('Cannot move organization to its own descendant');
@@ -338,7 +344,7 @@ export class OrganizationsService {
     }
 
     const savedOrg = await this.organizationRepository.save(organization);
-    
+
     // Update materialized paths for the moved subtree
     await this.updateMaterializedPathForSubtree(savedOrg);
 
@@ -347,7 +353,7 @@ export class OrganizationsService {
 
   async remove(id: string): Promise<void> {
     const organization = await this.findOne(id);
-    
+
     // Check if organization has children
     const childrenCount = await this.organizationRepository.countBy({
       parent: { id },
@@ -373,7 +379,7 @@ export class OrganizationsService {
   }
 
   // Helper methods
-  
+
   /**
    * Builds a tree structure from flat organization array
    * @method buildTree
@@ -383,9 +389,9 @@ export class OrganizationsService {
    * @returns {Organization[]} Array of child organizations with nested children
    */
   private buildTree(organizations: Organization[], parentId: string): Organization[] {
-    const children = organizations.filter(org => org.parent?.id === parentId);
-    
-    return children.map(child => {
+    const children = organizations.filter((org) => org.parent?.id === parentId);
+
+    return children.map((child) => {
       // Set children on the existing entity instance
       child.children = this.buildTree(organizations, child.id);
       return child;
@@ -404,7 +410,7 @@ export class OrganizationsService {
       id: organization.id,
       name: organization.name,
       type: organization.type,
-      children: organization.children?.map(child => this.mapToHierarchy(child)) || [],
+      children: organization.children?.map((child) => this.mapToHierarchy(child)) || [],
     };
   }
 
@@ -413,23 +419,23 @@ export class OrganizationsService {
     possibleAncestor: Organization,
   ): Promise<boolean> {
     const ancestors = await this.organizationRepository.findAncestors(possibleDescendant);
-    return ancestors.some(ancestor => ancestor.id === possibleAncestor.id);
+    return ancestors.some((ancestor) => ancestor.id === possibleAncestor.id);
   }
 
   private async updateMaterializedPath(organization: Organization): Promise<void> {
     const ancestors = await this.organizationRepository.findAncestors(organization);
     const path = ancestors
       .reverse()
-      .map(ancestor => ancestor.id)
+      .map((ancestor) => ancestor.id)
       .join('.');
-    
+
     organization.path = path;
     await this.organizationRepository.save(organization);
   }
 
   private async updateMaterializedPathForSubtree(organization: Organization): Promise<void> {
     const descendants = await this.organizationRepository.findDescendants(organization);
-    
+
     for (const descendant of descendants) {
       await this.updateMaterializedPath(descendant);
     }
@@ -452,10 +458,10 @@ export class OrganizationsService {
         try {
           // Validate parent-child relationship if parent is provided
           if (dto.parentId) {
-            const parent = await queryRunner.manager.findOne(Organization, { 
-              where: { id: dto.parentId } 
+            const parent = await queryRunner.manager.findOne(Organization, {
+              where: { id: dto.parentId },
             });
-            
+
             if (!parent) {
               throw new Error('Parent organization not found');
             }
@@ -479,8 +485,8 @@ export class OrganizationsService {
           });
 
           if (dto.parentId) {
-            const parent = await queryRunner.manager.findOne(Organization, { 
-              where: { id: dto.parentId } 
+            const parent = await queryRunner.manager.findOne(Organization, {
+              where: { id: dto.parentId },
             });
             organization.parent = parent;
           }
@@ -502,7 +508,7 @@ export class OrganizationsService {
     }
   }
 
-  async bulkUpdate(updates: Array<{id: string, data: UpdateOrganizationDto}>): Promise<{
+  async bulkUpdate(updates: Array<{ id: string; data: UpdateOrganizationDto }>): Promise<{
     successful: Organization[];
     failed: Array<{ id: string; error: string }>;
   }> {
@@ -516,10 +522,10 @@ export class OrganizationsService {
     try {
       for (const update of updates) {
         try {
-          const organization = await queryRunner.manager.findOne(Organization, { 
-            where: { id: update.id } 
+          const organization = await queryRunner.manager.findOne(Organization, {
+            where: { id: update.id },
           });
-          
+
           if (!organization) {
             throw new Error('Organization not found');
           }
@@ -542,7 +548,7 @@ export class OrganizationsService {
     }
   }
 
-  async bulkMove(moves: Array<{organizationId: string, newParentId: string | null}>): Promise<{
+  async bulkMove(moves: Array<{ organizationId: string; newParentId: string | null }>): Promise<{
     successful: Array<{ organizationId: string; message: string }>;
     failed: Array<{ organizationId: string; error: string }>;
   }> {
@@ -556,27 +562,27 @@ export class OrganizationsService {
     try {
       for (const move of moves) {
         try {
-          const organization = await queryRunner.manager.findOne(Organization, { 
+          const organization = await queryRunner.manager.findOne(Organization, {
             where: { id: move.organizationId },
-            relations: ['parent'] 
+            relations: ['parent'],
           });
-          
+
           if (!organization) {
             throw new Error('Organization not found');
           }
 
           if (move.newParentId) {
-            const newParent = await queryRunner.manager.findOne(Organization, { 
-              where: { id: move.newParentId } 
+            const newParent = await queryRunner.manager.findOne(Organization, {
+              where: { id: move.newParentId },
             });
-            
+
             if (!newParent) {
               throw new Error('New parent organization not found');
             }
 
             // Check for circular reference
             const ancestors = await this.organizationRepository.findAncestors(newParent);
-            if (ancestors.some(a => a.id === move.organizationId)) {
+            if (ancestors.some((a) => a.id === move.organizationId)) {
               throw new Error('Cannot move organization to its own descendant');
             }
 
@@ -594,9 +600,9 @@ export class OrganizationsService {
           }
 
           await queryRunner.manager.save(organization);
-          successful.push({ 
-            organizationId: move.organizationId, 
-            message: 'Organization moved successfully' 
+          successful.push({
+            organizationId: move.organizationId,
+            message: 'Organization moved successfully',
           });
         } catch (error) {
           failed.push({ organizationId: move.organizationId, error: error.message });
@@ -613,7 +619,10 @@ export class OrganizationsService {
     }
   }
 
-  async bulkArchive(organizationIds: string[], archiveChildren = false): Promise<{
+  async bulkArchive(
+    organizationIds: string[],
+    archiveChildren = false,
+  ): Promise<{
     archived: string[];
     failed: Array<{ id: string; error: string }>;
   }> {
@@ -627,10 +636,10 @@ export class OrganizationsService {
     try {
       for (const id of organizationIds) {
         try {
-          const organization = await queryRunner.manager.findOne(Organization, { 
-            where: { id } 
+          const organization = await queryRunner.manager.findOne(Organization, {
+            where: { id },
           });
-          
+
           if (!organization) {
             throw new Error('Organization not found');
           }
@@ -638,11 +647,13 @@ export class OrganizationsService {
           if (!archiveChildren) {
             // Check if organization has active children
             const activeChildrenCount = await queryRunner.manager.count(Organization, {
-              where: { parent: { id }, isActive: true }
+              where: { parent: { id }, isActive: true },
             });
 
             if (activeChildrenCount > 0) {
-              throw new Error('Cannot archive organization with active children. Use archiveChildren=true to archive children as well.');
+              throw new Error(
+                'Cannot archive organization with active children. Use archiveChildren=true to archive children as well.',
+              );
             }
           }
 
@@ -693,11 +704,11 @@ export class OrganizationsService {
     try {
       for (const id of organizationIds) {
         try {
-          const organization = await queryRunner.manager.findOne(Organization, { 
+          const organization = await queryRunner.manager.findOne(Organization, {
             where: { id },
-            relations: ['parent']
+            relations: ['parent'],
           });
-          
+
           if (!organization) {
             throw new Error('Organization not found');
           }

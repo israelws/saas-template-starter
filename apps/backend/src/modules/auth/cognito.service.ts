@@ -36,7 +36,7 @@ export class CognitoService {
     if (!this.clientSecret) {
       return '';
     }
-    
+
     return crypto
       .createHmac('sha256', this.clientSecret)
       .update(username + this.clientId)
@@ -66,7 +66,9 @@ export class CognitoService {
         if (response.ChallengeName) {
           console.error('Challenge required:', response.ChallengeName);
           console.error('Challenge parameters:', response.ChallengeParameters);
-          throw new BadRequestException(`Authentication challenge required: ${response.ChallengeName}`);
+          throw new BadRequestException(
+            `Authentication challenge required: ${response.ChallengeName}`,
+          );
         }
         throw new BadRequestException('Authentication failed - no result returned');
       }
@@ -87,17 +89,17 @@ export class CognitoService {
       console.error('Error code:', error.$metadata?.httpStatusCode);
       console.error('AWS error code:', error.Code || error.$metadata?.cfId);
       console.error('AWS error type:', error.__type);
-      
+
       // Check if it's an AWS SDK error
       if (error.$metadata) {
         console.error('AWS SDK Error metadata:', error.$metadata);
       }
-      
+
       // Log the original error message from AWS
       if (error.message && !error.message.includes('Authentication failed')) {
         console.error('Original AWS error message:', error.message);
       }
-      
+
       // Check for specific Cognito errors
       if (error.name === 'UserNotConfirmedException') {
         throw new BadRequestException('Please verify your email before signing in');
@@ -105,7 +107,7 @@ export class CognitoService {
       if (error.name === 'NotAuthorizedException') {
         throw new BadRequestException('Invalid email or password');
       }
-      
+
       throw new BadRequestException(`Authentication failed: ${error.message}`);
     }
   }
@@ -286,7 +288,7 @@ export class CognitoService {
 
       const attributes = response.UserAttributes || [];
       const getAttributeValue = (name: string) => {
-        const attr = attributes.find(a => a.Name === name);
+        const attr = attributes.find((a) => a.Name === name);
         return attr?.Value;
       };
 

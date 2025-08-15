@@ -156,8 +156,12 @@ export const EnhancedPolicyBuilderV2: React.FC<EnhancedPolicyBuilderV2Props> = (
     return initialConditions;
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [enableFieldPermissions, setEnableFieldPermissions] = useState(false);
-  const [fieldPermissions, setFieldPermissions] = useState<Record<string, any>>({});
+  const [enableFieldPermissions, setEnableFieldPermissions] = useState(
+    !!(initialPolicy.field_permissions && Object.keys(initialPolicy.field_permissions).length > 0)
+  );
+  const [fieldPermissions, setFieldPermissions] = useState<Record<string, any>>(
+    initialPolicy.field_permissions || {}
+  );
   const [activeTab, setActiveTab] = useState('basic');
   const [showValidationError, setShowValidationError] = useState(false);
   
@@ -479,9 +483,9 @@ export const EnhancedPolicyBuilderV2: React.FC<EnhancedPolicyBuilderV2Props> = (
       conditions: Object.keys(customConditions).length > 0 ? policyConditions : undefined,
       isActive: true,
       subjects: initialPolicy.subjects || { users: [], groups: [], roles: [] },
+      field_permissions: enableFieldPermissions ? fieldPermissions : undefined,
       metadata: {
         ...initialPolicy.metadata,
-        fieldPermissions: enableFieldPermissions ? fieldPermissions : undefined,
         // Store resource-specific rules with attribute conditions
         resourceRules: (!allActionsEqual || hasAttributeConditions) ? resourceRules : undefined,
       },
@@ -1090,7 +1094,7 @@ export const EnhancedPolicyBuilderV2: React.FC<EnhancedPolicyBuilderV2Props> = (
                   <FieldPermissionsEditorV2
                     value={fieldPermissions}
                     onChange={setFieldPermissions}
-                    availableResourceTypes={resourceRules.map(r => r.resource)}
+                    availableResourceTypes={resourceRules.length > 0 ? resourceRules.map(r => r.resource) : undefined}
                   />
                 </>
               )}

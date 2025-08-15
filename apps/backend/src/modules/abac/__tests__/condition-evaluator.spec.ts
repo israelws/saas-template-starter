@@ -191,7 +191,7 @@ describe('ConditionEvaluator', () => {
     it('should handle AND logic for multiple conditions', () => {
       const result = evaluator.evaluateAll('admin', {
         equals: 'admin',
-        exists: true
+        exists: true,
       });
       expect(result).toBe(true);
     });
@@ -199,7 +199,7 @@ describe('ConditionEvaluator', () => {
     it('should fail when any condition fails in AND logic', () => {
       const result = evaluator.evaluateAll('admin', {
         equals: 'admin',
-        exists: false
+        exists: false,
       });
       expect(result).toBe(false);
     });

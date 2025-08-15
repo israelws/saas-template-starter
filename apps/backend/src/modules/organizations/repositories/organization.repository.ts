@@ -45,11 +45,7 @@ export class OrganizationRepository extends TreeRepository<Organization> {
 
   async findAllDescendants(organizationId: string): Promise<Organization[]> {
     const queryBuilder = this.createQueryBuilder('org')
-      .innerJoin(
-        'organizations_closure',
-        'closure',
-        'closure.descendantId = org.id',
-      )
+      .innerJoin('organizations_closure', 'closure', 'closure.descendantId = org.id')
       .where('closure.ancestorId = :organizationId', { organizationId })
       .andWhere('closure.descendantId != :organizationId', { organizationId });
 
@@ -58,11 +54,7 @@ export class OrganizationRepository extends TreeRepository<Organization> {
 
   async findAllAncestors(organizationId: string): Promise<Organization[]> {
     const queryBuilder = this.createQueryBuilder('org')
-      .innerJoin(
-        'organizations_closure',
-        'closure',
-        'closure.ancestorId = org.id',
-      )
+      .innerJoin('organizations_closure', 'closure', 'closure.ancestorId = org.id')
       .where('closure.descendantId = :organizationId', { organizationId })
       .andWhere('closure.ancestorId != :organizationId', { organizationId })
       .orderBy('closure.depth', 'DESC');
@@ -77,12 +69,14 @@ export class OrganizationRepository extends TreeRepository<Organization> {
 
     // For tree entities, parent null check is done differently
     const roots = await this.findRoots();
-    let current: Organization | null = roots.find(org => org.code === path[0]) || null;
+    let current: Organization | null = roots.find((org) => org.code === path[0]) || null;
 
     for (let i = 1; i < path.length && current; i++) {
       // Find child with matching code
       const children = await this.findDescendants(current);
-      current = children.find(child => child.code === path[i] && child.parent?.id === current?.id) || null;
+      current =
+        children.find((child) => child.code === path[i] && child.parent?.id === current?.id) ||
+        null;
     }
 
     return current;
@@ -100,10 +94,7 @@ export class OrganizationRepository extends TreeRepository<Organization> {
     return result?.maxDepth || 0;
   }
 
-  async moveOrganization(
-    organizationId: string,
-    newParentId: string | null,
-  ): Promise<void> {
+  async moveOrganization(organizationId: string, newParentId: string | null): Promise<void> {
     const organization = await this.findOne({
       where: { id: organizationId },
       relations: ['parent'],
@@ -124,7 +115,7 @@ export class OrganizationRepository extends TreeRepository<Organization> {
 
       // Check for circular reference
       const ancestors = await this.findAllAncestors(newParentId);
-      if (ancestors.some(a => a.id === organizationId)) {
+      if (ancestors.some((a) => a.id === organizationId)) {
         throw new Error('Cannot move organization to its own descendant');
       }
 
@@ -149,17 +140,13 @@ export class OrganizationRepository extends TreeRepository<Organization> {
       .where('closure.ancestorId = :organizationId', { organizationId })
       .andWhere('closure.descendantId != :organizationId', { organizationId })
       .getRawOne()
-      .then(result => parseInt(result?.count || '0'));
+      .then((result) => parseInt(result?.count || '0'));
 
     const users = await this.dataSource
       .createQueryBuilder()
       .select('COUNT(DISTINCT uom.userId)', 'count')
       .from('user_organization_memberships', 'uom')
-      .innerJoin(
-        'organizations_closure',
-        'closure',
-        'closure.descendantId = uom.organizationId',
-      )
+      .innerJoin('organizations_closure', 'closure', 'closure.descendantId = uom.organizationId')
       .where('closure.ancestorId = :organizationId', { organizationId })
       .getRawOne();
 
@@ -167,11 +154,7 @@ export class OrganizationRepository extends TreeRepository<Organization> {
       .createQueryBuilder()
       .select('COUNT(DISTINCT p.id)', 'count')
       .from('policies', 'p')
-      .innerJoin(
-        'organizations_closure',
-        'closure',
-        'closure.descendantId = p.organizationId',
-      )
+      .innerJoin('organizations_closure', 'closure', 'closure.descendantId = p.organizationId')
       .where('closure.ancestorId = :organizationId', { organizationId })
       .getRawOne();
 

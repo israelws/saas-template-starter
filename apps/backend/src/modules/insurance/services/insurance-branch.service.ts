@@ -2,8 +2,8 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InsuranceBranch } from '../entities/insurance-branch.entity';
-import { 
-  CreateInsuranceBranchDto, 
+import {
+  CreateInsuranceBranchDto,
   UpdateInsuranceBranchDto,
   PaginationParams,
   OrganizationType,
@@ -31,7 +31,7 @@ export class InsuranceBranchService {
   async create(createDto: CreateInsuranceBranchDto): Promise<InsuranceBranch> {
     // Verify organization exists and is of type insurance_branch
     const organization = await this.organizationsService.findOne(createDto.organizationId);
-    
+
     if (organization.type !== OrganizationType.INSURANCE_BRANCH) {
       throw new BadRequestException('Organization must be of type insurance_branch');
     }
@@ -40,7 +40,7 @@ export class InsuranceBranchService {
     const existing = await this.branchRepository.findOne({
       where: { branchCode: createDto.branchCode },
     });
-    
+
     if (existing) {
       throw new BadRequestException('Branch code already exists');
     }
@@ -63,7 +63,8 @@ export class InsuranceBranchService {
       isActive?: boolean;
     },
   ) {
-    const query = this.branchRepository.createQueryBuilder('branch')
+    const query = this.branchRepository
+      .createQueryBuilder('branch')
       .leftJoinAndSelect('branch.organization', 'organization')
       .leftJoinAndSelect('branch.manager', 'manager')
       .leftJoinAndSelect('branch.agents', 'agents');
@@ -144,7 +145,7 @@ export class InsuranceBranchService {
       const existing = await this.branchRepository.findOne({
         where: { branchCode: updateDto.branchCode },
       });
-      
+
       if (existing) {
         throw new BadRequestException('Branch code already exists');
       }
@@ -197,15 +198,15 @@ export class InsuranceBranchService {
     // Get all child organizations of type branch
     const childOrgs = await this.organizationsService.getDescendants(agencyId);
     const branchOrgIds = childOrgs
-      .filter(org => org.type === OrganizationType.INSURANCE_BRANCH)
-      .map(org => org.id);
+      .filter((org) => org.type === OrganizationType.INSURANCE_BRANCH)
+      .map((org) => org.id);
 
     if (branchOrgIds.length === 0) {
       return [];
     }
 
     return this.branchRepository.find({
-      where: branchOrgIds.map(id => ({ organizationId: id, isActive: true })),
+      where: branchOrgIds.map((id) => ({ organizationId: id, isActive: true })),
       relations: ['organization', 'manager'],
     });
   }
@@ -217,8 +218,8 @@ export class InsuranceBranchService {
    */
   async getBranchStatistics(id: string) {
     const branch = await this.findOne(id);
-    
-    const activeAgents = branch.agents?.filter(agent => agent.isActive).length || 0;
+
+    const activeAgents = branch.agents?.filter((agent) => agent.isActive).length || 0;
     const totalAgents = branch.agents?.length || 0;
 
     return {

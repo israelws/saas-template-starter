@@ -60,7 +60,10 @@ export interface CreateTransactionDto {
   metadata?: Record<string, any>;
 }
 
-export interface UpdateTransactionDto extends Partial<Omit<CreateTransactionDto, 'type' | 'orderId' | 'customerId' | 'organizationId'>> {
+export interface UpdateTransactionDto
+  extends Partial<
+    Omit<CreateTransactionDto, 'type' | 'orderId' | 'customerId' | 'organizationId'>
+  > {
   status?: TransactionStatus;
   processedAt?: Date;
   failureReason?: string;
@@ -70,13 +73,19 @@ export interface UpdateTransactionDto extends Partial<Omit<CreateTransactionDto,
 export interface TransactionSummary {
   totalTransactions: number;
   totalAmount: number;
-  transactionsByType: Record<TransactionType, {
-    count: number;
-    amount: number;
-  }>;
+  transactionsByType: Record<
+    TransactionType,
+    {
+      count: number;
+      amount: number;
+    }
+  >;
   transactionsByStatus: Record<TransactionStatus, number>;
-  paymentMethodBreakdown: Record<PaymentMethod, {
-    count: number;
-    amount: number;
-  }>;
+  paymentMethodBreakdown: Record<
+    PaymentMethod,
+    {
+      count: number;
+      amount: number;
+    }
+  >;
 }

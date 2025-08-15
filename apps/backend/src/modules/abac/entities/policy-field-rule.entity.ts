@@ -25,10 +25,10 @@ export enum FieldPermissionType {
 /**
  * Entity representing field-level permission rules within ABAC policies
  * Allows fine-grained control over which fields users can access on resources
- * 
+ *
  * @class PolicyFieldRule
  * @entity policy_field_rules
- * 
+ *
  * @example
  * ```typescript
  * // Example rule: Allow reading customer email but not SSN
@@ -62,7 +62,7 @@ export class PolicyFieldRule {
    * Cascade deletes when policy is removed
    * @type {Policy}
    */
-  @ManyToOne(() => Policy, policy => policy.fieldRules, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Policy, (policy) => policy.fieldRules, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'policy_id' })
   policy: Policy;
 
@@ -86,10 +86,10 @@ export class PolicyFieldRule {
    * Type of permission granted or denied for this field
    * @type {FieldPermissionType}
    */
-  @Column({ 
+  @Column({
     type: 'enum',
     enum: FieldPermissionType,
-    comment: 'read, write, or deny'
+    comment: 'read, write, or deny',
   })
   permission: FieldPermissionType;
 

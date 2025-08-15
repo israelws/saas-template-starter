@@ -30,11 +30,11 @@ export interface AbilityCheck {
 
 /**
  * Decorator to specify CASL ability checks for a route handler
- * 
+ *
  * @decorator
  * @param {...AbilityCheck} checks - One or more ability checks to perform
  * @returns {MethodDecorator}
- * 
+ *
  * @example
  * ```typescript
  * @CheckAbility(
@@ -44,28 +44,27 @@ export interface AbilityCheck {
  * async updateProductPrice() { ... }
  * ```
  */
-export const CheckAbility = (...checks: AbilityCheck[]) =>
-  SetMetadata(CHECK_ABILITY_KEY, checks);
+export const CheckAbility = (...checks: AbilityCheck[]) => SetMetadata(CHECK_ABILITY_KEY, checks);
 
 /**
  * Enhanced ABAC Guard that integrates CASL for field-level permissions
  * while maintaining backward compatibility with the existing ABAC system.
- * 
+ *
  * This guard supports two modes:
  * 1. CASL-based checks using @CheckAbility decorator (preferred)
  * 2. Traditional ABAC checks using @RequirePermission decorator (legacy)
- * 
+ *
  * @class CaslAbacGuard
  * @implements {CanActivate}
  * @injectable
- * 
+ *
  * @example
  * ```typescript
  * // Using with CASL abilities
  * @UseGuards(JwtAuthGuard, CaslAbacGuard)
  * @CheckAbility({ action: 'read', subject: 'Product' })
  * async getProduct() { ... }
- * 
+ *
  * // Using with traditional ABAC
  * @UseGuards(JwtAuthGuard, CaslAbacGuard)
  * @RequirePermission('product', 'read')
@@ -83,7 +82,7 @@ export class CaslAbacGuard implements CanActivate {
   /**
    * Determines if the current request should be allowed to proceed
    * Evaluates both CASL abilities and traditional ABAC policies
-   * 
+   *
    * @async
    * @param {ExecutionContext} context - NestJS execution context
    * @returns {Promise<boolean>} True if access is allowed
@@ -113,10 +112,10 @@ export class CaslAbacGuard implements CanActivate {
     request.organizationId = organizationId;
 
     // Check for CASL-based ability checks
-    const abilityChecks = this.reflector.getAllAndOverride<AbilityCheck[]>(
-      CHECK_ABILITY_KEY,
-      [context.getHandler(), context.getClass()]
-    );
+    const abilityChecks = this.reflector.getAllAndOverride<AbilityCheck[]>(CHECK_ABILITY_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
     if (abilityChecks && abilityChecks.length > 0) {
       return this.checkCaslAbilities(request, user, organizationId, abilityChecks);
@@ -138,7 +137,7 @@ export class CaslAbacGuard implements CanActivate {
   /**
    * Check CASL-based abilities for the current request
    * Evaluates all specified ability checks and stores ability in request
-   * 
+   *
    * @private
    * @async
    * @param {any} request - HTTP request object
@@ -154,11 +153,9 @@ export class CaslAbacGuard implements CanActivate {
     organizationId: string,
     checks: AbilityCheck[],
   ): Promise<boolean> {
-    const ability = await this.caslAbilityFactory.createForUser(
-      user,
-      organizationId,
-      { includeFieldPermissions: true }
-    );
+    const ability = await this.caslAbilityFactory.createForUser(user, organizationId, {
+      includeFieldPermissions: true,
+    });
 
     // Store ability in request for use by interceptors
     request.caslAbility = ability;
@@ -171,17 +168,17 @@ export class CaslAbacGuard implements CanActivate {
       if (typeof subject === 'string' && request.params.id) {
         // This is a simplified example - in production, you'd want to
         // dynamically load the entity based on the resource type
-        subject = { 
-          id: request.params.id, 
+        subject = {
+          id: request.params.id,
           organizationId,
-          _type: check.subject 
+          _type: check.subject,
         };
       }
 
       if (!ability.can(check.action, subject)) {
         const fieldInfo = check.field ? ` on field ${check.field}` : '';
         throw new ForbiddenException(
-          `You don't have permission to ${check.action} ${check.subject}${fieldInfo}`
+          `You don't have permission to ${check.action} ${check.subject}${fieldInfo}`,
         );
       }
     }
@@ -192,7 +189,7 @@ export class CaslAbacGuard implements CanActivate {
   /**
    * Check traditional ABAC permissions (backward compatibility)
    * Evaluates hierarchical policies and creates CASL ability for field filtering
-   * 
+   *
    * @private
    * @async
    * @param {any} request - HTTP request object
@@ -219,27 +216,21 @@ export class CaslAbacGuard implements CanActivate {
       user,
       organizationId,
       userRole,
-      permission
+      permission,
     );
 
     try {
       // Also create CASL ability for field filtering
-      const ability = await this.caslAbilityFactory.createForUser(
-        user,
-        organizationId,
-        { includeFieldPermissions: true }
-      );
+      const ability = await this.caslAbilityFactory.createForUser(user, organizationId, {
+        includeFieldPermissions: true,
+      });
       request.caslAbility = ability;
 
       // Evaluate with hierarchy
-      const result = await this.hierarchicalAbacService.evaluateWithHierarchy(
-        evaluationContext
-      );
+      const result = await this.hierarchicalAbacService.evaluateWithHierarchy(evaluationContext);
 
       if (!result.allowed) {
-        throw new ForbiddenException(
-          `Access denied: ${result.reasons.join(', ')}`
-        );
+        throw new ForbiddenException(`Access denied: ${result.reasons.join(', ')}`);
       }
 
       // Add evaluation result to request for logging
@@ -249,12 +240,12 @@ export class CaslAbacGuard implements CanActivate {
     } catch (error) {
       // Handle evaluation errors
       console.error('ABAC evaluation error:', error.message);
-      
+
       // For admins, allow access despite evaluation errors
       if (userRole === 'admin' || user.metadata?.isSuperAdmin) {
         return true;
       }
-      
+
       throw new ForbiddenException('Access denied due to policy evaluation error');
     }
   }
@@ -262,24 +253,26 @@ export class CaslAbacGuard implements CanActivate {
   /**
    * Get organization ID from various sources
    * Checks multiple locations in order of precedence
-   * 
+   *
    * @private
    * @param {any} request - HTTP request object
    * @param {any} user - Authenticated user
    * @returns {string|null} Organization ID or null if not found
    */
   private getOrganizationId(request: any, user: any): string | null {
-    return request.query.organizationId || 
-           request.body?.organizationId ||
-           request.headers['x-organization-id'] ||
-           request.params.organizationId ||
-           user.defaultOrganizationId;
+    return (
+      request.query.organizationId ||
+      request.body?.organizationId ||
+      request.headers['x-organization-id'] ||
+      request.params.organizationId ||
+      user.defaultOrganizationId
+    );
   }
 
   /**
    * Get user role in organization
    * Supports both multi-role system and legacy single-role memberships
-   * 
+   *
    * @private
    * @async
    * @param {any} user - User object
@@ -290,9 +283,9 @@ export class CaslAbacGuard implements CanActivate {
     // Try to get from multi-role system first
     const roles = await this.caslAbilityFactory['getUserRolesInOrganization'](
       user.id,
-      organizationId
+      organizationId,
     );
-    
+
     if (roles.length > 0) {
       // Return highest priority role
       return roles[0];
@@ -301,7 +294,7 @@ export class CaslAbacGuard implements CanActivate {
     // Fall back to membership role
     if (user.memberships && user.memberships.length > 0) {
       const membership = user.memberships.find(
-        m => m.organizationId === organizationId || m.organization?.id === organizationId
+        (m) => m.organizationId === organizationId || m.organization?.id === organizationId,
       );
       if (membership) {
         return membership.role;
@@ -314,7 +307,7 @@ export class CaslAbacGuard implements CanActivate {
   /**
    * Build evaluation context for traditional ABAC
    * Creates a comprehensive context object with subject, resource, and environment attributes
-   * 
+   *
    * @private
    * @param {any} request - HTTP request object
    * @param {any} user - Authenticated user

@@ -1,6 +1,9 @@
 import { DataSource } from 'typeorm';
 import { Policy, PolicyEffect } from '../modules/abac/entities/policy.entity';
-import { PolicyFieldRule, FieldPermissionType } from '../modules/abac/entities/policy-field-rule.entity';
+import {
+  PolicyFieldRule,
+  FieldPermissionType,
+} from '../modules/abac/entities/policy-field-rule.entity';
 import { Organization } from '../modules/organizations/entities/organization.entity';
 import { OrganizationType } from '@saas-template/shared';
 
@@ -306,9 +309,11 @@ export async function seedFieldPermissionPolicies(dataSource: DataSource) {
   console.log('✅ Field permission policies seeded successfully');
 
   // Log summary
-  const totalPolicies = await policyRepository.count({ where: { organizationId: organization.id } });
+  const totalPolicies = await policyRepository.count({
+    where: { organizationId: organization.id },
+  });
   const totalFieldRules = await fieldRuleRepository.count();
-  
+
   console.log(`📊 Summary:`);
   console.log(`   - Organization: ${organization.name}`);
   console.log(`   - Total policies: ${totalPolicies}`);

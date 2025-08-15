@@ -40,7 +40,8 @@ export class CustomersController {
   @ApiOperation({ summary: 'Get all customers for organization' })
   findAll(
     @Query('organizationId', ParseUUIDPipe) organizationId: string,
-    @Query() params: PaginationParams & {
+    @Query()
+    params: PaginationParams & {
       type?: CustomerType;
       status?: CustomerStatus;
       search?: string;
@@ -86,10 +87,7 @@ export class CustomersController {
   @Patch(':id')
   @RequirePermission('customer', 'update')
   @ApiOperation({ summary: 'Update customer' })
-  update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateCustomerDto: UpdateCustomerDto,
-  ) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateCustomerDto: UpdateCustomerDto) {
     return this.customersService.update(id, updateCustomerDto);
   }
 
@@ -101,21 +99,14 @@ export class CustomersController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: { amount: number; operation?: 'set' | 'add' | 'subtract' },
   ) {
-    return this.customersService.updateBalance(
-      id,
-      body.amount,
-      body.operation || 'add',
-    );
+    return this.customersService.updateBalance(id, body.amount, body.operation || 'add');
   }
 
   @Post(':id/check-credit')
   @RequirePermission('customer', 'read')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Check if amount is within credit limit' })
-  async checkCreditLimit(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body('amount') amount: number,
-  ) {
+  async checkCreditLimit(@Param('id', ParseUUIDPipe) id: string, @Body('amount') amount: number) {
     const allowed = await this.customersService.checkCreditLimit(id, amount);
     return { allowed, amount };
   }
@@ -131,15 +122,7 @@ export class CustomersController {
   @RequirePermission('customer', 'manage')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Merge duplicate customers' })
-  mergeDuplicates(
-    @Body() body: {
-      primaryId: string;
-      duplicateIds: string[];
-    },
-  ) {
-    return this.customersService.mergeDuplicates(
-      body.primaryId,
-      body.duplicateIds,
-    );
+  mergeDuplicates(@Body() body: { primaryId: string; duplicateIds: string[] }) {
+    return this.customersService.mergeDuplicates(body.primaryId, body.duplicateIds);
   }
 }

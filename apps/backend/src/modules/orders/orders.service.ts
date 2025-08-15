@@ -66,9 +66,11 @@ export class OrdersService {
 
       for (const itemDto of createOrderDto.items) {
         const product = await this.productsService.findOne(itemDto.productId);
-        
+
         if (product.organizationId !== createOrderDto.organizationId) {
-          throw new BadRequestException(`Product ${product.sku} does not belong to this organization`);
+          throw new BadRequestException(
+            `Product ${product.sku} does not belong to this organization`,
+          );
         }
 
         // Reserve inventory
@@ -97,11 +99,11 @@ export class OrdersService {
       // Update order totals
       savedOrder.subtotal = subtotal;
       savedOrder.total = subtotal + savedOrder.tax + savedOrder.shipping - savedOrder.discount;
-      
+
       const finalOrder = await queryRunner.manager.save(savedOrder);
-      
+
       await queryRunner.commitTransaction();
-      
+
       return this.findOne(finalOrder.id);
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -136,7 +138,7 @@ export class OrdersService {
     const limitNum = Number(limit) || 10;
 
     const query = this.orderRepository.createQueryBuilder('order');
-    
+
     query
       .leftJoinAndSelect('order.customer', 'customer')
       .leftJoinAndSelect('order.items', 'items')
@@ -235,7 +237,7 @@ export class OrdersService {
 
       const updated = await queryRunner.manager.save(order);
       await queryRunner.commitTransaction();
-      
+
       return updated;
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -280,7 +282,7 @@ export class OrdersService {
     // Update order totals
     order.subtotal += itemTotal;
     order.total = order.subtotal + order.tax + order.shipping - order.discount;
-    
+
     return this.orderRepository.save(order);
   }
 
@@ -307,13 +309,13 @@ export class OrdersService {
     order.total = order.subtotal + order.tax + order.shipping - order.discount;
 
     await this.orderItemRepository.remove(item);
-    
+
     return this.orderRepository.save(order);
   }
 
   async cancel(id: string, reason?: string): Promise<Order> {
     const order = await this.updateStatus(id, OrderStatus.CANCELLED);
-    
+
     if (reason) {
       order.notes = `${order.notes || ''}\nCancellation reason: ${reason}`;
       await this.orderRepository.save(order);
@@ -328,7 +330,7 @@ export class OrdersService {
     endDate?: Date,
   ): Promise<OrderSummary> {
     const query = this.orderRepository.createQueryBuilder('order');
-    
+
     query.where('order.organizationId = :organizationId', { organizationId });
 
     if (startDate) {
@@ -352,10 +354,13 @@ export class OrdersService {
       .groupBy('order.status')
       .getRawMany();
 
-    const ordersByStatus = statusBreakdown.reduce((acc, curr) => {
-      acc[curr.status] = parseInt(curr.count);
-      return acc;
-    }, {} as Record<OrderStatus, number>);
+    const ordersByStatus = statusBreakdown.reduce(
+      (acc, curr) => {
+        acc[curr.status] = parseInt(curr.count);
+        return acc;
+      },
+      {} as Record<OrderStatus, number>,
+    );
 
     // Get top products
     const topProducts = await this.orderItemRepository
@@ -378,7 +383,7 @@ export class OrdersService {
       totalRevenue: parseFloat(totals.totalRevenue),
       averageOrderValue: parseFloat(totals.totalRevenue) / parseInt(totals.totalOrders) || 0,
       ordersByStatus,
-      topProducts: topProducts.map(p => ({
+      topProducts: topProducts.map((p) => ({
         productId: p.productId,
         productName: p.productName,
         quantity: parseInt(p.quantity),
@@ -392,14 +397,14 @@ export class OrdersService {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    
+
     const count = await this.orderRepository
       .createQueryBuilder('order')
-      .where("order.orderNumber LIKE :pattern", { pattern: `ORD-${year}${month}${day}%` })
+      .where('order.orderNumber LIKE :pattern', { pattern: `ORD-${year}${month}${day}%` })
       .getCount();
 
     const sequence = String(count + 1).padStart(4, '0');
-    
+
     return `ORD-${year}${month}${day}-${sequence}`;
   }
 }

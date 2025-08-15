@@ -29,38 +29,35 @@ export class StructuredLoggerService implements LoggerService {
             timestamp,
             level,
             message,
-            ...meta
+            ...meta,
           });
-        })
+        }),
       ),
       defaultMeta: {
         service: 'saas-template-backend',
         environment: process.env.NODE_ENV || 'development',
-        version: process.env.APP_VERSION || '1.0.0'
+        version: process.env.APP_VERSION || '1.0.0',
       },
-      transports: this.createTransports()
+      transports: this.createTransports(),
     });
   }
 
   private createTransports() {
     const transportList = [
       new transports.Console({
-        format: format.combine(
-          format.colorize(),
-          format.simple()
-        )
+        format: format.combine(format.colorize(), format.simple()),
       }),
       new transports.File({
         filename: 'logs/error.log',
         level: 'error',
         maxsize: 10 * 1024 * 1024, // 10MB
-        maxFiles: 5
+        maxFiles: 5,
       }),
       new transports.File({
         filename: 'logs/combined.log',
         maxsize: 10 * 1024 * 1024, // 10MB
-        maxFiles: 10
-      })
+        maxFiles: 10,
+      }),
     ];
 
     // Add Elasticsearch transport for production
@@ -72,8 +69,8 @@ export class StructuredLoggerService implements LoggerService {
             node: process.env.ELASTICSEARCH_URL,
             auth: {
               username: process.env.ELASTICSEARCH_USERNAME,
-              password: process.env.ELASTICSEARCH_PASSWORD
-            }
+              password: process.env.ELASTICSEARCH_PASSWORD,
+            },
           },
           index: 'saas-template-logs',
           indexTemplate: {
@@ -81,7 +78,7 @@ export class StructuredLoggerService implements LoggerService {
             pattern: 'saas-template-logs-*',
             settings: {
               number_of_shards: 1,
-              number_of_replicas: 1
+              number_of_replicas: 1,
             },
             mappings: {
               properties: {
@@ -103,13 +100,13 @@ export class StructuredLoggerService implements LoggerService {
                   properties: {
                     name: { type: 'keyword' },
                     message: { type: 'text' },
-                    stack: { type: 'text' }
-                  }
-                }
-              }
-            }
-          }
-        })
+                    stack: { type: 'text' },
+                  },
+                },
+              },
+            },
+          },
+        }),
       );
     }
 
@@ -123,11 +120,13 @@ export class StructuredLoggerService implements LoggerService {
   error(message: string, error?: Error, context?: LogContext) {
     this.logger.error(message, {
       ...context,
-      error: error ? {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      } : undefined
+      error: error
+        ? {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+          }
+        : undefined,
     });
   }
 
@@ -152,7 +151,7 @@ export class StructuredLoggerService implements LoggerService {
       module: 'auth',
       action,
       userId,
-      metadata: { success }
+      metadata: { success },
     });
   }
 
@@ -166,7 +165,7 @@ export class StructuredLoggerService implements LoggerService {
     resource: string,
     action: string,
     duration: number,
-    context?: Partial<LogContext>
+    context?: Partial<LogContext>,
   ) {
     this.log(`Policy evaluation: ${decision}`, {
       ...context,
@@ -176,7 +175,7 @@ export class StructuredLoggerService implements LoggerService {
       organizationId,
       resource,
       duration,
-      metadata: { decision, policyAction: action }
+      metadata: { decision, policyAction: action },
     });
   }
 
@@ -187,14 +186,14 @@ export class StructuredLoggerService implements LoggerService {
     action: string,
     organizationId: string,
     userId: string,
-    context?: Partial<LogContext>
+    context?: Partial<LogContext>,
   ) {
     this.log(`Organization ${action}`, {
       ...context,
       module: 'organizations',
       action,
       organizationId,
-      userId
+      userId,
     });
   }
 
@@ -206,7 +205,7 @@ export class StructuredLoggerService implements LoggerService {
     targetUserId: string,
     operatorUserId: string,
     organizationId: string,
-    context?: Partial<LogContext>
+    context?: Partial<LogContext>,
   ) {
     this.log(`User ${action}`, {
       ...context,
@@ -214,7 +213,7 @@ export class StructuredLoggerService implements LoggerService {
       action,
       userId: operatorUserId,
       organizationId,
-      metadata: { targetUserId }
+      metadata: { targetUserId },
     });
   }
 
@@ -226,7 +225,7 @@ export class StructuredLoggerService implements LoggerService {
     table: string,
     duration: number,
     success: boolean,
-    context?: Partial<LogContext>
+    context?: Partial<LogContext>,
   ) {
     this.log(`Database ${operation} on ${table}`, {
       ...context,
@@ -234,7 +233,7 @@ export class StructuredLoggerService implements LoggerService {
       action: operation,
       resource: table,
       duration,
-      metadata: { success }
+      metadata: { success },
     });
   }
 
@@ -246,7 +245,7 @@ export class StructuredLoggerService implements LoggerService {
     key: string,
     hit: boolean,
     duration: number,
-    context?: Partial<LogContext>
+    context?: Partial<LogContext>,
   ) {
     this.debug(`Cache ${operation} for key ${key}`, {
       ...context,
@@ -254,7 +253,7 @@ export class StructuredLoggerService implements LoggerService {
       action: operation,
       resource: key,
       duration,
-      metadata: { hit }
+      metadata: { hit },
     });
   }
 
@@ -265,14 +264,14 @@ export class StructuredLoggerService implements LoggerService {
     event: string,
     userId: string,
     organizationId: string,
-    context?: Partial<LogContext>
+    context?: Partial<LogContext>,
   ) {
     this.log(`WebSocket ${event}`, {
       ...context,
       module: 'websocket',
       action: event,
       userId,
-      organizationId
+      organizationId,
     });
   }
 
@@ -283,14 +282,14 @@ export class StructuredLoggerService implements LoggerService {
     operation: string,
     duration: number,
     threshold: number,
-    context?: Partial<LogContext>
+    context?: Partial<LogContext>,
   ) {
     this.warn(`Performance issue: ${operation} took ${duration}ms (threshold: ${threshold}ms)`, {
       ...context,
       module: 'performance',
       action: operation,
       duration,
-      metadata: { threshold, exceeded: duration > threshold }
+      metadata: { threshold, exceeded: duration > threshold },
     });
   }
 
@@ -302,7 +301,7 @@ export class StructuredLoggerService implements LoggerService {
     organizationId: string,
     userId: string,
     metadata: Record<string, any>,
-    context?: Partial<LogContext>
+    context?: Partial<LogContext>,
   ) {
     this.log(`Business event: ${event}`, {
       ...context,
@@ -310,7 +309,7 @@ export class StructuredLoggerService implements LoggerService {
       action: event,
       organizationId,
       userId,
-      metadata
+      metadata,
     });
   }
 
@@ -322,7 +321,7 @@ export class StructuredLoggerService implements LoggerService {
     severity: 'low' | 'medium' | 'high' | 'critical',
     userId?: string,
     organizationId?: string,
-    context?: Partial<LogContext>
+    context?: Partial<LogContext>,
   ) {
     const message = `Security event: ${event}`;
     const logContext = {
@@ -331,9 +330,9 @@ export class StructuredLoggerService implements LoggerService {
       action: event,
       userId,
       organizationId,
-      metadata: { severity }
+      metadata: { severity },
     };
-    
+
     if (severity === 'critical' || severity === 'high') {
       this.error(message, undefined, logContext);
     } else if (severity === 'medium') {

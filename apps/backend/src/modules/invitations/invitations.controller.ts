@@ -11,13 +11,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { InvitationsService } from './invitations.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { ValidateInvitationDto } from './dto/validate-invitation.dto';
@@ -81,7 +75,9 @@ export class InvitationsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Validate an invitation token' })
   @ApiResponse({ status: 200, description: 'Validation result' })
-  async validate(@Body() validateDto: ValidateInvitationDto): Promise<{ valid: boolean; invitation?: any; reason?: string }> {
+  async validate(
+    @Body() validateDto: ValidateInvitationDto,
+  ): Promise<{ valid: boolean; invitation?: any; reason?: string }> {
     const result = await this.invitationsService.validate(validateDto);
     if (result.valid && result.invitation) {
       // Return limited information for public endpoint

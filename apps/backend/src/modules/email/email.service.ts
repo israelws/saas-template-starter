@@ -3,8 +3,8 @@ import { IEmailService, SendEmailDto } from './interfaces/email.interface';
 import { EmailConfigService } from './email-config.service';
 import { EmailProviderFactory } from './email-provider.factory';
 import { EmailServiceConfig } from './entities/email-service-config.entity';
-import { 
-  invitationEmailTemplate, 
+import {
+  invitationEmailTemplate,
   InvitationEmailData,
   invitationAcceptedEmailTemplate,
   passwordResetEmailTemplate,
@@ -31,13 +31,13 @@ export class EmailService {
         return this.sendEmailWithConfig(dto, effectiveConfig);
       }
     }
-    
+
     // Check for system default configuration
     const defaultConfig = await this.emailConfigService.getDefaultConfig();
     if (defaultConfig) {
       return this.sendEmailWithConfig(dto, defaultConfig);
     }
-    
+
     // Fall back to default AWS SES provider
     return this.defaultEmailProvider.sendEmail(dto);
   }
@@ -45,13 +45,13 @@ export class EmailService {
   private async sendEmailWithConfig(dto: SendEmailDto, config: EmailServiceConfig): Promise<void> {
     // Create a provider instance based on the configuration
     const provider = this.emailProviderFactory.createProvider(config);
-    
+
     // Apply any config-specific overrides to the DTO
     const enhancedDto = {
       ...dto,
       from: config.config.fromEmail || dto.from,
     };
-    
+
     // Send the email using the configured provider
     return provider.sendEmail(enhancedDto);
   }
@@ -64,11 +64,14 @@ export class EmailService {
     const html = invitationEmailTemplate(data);
     const subject = `Invitation to join ${data.organizationName}`;
 
-    return this.sendEmail({
-      to,
-      subject,
-      html,
-    }, organizationId);
+    return this.sendEmail(
+      {
+        to,
+        subject,
+        html,
+      },
+      organizationId,
+    );
   }
 
   async sendInvitationAcceptedEmail(
@@ -85,17 +88,17 @@ export class EmailService {
     const html = invitationAcceptedEmailTemplate(data);
     const subject = `${data.acceptedByName} accepted your invitation`;
 
-    return this.sendEmail({
-      to,
-      subject,
-      html,
-    }, organizationId);
+    return this.sendEmail(
+      {
+        to,
+        subject,
+        html,
+      },
+      organizationId,
+    );
   }
 
-  async sendPasswordResetEmail(
-    to: string,
-    data: PasswordResetEmailData,
-  ): Promise<void> {
+  async sendPasswordResetEmail(to: string, data: PasswordResetEmailData): Promise<void> {
     const html = passwordResetEmailTemplate(data);
     const subject = 'Password Reset Request';
 
@@ -112,14 +115,17 @@ export class EmailService {
     organizationId?: string,
   ): Promise<void> {
     const html = welcomeEmailTemplate(data);
-    const subject = data.isSystemAdmin 
-      ? 'Welcome to SAAS Platform - System Administrator Access Granted' 
+    const subject = data.isSystemAdmin
+      ? 'Welcome to SAAS Platform - System Administrator Access Granted'
       : `Welcome to ${data.organizationName || 'SAAS Platform'}!`;
 
-    return this.sendEmail({
-      to,
-      subject,
-      html,
-    }, organizationId);
+    return this.sendEmail(
+      {
+        to,
+        subject,
+        html,
+      },
+      organizationId,
+    );
   }
 }

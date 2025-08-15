@@ -20,10 +20,10 @@ if (process.env.NODE_ENV === 'test') {
           Attributes: [
             { Name: 'email', Value: 'test@example.com' },
             { Name: 'given_name', Value: 'Test' },
-            { Name: 'family_name', Value: 'User' }
-          ]
-        }
-      })
+            { Name: 'family_name', Value: 'User' },
+          ],
+        },
+      }),
     })),
     AdminCreateUserCommand: jest.fn(),
     AdminGetUserCommand: jest.fn(),
@@ -31,7 +31,7 @@ if (process.env.NODE_ENV === 'test') {
     InitiateAuthCommand: jest.fn(),
     RespondToAuthChallengeCommand: jest.fn(),
     ForgotPasswordCommand: jest.fn(),
-    ConfirmForgotPasswordCommand: jest.fn()
+    ConfirmForgotPasswordCommand: jest.fn(),
   }));
 
   // Mock Redis and cache-manager
@@ -44,10 +44,10 @@ if (process.env.NODE_ENV === 'test') {
       keys: jest.fn(),
       mget: jest.fn(),
       mset: jest.fn(),
-      mdel: jest.fn()
-    })
+      mdel: jest.fn(),
+    }),
   }));
-  
+
   jest.mock('redis', () => ({
     createClient: jest.fn().mockReturnValue({
       get: jest.fn(),
@@ -58,8 +58,8 @@ if (process.env.NODE_ENV === 'test') {
       quit: jest.fn(),
       on: jest.fn(),
       connect: jest.fn().mockResolvedValue(undefined),
-      disconnect: jest.fn().mockResolvedValue(undefined)
-    })
+      disconnect: jest.fn().mockResolvedValue(undefined),
+    }),
   }));
 }
 

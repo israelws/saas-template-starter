@@ -24,7 +24,10 @@ import {
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { AbacGuard } from '../../abac/guards/abac.guard';
 import { RequirePermission } from '../../abac/decorators/require-permission.decorator';
-import { OrganizationId, ValidateOrganization } from '../../../common/decorators/validate-organization.decorator';
+import {
+  OrganizationId,
+  ValidateOrganization,
+} from '../../../common/decorators/validate-organization.decorator';
 import { UserAttributesService } from '../services/user-attributes.service';
 import { ApiErrorResponses } from '../../../common/dto/error-response.dto';
 
@@ -79,11 +82,15 @@ export class UserAttributesController {
   @RequirePermission('user', 'write')
   @ApiOperation({
     summary: 'Create user attribute',
-    description: 'Add a new attribute to a user within an organization'
+    description: 'Add a new attribute to a user within an organization',
   })
   @ApiParam({ name: 'userId', description: 'User ID' })
   @ApiBody({ type: CreateUserAttributeDto })
-  @ApiResponse({ status: 201, description: 'Attribute created successfully', type: UserAttributeDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Attribute created successfully',
+    type: UserAttributeDto,
+  })
   @ApiResponse(ApiErrorResponses.BadRequest)
   @ApiResponse(ApiErrorResponses.Unauthorized)
   @ApiResponse(ApiErrorResponses.Forbidden)
@@ -93,22 +100,27 @@ export class UserAttributesController {
     @OrganizationId() organizationId: string,
     @Body() createAttributeDto: CreateUserAttributeDto,
   ): Promise<UserAttributeDto> {
-    return this.userAttributesService.createAttribute(
-      userId,
-      organizationId,
-      createAttributeDto,
-    );
+    return this.userAttributesService.createAttribute(userId, organizationId, createAttributeDto);
   }
 
   @Get()
   @RequirePermission('user', 'read')
   @ApiOperation({
     summary: 'Get user attributes',
-    description: 'Retrieve all attributes for a user within an organization'
+    description: 'Retrieve all attributes for a user within an organization',
   })
   @ApiParam({ name: 'userId', description: 'User ID' })
-  @ApiQuery({ name: 'includePrivate', required: false, type: Boolean, description: 'Include private attributes' })
-  @ApiResponse({ status: 200, description: 'User attributes retrieved successfully', type: [UserAttributeDto] })
+  @ApiQuery({
+    name: 'includePrivate',
+    required: false,
+    type: Boolean,
+    description: 'Include private attributes',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User attributes retrieved successfully',
+    type: [UserAttributeDto],
+  })
   @ApiResponse(ApiErrorResponses.Unauthorized)
   @ApiResponse(ApiErrorResponses.Forbidden)
   @ApiResponse(ApiErrorResponses.NotFound)
@@ -124,11 +136,15 @@ export class UserAttributesController {
   @RequirePermission('user', 'read')
   @ApiOperation({
     summary: 'Get specific user attribute',
-    description: 'Retrieve a specific attribute by key for a user'
+    description: 'Retrieve a specific attribute by key for a user',
   })
   @ApiParam({ name: 'userId', description: 'User ID' })
   @ApiParam({ name: 'key', description: 'Attribute key' })
-  @ApiResponse({ status: 200, description: 'Attribute retrieved successfully', type: UserAttributeDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Attribute retrieved successfully',
+    type: UserAttributeDto,
+  })
   @ApiResponse(ApiErrorResponses.Unauthorized)
   @ApiResponse(ApiErrorResponses.Forbidden)
   @ApiResponse(ApiErrorResponses.NotFound)
@@ -144,12 +160,16 @@ export class UserAttributesController {
   @RequirePermission('user', 'write')
   @ApiOperation({
     summary: 'Update user attribute',
-    description: 'Update an existing attribute for a user'
+    description: 'Update an existing attribute for a user',
   })
   @ApiParam({ name: 'userId', description: 'User ID' })
   @ApiParam({ name: 'key', description: 'Attribute key' })
   @ApiBody({ type: UpdateUserAttributeDto })
-  @ApiResponse({ status: 200, description: 'Attribute updated successfully', type: UserAttributeDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Attribute updated successfully',
+    type: UserAttributeDto,
+  })
   @ApiResponse(ApiErrorResponses.BadRequest)
   @ApiResponse(ApiErrorResponses.Unauthorized)
   @ApiResponse(ApiErrorResponses.Forbidden)
@@ -173,7 +193,7 @@ export class UserAttributesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Delete user attribute',
-    description: 'Remove an attribute from a user'
+    description: 'Remove an attribute from a user',
   })
   @ApiParam({ name: 'userId', description: 'User ID' })
   @ApiParam({ name: 'key', description: 'Attribute key' })
@@ -193,7 +213,7 @@ export class UserAttributesController {
   @RequirePermission('user', 'write')
   @ApiOperation({
     summary: 'Bulk user attribute operations',
-    description: 'Perform bulk operations on user attributes across multiple users'
+    description: 'Perform bulk operations on user attributes across multiple users',
   })
   @ApiBody({ type: BulkUserAttributeOperationDto })
   @ApiResponse({
@@ -231,11 +251,16 @@ export class UserAttributesController {
   @RequirePermission('user', 'read')
   @ApiOperation({
     summary: 'Search users by attributes',
-    description: 'Find users within an organization that have specific attribute values'
+    description: 'Find users within an organization that have specific attribute values',
   })
   @ApiQuery({ name: 'key', description: 'Attribute key to search for' })
   @ApiQuery({ name: 'value', required: false, description: 'Attribute value to match' })
-  @ApiQuery({ name: 'operator', required: false, enum: ['equals', 'contains', 'greater_than', 'less_than'], description: 'Comparison operator' })
+  @ApiQuery({
+    name: 'operator',
+    required: false,
+    enum: ['equals', 'contains', 'greater_than', 'less_than'],
+    description: 'Comparison operator',
+  })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page' })
   @ApiResponse({
@@ -287,7 +312,7 @@ export class UserAttributesController {
   @RequirePermission('user', 'read')
   @ApiOperation({
     summary: 'Get available attribute definitions',
-    description: 'Retrieve all available attribute definitions for the organization'
+    description: 'Retrieve all available attribute definitions for the organization',
   })
   @ApiResponse({
     status: 200,
@@ -310,9 +335,7 @@ export class UserAttributesController {
   })
   @ApiResponse(ApiErrorResponses.Unauthorized)
   @ApiResponse(ApiErrorResponses.Forbidden)
-  async getAvailableDefinitions(
-    @OrganizationId() organizationId: string,
-  ) {
+  async getAvailableDefinitions(@OrganizationId() organizationId: string) {
     return this.userAttributesService.getAvailableAttributeDefinitions(organizationId);
   }
 }

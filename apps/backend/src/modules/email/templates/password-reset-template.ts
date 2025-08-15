@@ -12,11 +12,15 @@ export const passwordResetEmailTemplate = (data: PasswordResetEmailData): string
       Password Reset Request
     </h2>
     
-    ${data.userName ? `
+    ${
+      data.userName
+        ? `
     <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.5; color: #555555;">
       Hi ${data.userName},
     </p>
-    ` : ''}
+    `
+        : ''
+    }
     
     <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.5; color: #555555;">
       We received a request to reset your password. Click the button below to create a new password:
@@ -39,11 +43,15 @@ export const passwordResetEmailTemplate = (data: PasswordResetEmailData): string
       </p>
     </div>
     
-    ${data.expiresIn ? `
+    ${
+      data.expiresIn
+        ? `
     <p style="margin: 0 0 20px 0; font-size: 14px; color: #dc3545; font-style: italic;">
       This link will expire in ${data.expiresIn}.
     </p>
-    ` : ''}
+    `
+        : ''
+    }
     
     <p style="margin: 0 0 20px 0; font-size: 14px; color: #666666;">
       If you're having trouble clicking the button, copy and paste the URL below into your web browser:
@@ -53,10 +61,10 @@ export const passwordResetEmailTemplate = (data: PasswordResetEmailData): string
       ${data.resetUrl}
     </p>
   `;
-  
+
   return baseEmailTemplate({
     subject: 'Password Reset Request',
     previewText: 'Reset your password',
-    content
+    content,
   });
 };

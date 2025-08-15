@@ -4,10 +4,10 @@ export class FixPolicyTableSchema1752500000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // First, drop the materialized view that depends on the status column
     await queryRunner.query(`DROP MATERIALIZED VIEW IF EXISTS organization_hierarchy_view CASCADE`);
-    
+
     // Drop old columns if they exist
     const oldColumns = ['resource', 'action', 'status'];
-    
+
     for (const column of oldColumns) {
       const hasColumn = await queryRunner.query(`
         SELECT column_name 
@@ -15,7 +15,7 @@ export class FixPolicyTableSchema1752500000000 implements MigrationInterface {
         WHERE table_name = 'policies' 
         AND column_name = '${column}'
       `);
-      
+
       if (hasColumn.length > 0) {
         await queryRunner.query(`ALTER TABLE "policies" DROP COLUMN "${column}"`);
       }
@@ -28,7 +28,7 @@ export class FixPolicyTableSchema1752500000000 implements MigrationInterface {
       WHERE table_name = 'policies' 
       AND column_name = 'effect'
     `);
-    
+
     if (effectColumn.length > 0 && effectColumn[0].data_type !== 'USER-DEFINED') {
       // First create the enum type if it doesn't exist
       await queryRunner.query(`
@@ -38,14 +38,14 @@ export class FixPolicyTableSchema1752500000000 implements MigrationInterface {
           WHEN duplicate_object THEN null;
         END $$;
       `);
-      
+
       // Update the column to use the enum
       await queryRunner.query(`
         ALTER TABLE "policies" 
         ALTER COLUMN "effect" TYPE "policies_effect_enum" 
         USING effect::"policies_effect_enum"
       `);
-      
+
       await queryRunner.query(`
         ALTER TABLE "policies" 
         ALTER COLUMN "effect" SET DEFAULT 'allow'::"policies_effect_enum"
@@ -63,12 +63,12 @@ export class FixPolicyTableSchema1752500000000 implements MigrationInterface {
       CREATE INDEX IF NOT EXISTS "idx_policies_org_active" 
       ON "policies" ("organizationId", "isActive")
     `);
-    
+
     await queryRunner.query(`
       CREATE INDEX IF NOT EXISTS "idx_policies_priority" 
       ON "policies" ("priority")
     `);
-    
+
     await queryRunner.query(`
       CREATE INDEX IF NOT EXISTS "idx_policies_policyset" 
       ON "policies" ("policySetId")
@@ -79,7 +79,7 @@ export class FixPolicyTableSchema1752500000000 implements MigrationInterface {
       ALTER TABLE "policies" 
       ALTER COLUMN "organizationId" DROP NOT NULL
     `);
-    
+
     // Recreate the materialized view
     await queryRunner.query(`
       CREATE MATERIALIZED VIEW IF NOT EXISTS organization_hierarchy_view AS
@@ -118,7 +118,7 @@ export class FixPolicyTableSchema1752500000000 implements MigrationInterface {
       )
       SELECT * FROM org_tree
     `);
-    
+
     // Create index on the materialized view
     await queryRunner.query(`
       CREATE UNIQUE INDEX idx_org_hierarchy_id ON organization_hierarchy_view (id)
@@ -136,12 +136,12 @@ export class FixPolicyTableSchema1752500000000 implements MigrationInterface {
       ALTER TABLE "policies" 
       ADD COLUMN IF NOT EXISTS "resource" VARCHAR(255) NOT NULL DEFAULT 'default'
     `);
-    
+
     await queryRunner.query(`
       ALTER TABLE "policies" 
       ADD COLUMN IF NOT EXISTS "action" VARCHAR(255) NOT NULL DEFAULT 'default'
     `);
-    
+
     await queryRunner.query(`
       ALTER TABLE "policies" 
       ADD COLUMN IF NOT EXISTS "status" VARCHAR(255) NOT NULL DEFAULT 'active'
@@ -153,7 +153,7 @@ export class FixPolicyTableSchema1752500000000 implements MigrationInterface {
       ALTER COLUMN "effect" TYPE VARCHAR(255) 
       USING effect::text
     `);
-    
+
     await queryRunner.query(`
       ALTER TABLE "policies" 
       ALTER COLUMN "effect" SET DEFAULT 'allow'

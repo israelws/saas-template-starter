@@ -16,11 +16,7 @@ import { AttributeService } from '../services/attribute.service';
 import { CreateAttributeDto } from '../dto/create-attribute.dto';
 import { UpdateAttributeDto } from '../dto/update-attribute.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import {
-  AttributeCategory,
-  AttributeType,
-  PaginationParams,
-} from '@saas-template/shared';
+import { AttributeCategory, AttributeType, PaginationParams } from '@saas-template/shared';
 import { RequirePermission } from '../decorators/require-permission.decorator';
 
 @ApiTags('Attributes')
@@ -44,8 +40,16 @@ export class AttributeController {
   @Get()
   @RequirePermission('attribute', 'list')
   @ApiOperation({ summary: 'Get all attribute definitions' })
-  @ApiQuery({ name: 'category', required: false, enum: ['subject', 'resource', 'environment', 'custom'] })
-  @ApiQuery({ name: 'type', required: false, enum: ['string', 'number', 'boolean', 'array', 'object'] })
+  @ApiQuery({
+    name: 'category',
+    required: false,
+    enum: ['subject', 'resource', 'environment', 'custom'],
+  })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    enum: ['string', 'number', 'boolean', 'array', 'object'],
+  })
   @ApiQuery({ name: 'search', required: false, description: 'Search by key or name' })
   @ApiResponse({
     status: 200,
@@ -61,7 +65,7 @@ export class AttributeController {
       type,
       search,
     });
-    
+
     return {
       data: attributes,
       total: attributes.length,
@@ -104,10 +108,7 @@ export class AttributeController {
     status: 200,
     description: 'The attribute has been successfully updated.',
   })
-  async update(
-    @Param('id') id: string,
-    @Body() updateAttributeDto: UpdateAttributeDto,
-  ) {
+  async update(@Param('id') id: string, @Body() updateAttributeDto: UpdateAttributeDto) {
     return this.attributeService.update(id, updateAttributeDto);
   }
 

@@ -23,7 +23,7 @@ export class PolicyRepository extends Repository<Policy> {
   ): Promise<Policy[]> {
     // Get all ancestor organizations for hierarchical policy inheritance
     const allOrganizationIds = new Set<string>(organizationIds);
-    
+
     for (const orgId of organizationIds) {
       const ancestors = await this.dataSource
         .createQueryBuilder()
@@ -31,8 +31,8 @@ export class PolicyRepository extends Repository<Policy> {
         .from('organizations_closure', 'closure')
         .where('closure.descendantId = :orgId', { orgId })
         .getRawMany();
-      
-      ancestors.forEach(a => allOrganizationIds.add(a.ancestorId));
+
+      ancestors.forEach((a) => allOrganizationIds.add(a.ancestorId));
     }
 
     const queryBuilder = this.createQueryBuilder('policy')
@@ -50,13 +50,10 @@ export class PolicyRepository extends Repository<Policy> {
           resourcePattern: `${resource.split(':')[0]}:%`,
         },
       )
-      .andWhere(
-        '(policy.action = :exactAction OR policy.action = :wildcardAction)',
-        {
-          exactAction: action,
-          wildcardAction: '*',
-        },
-      )
+      .andWhere('(policy.action = :exactAction OR policy.action = :wildcardAction)', {
+        exactAction: action,
+        wildcardAction: '*',
+      })
       .orderBy('policy.priority', 'DESC')
       .addOrderBy('policySet.priority', 'DESC');
 
@@ -70,10 +67,7 @@ export class PolicyRepository extends Repository<Policy> {
     });
   }
 
-  async findByOrganization(
-    organizationId: string,
-    includeInherited = true,
-  ): Promise<Policy[]> {
+  async findByOrganization(organizationId: string, includeInherited = true): Promise<Policy[]> {
     if (!includeInherited) {
       return this.find({
         where: { organizationId },
@@ -89,7 +83,7 @@ export class PolicyRepository extends Repository<Policy> {
       .from('organizations_closure', 'closure')
       .where('closure.descendantId = :organizationId', { organizationId })
       .getRawMany()
-      .then(results => results.map(r => r.ancestorId));
+      .then((results) => results.map((r) => r.ancestorId));
 
     return this.find({
       where: { organizationId: In(organizationIds) },
@@ -142,9 +136,7 @@ export class PolicyRepository extends Repository<Policy> {
   async bulkUpdatePriorities(
     updates: Array<{ policyId: string; priority: number }>,
   ): Promise<void> {
-    const promises = updates.map(({ policyId, priority }) =>
-      this.update(policyId, { priority }),
-    );
+    const promises = updates.map(({ policyId, priority }) => this.update(policyId, { priority }));
 
     await Promise.all(promises);
   }
@@ -164,10 +156,9 @@ export class PolicyRepository extends Repository<Policy> {
       .leftJoinAndSelect('policy.organization', 'organization');
 
     if (searchTerm) {
-      queryBuilder.where(
-        '(policy.name ILIKE :search OR policy.description ILIKE :search)',
-        { search: `%${searchTerm}%` },
-      );
+      queryBuilder.where('(policy.name ILIKE :search OR policy.description ILIKE :search)', {
+        search: `%${searchTerm}%`,
+      });
     }
 
     if (filters?.organizationId) {
@@ -219,28 +210,26 @@ export class PolicyRepository extends Repository<Policy> {
         .from('organizations_closure', 'closure')
         .where('closure.descendantId = :organizationId', { organizationId })
         .getRawMany()
-        .then(results => results.map(r => r.ancestorId));
+        .then((results) => results.map((r) => r.ancestorId));
 
-      queryBuilder = queryBuilder.where(
-        'policy.organizationId IN (:...organizationIds)',
-        { organizationIds },
-      );
+      queryBuilder = queryBuilder.where('policy.organizationId IN (:...organizationIds)', {
+        organizationIds,
+      });
     }
 
     const policies = await queryBuilder.getMany();
 
     const stats = {
       totalPolicies: policies.length,
-      allowPolicies: policies.filter(p => p.effect === 'allow').length,
-      denyPolicies: policies.filter(p => p.effect === 'deny').length,
-      activePolicies: policies.filter(p => p.isActive).length,
+      allowPolicies: policies.filter((p) => p.effect === 'allow').length,
+      denyPolicies: policies.filter((p) => p.effect === 'deny').length,
+      activePolicies: policies.filter((p) => p.isActive).length,
       policiesByResource: {} as Record<string, number>,
     };
 
-    policies.forEach(policy => {
+    policies.forEach((policy) => {
       const resourceType = policy.resources?.types?.[0] || 'unknown';
-      stats.policiesByResource[resourceType] =
-        (stats.policiesByResource[resourceType] || 0) + 1;
+      stats.policiesByResource[resourceType] = (stats.policiesByResource[resourceType] || 0) + 1;
     });
 
     return stats;
@@ -255,7 +244,9 @@ export class PolicyRepository extends Repository<Policy> {
   }> {
     const potentialConflicts = await this.createQueryBuilder('policy')
       .where('policy.organizationId = :organizationId', { organizationId })
-      .andWhere('policy.resources @> :resources', { resources: JSON.stringify(policy.resources || {}) })
+      .andWhere('policy.resources @> :resources', {
+        resources: JSON.stringify(policy.resources || {}),
+      })
       .andWhere('policy.actions @> :actions', { actions: policy.actions || [] })
       .andWhere('policy.effect != :effect', { effect: policy.effect })
       .andWhere('policy.isActive = :isActive', { isActive: true })

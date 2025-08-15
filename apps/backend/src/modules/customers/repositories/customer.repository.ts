@@ -60,8 +60,10 @@ export class CustomerRepository extends Repository<Customer> {
       hasOrders?: boolean;
     },
   ): Promise<Customer[]> {
-    const queryBuilder = this.createQueryBuilder('customer')
-      .leftJoinAndSelect('customer.orders', 'orders');
+    const queryBuilder = this.createQueryBuilder('customer').leftJoinAndSelect(
+      'customer.orders',
+      'orders',
+    );
 
     if (searchTerm) {
       queryBuilder.where(
@@ -102,10 +104,7 @@ export class CustomerRepository extends Repository<Customer> {
       }
     }
 
-    return queryBuilder
-      .distinct(true)
-      .orderBy('customer.name', 'ASC')
-      .getMany();
+    return queryBuilder.distinct(true).orderBy('customer.name', 'ASC').getMany();
   }
 
   async updateBalance(
@@ -153,22 +152,21 @@ export class CustomerRepository extends Repository<Customer> {
         .where('closure.ancestorId = :organizationId', { organizationId });
     }
 
-    const customers = await queryBuilder
-      .leftJoinAndSelect('customer.orders', 'orders')
-      .getMany();
+    const customers = await queryBuilder.leftJoinAndSelect('customer.orders', 'orders').getMany();
 
     const stats = {
       totalCustomers: customers.length,
-      activeCustomers: customers.filter(c => c.status === 'active').length,
+      activeCustomers: customers.filter((c) => c.status === 'active').length,
       totalBalance: customers.reduce((sum, c) => sum + c.balance, 0),
-      avgBalance: customers.length > 0
-        ? customers.reduce((sum, c) => sum + c.balance, 0) / customers.length
-        : 0,
-      customersWithOrders: customers.filter(c => c.orders && c.orders.length > 0).length,
+      avgBalance:
+        customers.length > 0
+          ? customers.reduce((sum, c) => sum + c.balance, 0) / customers.length
+          : 0,
+      customersWithOrders: customers.filter((c) => c.orders && c.orders.length > 0).length,
       customersByStatus: {} as Record<string, number>,
     };
 
-    customers.forEach(customer => {
+    customers.forEach((customer) => {
       stats.customersByStatus[customer.status] =
         (stats.customersByStatus[customer.status] || 0) + 1;
     });
@@ -216,10 +214,7 @@ export class CustomerRepository extends Repository<Customer> {
     return queryBuilder.limit(limit).getMany();
   }
 
-  async mergeCustomers(
-    primaryCustomerId: string,
-    secondaryCustomerId: string,
-  ): Promise<Customer> {
+  async mergeCustomers(primaryCustomerId: string, secondaryCustomerId: string): Promise<Customer> {
     const primaryCustomer = await this.findOne({
       where: { id: primaryCustomerId },
       relations: ['orders'],

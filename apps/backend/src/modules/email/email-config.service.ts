@@ -1,8 +1,16 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not } from 'typeorm';
 import { EmailServiceConfig, EmailServiceProvider } from './entities/email-service-config.entity';
-import { CreateEmailServiceConfigDto, UpdateEmailServiceConfigDto } from './dto/email-service-config.dto';
+import {
+  CreateEmailServiceConfigDto,
+  UpdateEmailServiceConfigDto,
+} from './dto/email-service-config.dto';
 
 @Injectable()
 export class EmailConfigService {
@@ -19,29 +27,35 @@ export class EmailConfigService {
     });
   }
 
-  async findOne(provider: EmailServiceProvider, organizationId?: string): Promise<EmailServiceConfig> {
-    const where = organizationId 
+  async findOne(
+    provider: EmailServiceProvider,
+    organizationId?: string,
+  ): Promise<EmailServiceConfig> {
+    const where = organizationId
       ? { provider, organizationId }
       : { provider, organizationId: null };
-    
+
     const config = await this.emailConfigRepository.findOne({
       where,
     });
 
     if (!config) {
       throw new NotFoundException(
-        `Email configuration for ${provider} not found${organizationId ? ' for this organization' : ''}`
+        `Email configuration for ${provider} not found${organizationId ? ' for this organization' : ''}`,
       );
     }
 
     return config;
   }
 
-  async findOneOrNull(provider: EmailServiceProvider, organizationId?: string): Promise<EmailServiceConfig | null> {
-    const where = organizationId 
+  async findOneOrNull(
+    provider: EmailServiceProvider,
+    organizationId?: string,
+  ): Promise<EmailServiceConfig | null> {
+    const where = organizationId
       ? { provider, organizationId }
       : { provider, organizationId: null };
-    
+
     return this.emailConfigRepository.findOne({
       where,
     });
@@ -49,15 +63,15 @@ export class EmailConfigService {
 
   async create(createDto: CreateEmailServiceConfigDto): Promise<EmailServiceConfig> {
     // Check if configuration already exists
-    const where = createDto.organizationId 
+    const where = createDto.organizationId
       ? { provider: createDto.provider, organizationId: createDto.organizationId }
       : { provider: createDto.provider, organizationId: null };
-    
+
     const existing = await this.emailConfigRepository.findOne({ where });
 
     if (existing) {
       throw new ConflictException(
-        `Configuration for ${createDto.provider} already exists${createDto.organizationId ? ' for this organization' : ''}`
+        `Configuration for ${createDto.provider} already exists${createDto.organizationId ? ' for this organization' : ''}`,
       );
     }
 
@@ -71,14 +85,11 @@ export class EmailConfigService {
 
     // If this is set as default, unset other defaults for the same scope
     if (createDto.isDefault) {
-      const defaultWhere = createDto.organizationId 
+      const defaultWhere = createDto.organizationId
         ? { isDefault: true, organizationId: createDto.organizationId }
         : { isDefault: true, organizationId: null };
-      
-      await this.emailConfigRepository.update(
-        defaultWhere,
-        { isDefault: false },
-      );
+
+      await this.emailConfigRepository.update(defaultWhere, { isDefault: false });
     }
 
     const config = this.emailConfigRepository.create({
@@ -108,14 +119,11 @@ export class EmailConfigService {
 
     // If setting as default, unset other defaults for the same scope
     if (updateDto.isDefault === true) {
-      const defaultWhere = organizationId 
+      const defaultWhere = organizationId
         ? { isDefault: true, organizationId, id: Not(config.id) }
         : { isDefault: true, organizationId: null, id: Not(config.id) };
-      
-      await this.emailConfigRepository.update(
-        defaultWhere,
-        { isDefault: false },
-      );
+
+      await this.emailConfigRepository.update(defaultWhere, { isDefault: false });
     }
 
     // Merge existing config with updates
@@ -125,22 +133,19 @@ export class EmailConfigService {
       config: updateDto.config ? { ...config.config, ...updateDto.config } : config.config,
     };
 
-    await this.emailConfigRepository.update(
-      { id: config.id },
-      updatedConfig,
-    );
+    await this.emailConfigRepository.update({ id: config.id }, updatedConfig);
 
     return this.findOne(provider, organizationId);
   }
 
   async remove(provider: EmailServiceProvider, organizationId?: string): Promise<void> {
     const config = await this.findOne(provider, organizationId);
-    
+
     // If this is the default, we need to unset it
     if (config.isDefault) {
       // Find another enabled config to set as default
       const where = organizationId
-        ? { 
+        ? {
             enabled: true,
             organizationId,
             id: Not(config.id),
@@ -150,14 +155,11 @@ export class EmailConfigService {
             organizationId: null,
             id: Not(config.id),
           };
-          
+
       const otherConfig = await this.emailConfigRepository.findOne({ where });
 
       if (otherConfig) {
-        await this.emailConfigRepository.update(
-          { id: otherConfig.id },
-          { isDefault: true },
-        );
+        await this.emailConfigRepository.update({ id: otherConfig.id }, { isDefault: true });
       }
     }
 
@@ -165,9 +167,9 @@ export class EmailConfigService {
   }
 
   async testConfiguration(
-    provider: EmailServiceProvider, 
+    provider: EmailServiceProvider,
     to: string,
-    organizationId?: string
+    organizationId?: string,
   ): Promise<{ success: boolean; message: string }> {
     const config = await this.findOne(provider, organizationId);
 
@@ -221,7 +223,10 @@ export class EmailConfigService {
     }
   }
 
-  async setDefault(provider: EmailServiceProvider, organizationId?: string): Promise<EmailServiceConfig> {
+  async setDefault(
+    provider: EmailServiceProvider,
+    organizationId?: string,
+  ): Promise<EmailServiceConfig> {
     const config = await this.findOne(provider, organizationId);
 
     if (!config.enabled) {
@@ -232,17 +237,11 @@ export class EmailConfigService {
     const defaultWhere = organizationId
       ? { isDefault: true, organizationId }
       : { isDefault: true, organizationId: null };
-      
-    await this.emailConfigRepository.update(
-      defaultWhere,
-      { isDefault: false },
-    );
+
+    await this.emailConfigRepository.update(defaultWhere, { isDefault: false });
 
     // Set this as default
-    await this.emailConfigRepository.update(
-      { id: config.id },
-      { isDefault: true },
-    );
+    await this.emailConfigRepository.update({ id: config.id }, { isDefault: true });
 
     return this.findOne(provider, organizationId);
   }
@@ -251,15 +250,18 @@ export class EmailConfigService {
     const where = organizationId
       ? { isDefault: true, enabled: true, organizationId }
       : { isDefault: true, enabled: true, organizationId: null };
-      
+
     return this.emailConfigRepository.findOne({ where });
   }
 
-  async getEnabledConfig(provider: EmailServiceProvider, organizationId?: string): Promise<EmailServiceConfig | null> {
+  async getEnabledConfig(
+    provider: EmailServiceProvider,
+    organizationId?: string,
+  ): Promise<EmailServiceConfig | null> {
     const where = organizationId
       ? { provider, enabled: true, organizationId }
       : { provider, enabled: true, organizationId: null };
-      
+
     return this.emailConfigRepository.findOne({ where });
   }
 
@@ -271,7 +273,7 @@ export class EmailConfigService {
 
   async setGlobalDefault(provider: EmailServiceProvider): Promise<EmailServiceConfig> {
     const config = await this.findOne(provider);
-    
+
     if (!config.enabled) {
       throw new BadRequestException(`Cannot set disabled service ${provider} as global default`);
     }
@@ -281,16 +283,10 @@ export class EmailConfigService {
     }
 
     // Unset all other global defaults
-    await this.emailConfigRepository.update(
-      { isGlobalDefault: true },
-      { isGlobalDefault: false },
-    );
+    await this.emailConfigRepository.update({ isGlobalDefault: true }, { isGlobalDefault: false });
 
     // Set this as global default
-    await this.emailConfigRepository.update(
-      { id: config.id },
-      { isGlobalDefault: true },
-    );
+    await this.emailConfigRepository.update({ id: config.id }, { isGlobalDefault: true });
 
     return this.findOne(provider);
   }
@@ -369,9 +365,9 @@ export class EmailConfigService {
     if (!config.apiKey) {
       throw new Error('SendGrid API key is required');
     }
-    
+
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
   private async sendOffice365Email(
@@ -382,9 +378,9 @@ export class EmailConfigService {
     if (!config.clientId || !config.clientSecret || !config.tenantId) {
       throw new Error('Office 365 credentials are required');
     }
-    
+
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
   private async sendTwilioEmail(
@@ -395,9 +391,9 @@ export class EmailConfigService {
     if (!config.accountSid || !config.authToken || !config.apiKey) {
       throw new Error('Twilio credentials are required');
     }
-    
+
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
   private async sendSMTPEmail(
@@ -408,9 +404,9 @@ export class EmailConfigService {
     if (!config.host || !config.port || !config.username || !config.password) {
       throw new Error('SMTP configuration is required');
     }
-    
+
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
   private async sendAwsSesEmail(
@@ -422,8 +418,8 @@ export class EmailConfigService {
     if (!config.accessKeyId || !config.secretAccessKey || !config.region) {
       throw new Error('AWS SES configuration is incomplete');
     }
-    
+
     // Simulate AWS SES API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 }

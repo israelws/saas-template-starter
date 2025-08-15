@@ -84,15 +84,15 @@ export class CreateOrganizationHierarchyView1751745400000 implements MigrationIn
     await queryRunner.query(`
       CREATE INDEX idx_org_hierarchy_view_parent_id ON organization_hierarchy_view("parentId")
     `);
-    
+
     await queryRunner.query(`
       CREATE INDEX idx_org_hierarchy_view_root_id ON organization_hierarchy_view(root_id)
     `);
-    
+
     await queryRunner.query(`
       CREATE INDEX idx_org_hierarchy_view_depth ON organization_hierarchy_view(depth)
     `);
-    
+
     await queryRunner.query(`
       CREATE INDEX idx_org_hierarchy_view_path ON organization_hierarchy_view USING GIN(path)
     `);
@@ -143,14 +143,20 @@ export class CreateOrganizationHierarchyView1751745400000 implements MigrationIn
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Drop triggers
-    await queryRunner.query(`DROP TRIGGER IF EXISTS refresh_org_hierarchy_on_delete ON organizations`);
-    await queryRunner.query(`DROP TRIGGER IF EXISTS refresh_org_hierarchy_on_update ON organizations`);
-    await queryRunner.query(`DROP TRIGGER IF EXISTS refresh_org_hierarchy_on_insert ON organizations`);
-    
+    await queryRunner.query(
+      `DROP TRIGGER IF EXISTS refresh_org_hierarchy_on_delete ON organizations`,
+    );
+    await queryRunner.query(
+      `DROP TRIGGER IF EXISTS refresh_org_hierarchy_on_update ON organizations`,
+    );
+    await queryRunner.query(
+      `DROP TRIGGER IF EXISTS refresh_org_hierarchy_on_insert ON organizations`,
+    );
+
     // Drop functions
     await queryRunner.query(`DROP FUNCTION IF EXISTS trigger_refresh_org_hierarchy()`);
     await queryRunner.query(`DROP FUNCTION IF EXISTS refresh_organization_hierarchy_view()`);
-    
+
     // Drop materialized view
     await queryRunner.query(`DROP MATERIALIZED VIEW IF EXISTS organization_hierarchy_view`);
   }

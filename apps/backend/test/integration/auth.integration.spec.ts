@@ -30,7 +30,7 @@ describe('Auth Integration', () => {
     app = moduleFixture.createNestApplication();
     authService = moduleFixture.get<AuthService>(AuthService);
     dataSource = moduleFixture.get<DataSource>(DataSource);
-    
+
     await app.init();
   });
 
@@ -89,14 +89,9 @@ describe('Auth Integration', () => {
         password: 'WrongPassword',
       };
 
-      jest.spyOn(authService, 'login').mockRejectedValue(
-        new Error('Invalid credentials')
-      );
+      jest.spyOn(authService, 'login').mockRejectedValue(new Error('Invalid credentials'));
 
-      await request(app.getHttpServer())
-        .post('/auth/login')
-        .send(loginDto)
-        .expect(401);
+      await request(app.getHttpServer()).post('/auth/login').send(loginDto).expect(401);
     });
 
     it('should return 400 for missing email', async () => {
@@ -104,10 +99,7 @@ describe('Auth Integration', () => {
         password: 'TestPassword123!',
       };
 
-      await request(app.getHttpServer())
-        .post('/auth/login')
-        .send(loginDto)
-        .expect(400);
+      await request(app.getHttpServer()).post('/auth/login').send(loginDto).expect(400);
     });
 
     it('should return 400 for missing password', async () => {
@@ -115,10 +107,7 @@ describe('Auth Integration', () => {
         email: 'test@example.com',
       };
 
-      await request(app.getHttpServer())
-        .post('/auth/login')
-        .send(loginDto)
-        .expect(400);
+      await request(app.getHttpServer()).post('/auth/login').send(loginDto).expect(400);
     });
 
     it('should return 400 for invalid email format', async () => {
@@ -127,10 +116,7 @@ describe('Auth Integration', () => {
         password: 'TestPassword123!',
       };
 
-      await request(app.getHttpServer())
-        .post('/auth/login')
-        .send(loginDto)
-        .expect(400);
+      await request(app.getHttpServer()).post('/auth/login').send(loginDto).expect(400);
     });
   });
 
@@ -169,7 +155,7 @@ describe('Auth Integration', () => {
           firstName: 'New',
           lastName: 'User',
           status: 'pending',
-        })
+        }),
       );
     });
 
@@ -181,14 +167,9 @@ describe('Auth Integration', () => {
         lastName: 'User',
       };
 
-      jest.spyOn(authService, 'register').mockRejectedValue(
-        new Error('User already exists')
-      );
+      jest.spyOn(authService, 'register').mockRejectedValue(new Error('User already exists'));
 
-      await request(app.getHttpServer())
-        .post('/auth/register')
-        .send(registerDto)
-        .expect(500); // AuthService error handling would need to be improved
+      await request(app.getHttpServer()).post('/auth/register').send(registerDto).expect(500); // AuthService error handling would need to be improved
     });
 
     it('should return 400 for weak password', async () => {
@@ -199,10 +180,7 @@ describe('Auth Integration', () => {
         lastName: 'User',
       };
 
-      await request(app.getHttpServer())
-        .post('/auth/register')
-        .send(registerDto)
-        .expect(400);
+      await request(app.getHttpServer()).post('/auth/register').send(registerDto).expect(400);
     });
   });
 
@@ -233,14 +211,9 @@ describe('Auth Integration', () => {
         refreshToken: 'invalid-refresh-token',
       };
 
-      jest.spyOn(authService, 'refreshToken').mockRejectedValue(
-        new Error('Invalid refresh token')
-      );
+      jest.spyOn(authService, 'refreshToken').mockRejectedValue(new Error('Invalid refresh token'));
 
-      await request(app.getHttpServer())
-        .post('/auth/refresh')
-        .send(refreshDto)
-        .expect(401);
+      await request(app.getHttpServer()).post('/auth/refresh').send(refreshDto).expect(401);
     });
   });
 
@@ -252,10 +225,7 @@ describe('Auth Integration', () => {
 
       jest.spyOn(authService, 'logout').mockResolvedValue(undefined);
 
-      await request(app.getHttpServer())
-        .post('/auth/logout')
-        .send(logoutDto)
-        .expect(200);
+      await request(app.getHttpServer()).post('/auth/logout').send(logoutDto).expect(200);
     });
   });
 
@@ -308,9 +278,9 @@ describe('Auth Integration', () => {
         newPassword: 'NewPassword123!',
       };
 
-      jest.spyOn(authService, 'resetPassword').mockRejectedValue(
-        new Error('Invalid confirmation code')
-      );
+      jest
+        .spyOn(authService, 'resetPassword')
+        .mockRejectedValue(new Error('Invalid confirmation code'));
 
       await request(app.getHttpServer())
         .post('/auth/reset-password')
@@ -322,7 +292,7 @@ describe('Auth Integration', () => {
   describe('Protected routes', () => {
     it('should access protected route with valid token', async () => {
       const mockToken = 'valid-jwt-token';
-      
+
       // Mock JWT verification
       jest.spyOn(authService, 'verifyToken').mockResolvedValue({
         id: 'user-123',
@@ -343,17 +313,13 @@ describe('Auth Integration', () => {
     });
 
     it('should reject access without token', async () => {
-      await request(app.getHttpServer())
-        .get('/auth/profile')
-        .expect(401);
+      await request(app.getHttpServer()).get('/auth/profile').expect(401);
     });
 
     it('should reject access with invalid token', async () => {
       const invalidToken = 'invalid-jwt-token';
 
-      jest.spyOn(authService, 'verifyToken').mockRejectedValue(
-        new Error('Invalid token')
-      );
+      jest.spyOn(authService, 'verifyToken').mockRejectedValue(new Error('Invalid token'));
 
       await request(app.getHttpServer())
         .get('/auth/profile')

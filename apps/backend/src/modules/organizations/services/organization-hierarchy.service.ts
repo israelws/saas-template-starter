@@ -57,7 +57,7 @@ export class OrganizationHierarchyService implements OnModuleInit {
 
     // Set up listener for refresh notifications
     await this.dataSource.query('LISTEN refresh_org_hierarchy');
-    
+
     // Initial refresh of the materialized view
     await this.refreshHierarchyView();
   }
@@ -75,11 +75,13 @@ export class OrganizationHierarchyService implements OnModuleInit {
     const startTime = Date.now();
 
     try {
-      await this.dataSource.query('REFRESH MATERIALIZED VIEW CONCURRENTLY organization_hierarchy_view');
+      await this.dataSource.query(
+        'REFRESH MATERIALIZED VIEW CONCURRENTLY organization_hierarchy_view',
+      );
       const duration = Date.now() - startTime;
       this.logger.log(`Organization hierarchy view refreshed in ${duration}ms`);
     } catch (error) {
-      this.logger.error({ message: "Failed to refresh organization hierarchy view", error: error });
+      this.logger.error({ message: 'Failed to refresh organization hierarchy view', error: error });
       throw error;
     } finally {
       this.isRefreshing = false;
@@ -167,19 +169,22 @@ export class OrganizationHierarchyService implements OnModuleInit {
     `;
 
     const result = await this.dataSource.query(query, [organizationIds]);
-    return result.map(row => this.mapStatsResult(row));
+    return result.map((row) => this.mapStatsResult(row));
   }
 
   /**
    * Search organizations in the hierarchy
    */
-  async searchHierarchy(searchTerm: string, filters?: {
-    type?: string;
-    status?: string;
-    minDepth?: number;
-    maxDepth?: number;
-    rootId?: string;
-  }): Promise<OrganizationHierarchyNode[]> {
+  async searchHierarchy(
+    searchTerm: string,
+    filters?: {
+      type?: string;
+      status?: string;
+      minDepth?: number;
+      maxDepth?: number;
+      rootId?: string;
+    },
+  ): Promise<OrganizationHierarchyNode[]> {
     let query = `
       SELECT * FROM organization_hierarchy_view
       WHERE (
@@ -261,7 +266,7 @@ export class OrganizationHierarchyService implements OnModuleInit {
   }
 
   private mapHierarchyResults(results: any[]): OrganizationHierarchyNode[] {
-    return results.map(row => ({
+    return results.map((row) => ({
       id: row.id,
       parentId: row.parentId,
       name: row.name,

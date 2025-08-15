@@ -28,26 +28,24 @@ export class EmailProviderFactory {
   private createAwsSesProvider(config: EmailServiceConfig): IEmailService {
     // Use the existing SES service with the provided config
     const sesConfig = config.config as any;
-    return new SesEmailService(
-      {
-        get: (key: string) => {
-          switch (key) {
-            case 'aws.region':
-              return sesConfig.region || this.configService.get('aws.region');
-            case 'aws.accessKeyId':
-              return sesConfig.accessKeyId || this.configService.get('aws.accessKeyId');
-            case 'aws.secretAccessKey':
-              return sesConfig.secretAccessKey || this.configService.get('aws.secretAccessKey');
-            case 'email.fromAddress':
-              return sesConfig.fromEmail || this.configService.get('email.fromAddress');
-            case 'email.fromName':
-              return sesConfig.fromName || this.configService.get('email.fromName');
-            default:
-              return this.configService.get(key);
-          }
+    return new SesEmailService({
+      get: (key: string) => {
+        switch (key) {
+          case 'aws.region':
+            return sesConfig.region || this.configService.get('aws.region');
+          case 'aws.accessKeyId':
+            return sesConfig.accessKeyId || this.configService.get('aws.accessKeyId');
+          case 'aws.secretAccessKey':
+            return sesConfig.secretAccessKey || this.configService.get('aws.secretAccessKey');
+          case 'email.fromAddress':
+            return sesConfig.fromEmail || this.configService.get('email.fromAddress');
+          case 'email.fromName':
+            return sesConfig.fromName || this.configService.get('email.fromName');
+          default:
+            return this.configService.get(key);
         }
-      } as ConfigService
-    );
+      },
+    } as ConfigService);
   }
 
   private createSendGridProvider(config: EmailServiceConfig): IEmailService {

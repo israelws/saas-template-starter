@@ -9,7 +9,8 @@ import { RoleForm } from '@/components/roles/role-form';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useBreadcrumb } from '@/hooks/use-breadcrumb';
 
-// Temporary mock data - map of roles by ID
+// Temporary mock data - map of roles by ID with policy associations
+// Policy IDs are from the actual database
 const MOCK_ROLES: Record<string, any> = {
   '1': {
     id: '1',
@@ -18,6 +19,9 @@ const MOCK_ROLES: Record<string, any> = {
     description: 'Full system access with ability to manage all organizations',
     isActive: true,
     isSystem: true,
+    policyIds: [
+      'f684c5a2-341d-4263-9ec7-62d0dbc482b0', // Super Admin Full Access
+    ],
   },
   '2': {
     id: '2',
@@ -26,6 +30,10 @@ const MOCK_ROLES: Record<string, any> = {
     description: 'Organization administrator with full access within their organization',
     isActive: true,
     isSystem: true,
+    policyIds: [
+      '0564f32c-4f06-413a-8040-4bacace22d81', // Admin Organization Access
+      '82c00bb7-362d-4bdf-b8cd-c281b2d67b54', // User Self Management
+    ],
   },
   '3': {
     id: '3',
@@ -34,6 +42,10 @@ const MOCK_ROLES: Record<string, any> = {
     description: 'Can manage products, customers, and orders within their organization',
     isActive: true,
     isSystem: true,
+    policyIds: [
+      'f8b18f1b-da09-4882-9960-1b5720c03f3e', // Manager Team Access
+      '82c00bb7-362d-4bdf-b8cd-c281b2d67b54', // User Self Management
+    ],
   },
   '4': {
     id: '4',
@@ -42,6 +54,9 @@ const MOCK_ROLES: Record<string, any> = {
     description: 'Basic user with read access to resources',
     isActive: true,
     isSystem: true,
+    policyIds: [
+      '82c00bb7-362d-4bdf-b8cd-c281b2d67b54', // User Self Management
+    ],
   },
   '5': {
     id: '5',
@@ -50,6 +65,9 @@ const MOCK_ROLES: Record<string, any> = {
     description: 'Limited access for guest users',
     isActive: true,
     isSystem: true,
+    policyIds: [
+      '9b235856-61a3-4c0c-9532-28f8cfdf371b', // Guest Read Only
+    ],
   },
   '6': {
     id: '6',
@@ -58,6 +76,10 @@ const MOCK_ROLES: Record<string, any> = {
     description: 'Head of department with approval rights',
     isActive: true,
     isSystem: false,
+    policyIds: [
+      'f8b18f1b-da09-4882-9960-1b5720c03f3e', // Manager Team Access
+      '82c00bb7-362d-4bdf-b8cd-c281b2d67b54', // User Self Management
+    ],
   },
   '7': {
     id: '7',
@@ -66,6 +88,7 @@ const MOCK_ROLES: Record<string, any> = {
     description: 'Read-only access to all resources for audit purposes',
     isActive: true,
     isSystem: false,
+    policyIds: [], // Auditors typically have custom read-only policies
   },
   '8': {
     id: '8',
@@ -74,6 +97,10 @@ const MOCK_ROLES: Record<string, any> = {
     description: 'Support team member with customer and order access',
     isActive: true,
     isSystem: false,
+    policyIds: [
+      'f8869a4a-a1f5-4bfe-8935-2d85f77da4dd', // Sales Customer Access
+      '82c00bb7-362d-4bdf-b8cd-c281b2d67b54', // User Self Management
+    ],
   },
 };
 

@@ -64,6 +64,10 @@ export function FieldPermissionsEditorV2({
   const availableFields = useMemo(() => {
     const allFields = getAllFieldsForResource(selectedResource);
     const currentFields = currentPermissions[activeTab] || [];
+    // If wildcard (*) is already in the list, no fields are available
+    if (currentFields.includes('*')) {
+      return [];
+    }
     return allFields.filter(field => !currentFields.includes(field));
   }, [selectedResource, currentPermissions, activeTab]);
 

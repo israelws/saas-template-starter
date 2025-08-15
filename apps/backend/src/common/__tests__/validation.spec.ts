@@ -1,4 +1,8 @@
-import { validateOrganizationHierarchy, validatePolicyConditions, validateUserPermissions } from '../validation';
+import {
+  validateOrganizationHierarchy,
+  validatePolicyConditions,
+  validateUserPermissions,
+} from '../validation';
 
 describe('Validation Utils', () => {
   describe('validateOrganizationHierarchy', () => {
@@ -11,9 +15,9 @@ describe('Validation Utils', () => {
           {
             id: 'org-2',
             name: 'Child Org',
-            type: 'division'
-          }
-        ]
+            type: 'division',
+          },
+        ],
       };
 
       const result = validateOrganizationHierarchy(organization);
@@ -32,9 +36,9 @@ describe('Validation Utils', () => {
             id: 'org-2',
             name: 'Child Org',
             type: 'division',
-            parent: { id: 'org-1' }
-          }
-        ]
+            parent: { id: 'org-1' },
+          },
+        ],
       };
 
       const result = validateOrganizationHierarchy(organization);
@@ -47,7 +51,7 @@ describe('Validation Utils', () => {
         id: 'org-1',
         name: 'Invalid Org',
         type: 'invalid_type',
-        children: []
+        children: [],
       };
 
       const result = validateOrganizationHierarchy(organization);
@@ -61,7 +65,7 @@ describe('Validation Utils', () => {
       const conditions = {
         'subject.attributes.role': { equals: 'admin' },
         'resource.attributes.classification': { in: ['public', 'internal'] },
-        'environment.attributes.time': { between: ['09:00', '17:00'] }
+        'environment.attributes.time': { between: ['09:00', '17:00'] },
       };
 
       const result = validatePolicyConditions(conditions);
@@ -71,7 +75,7 @@ describe('Validation Utils', () => {
 
     it('should detect invalid condition operators', () => {
       const conditions = {
-        'subject.attributes.role': { invalid_operator: 'admin' }
+        'subject.attributes.role': { invalid_operator: 'admin' },
       };
 
       const result = validatePolicyConditions(conditions);
@@ -81,7 +85,7 @@ describe('Validation Utils', () => {
 
     it('should validate attribute path format', () => {
       const conditions = {
-        'invalid_path': { equals: 'value' }
+        invalid_path: { equals: 'value' },
       };
 
       const result = validatePolicyConditions(conditions);
@@ -91,7 +95,7 @@ describe('Validation Utils', () => {
 
     it('should validate time range conditions', () => {
       const conditions = {
-        'environment.attributes.time': { between: ['25:00', '17:00'] }
+        'environment.attributes.time': { between: ['25:00', '17:00'] },
       };
 
       const result = validatePolicyConditions(conditions);
@@ -108,9 +112,9 @@ describe('Validation Utils', () => {
           {
             organizationId: 'org-1',
             role: 'admin',
-            permissions: ['read', 'write', 'delete']
-          }
-        ]
+            permissions: ['read', 'write', 'delete'],
+          },
+        ],
       };
 
       const organizationTree = {
@@ -118,14 +122,14 @@ describe('Validation Utils', () => {
           id: 'org-1',
           name: 'Root Org',
           type: 'company',
-          children: ['org-2']
+          children: ['org-2'],
         },
         'org-2': {
           id: 'org-2',
           name: 'Child Org',
           type: 'division',
-          parent: 'org-1'
-        }
+          parent: 'org-1',
+        },
       };
 
       const result = validateUserPermissions(user, organizationTree);
@@ -140,22 +144,24 @@ describe('Validation Utils', () => {
           {
             organizationId: 'non-existent-org',
             role: 'admin',
-            permissions: ['read', 'write']
-          }
-        ]
+            permissions: ['read', 'write'],
+          },
+        ],
       };
 
       const organizationTree = {
         'org-1': {
           id: 'org-1',
           name: 'Root Org',
-          type: 'company'
-        }
+          type: 'company',
+        },
       };
 
       const result = validateUserPermissions(user, organizationTree);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('User has permissions for non-existent organization: non-existent-org');
+      expect(result.errors).toContain(
+        'User has permissions for non-existent organization: non-existent-org',
+      );
     });
 
     it('should validate role-permission compatibility', () => {
@@ -165,17 +171,17 @@ describe('Validation Utils', () => {
           {
             organizationId: 'org-1',
             role: 'viewer',
-            permissions: ['read', 'write', 'delete'] // Too many permissions for viewer role
-          }
-        ]
+            permissions: ['read', 'write', 'delete'], // Too many permissions for viewer role
+          },
+        ],
       };
 
       const organizationTree = {
         'org-1': {
           id: 'org-1',
           name: 'Root Org',
-          type: 'company'
-        }
+          type: 'company',
+        },
       };
 
       const result = validateUserPermissions(user, organizationTree);

@@ -14,9 +14,9 @@ export class OrganizationContextGuard implements CanActivate {
     }
 
     // Extract organization ID from various sources
-    const organizationId = 
+    const organizationId =
       request.params.organizationId ||
-      request.headers['x-organization-id'] || 
+      request.headers['x-organization-id'] ||
       request.query.organizationId ||
       request.body?.organizationId;
 
@@ -27,7 +27,7 @@ export class OrganizationContextGuard implements CanActivate {
 
     // Check if user has access to this organization
     const hasAccess = user.memberships?.some(
-      (membership: any) => membership.organizationId === organizationId
+      (membership: any) => membership.organizationId === organizationId,
     );
 
     if (!hasAccess) {
@@ -36,9 +36,7 @@ export class OrganizationContextGuard implements CanActivate {
 
     // Attach organization context to request
     request.organizationId = organizationId;
-    request.userMembership = user.memberships.find(
-      (m: any) => m.organizationId === organizationId
-    );
+    request.userMembership = user.memberships.find((m: any) => m.organizationId === organizationId);
 
     return true;
   }

@@ -10,21 +10,21 @@ const examplePolicy = {
   effect: PolicyEffect.ALLOW,
   priority: 25,
   isActive: true,
-  
+
   // Who can access
   subjects: {
-    roles: ['manager']
+    roles: ['manager'],
   },
-  
+
   // What they can access
   resources: {
     types: ['product', 'customer', 'order'],
     attributes: {
       // This ensures resources must belong to the user's organization
-      organizationId: '${subject.organizationId}'
-    }
+      organizationId: '${subject.organizationId}',
+    },
   },
-  
+
   // What actions they can perform
   actions: ['create', 'read', 'update', 'list'],
 };
@@ -37,21 +37,21 @@ const departmentPolicy = {
   effect: PolicyEffect.ALLOW,
   priority: 30,
   isActive: true,
-  
+
   subjects: {
-    roles: ['user', 'analyst']
+    roles: ['user', 'analyst'],
   },
-  
+
   resources: {
     types: ['report', 'dashboard', 'dataset'],
     attributes: {
       // Multiple attribute constraints
       organizationId: '${subject.organizationId}',
       departmentId: '${subject.departmentId}',
-      visibility: 'department' // Static value
-    }
+      visibility: 'department', // Static value
+    },
   },
-  
+
   actions: ['read', 'list', 'export'],
 };
 
@@ -63,21 +63,21 @@ const ownerPolicy = {
   effect: PolicyEffect.ALLOW,
   priority: 40,
   isActive: true,
-  
+
   subjects: {
     attributes: {
-      authenticated: true
-    }
+      authenticated: true,
+    },
   },
-  
+
   resources: {
     types: ['profile', 'preferences', 'personal_data'],
     attributes: {
       // User can only access their own resources
-      ownerId: '${subject.id}'
-    }
+      ownerId: '${subject.id}',
+    },
   },
-  
+
   actions: ['*'], // Full access to own resources
 };
 

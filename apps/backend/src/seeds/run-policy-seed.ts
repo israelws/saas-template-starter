@@ -7,7 +7,7 @@ import { seedExamplePolicies } from './example-policies.seed';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const dataSource = app.get(DataSource);
-  
+
   try {
     await seedExamplePolicies(dataSource);
     console.log('✅ Policy seeding completed successfully');

@@ -228,51 +228,113 @@ export class InitialSchema1704000000000 implements MigrationInterface {
     `);
 
     // Create indexes
-    await queryRunner.query(`CREATE INDEX "IDX_organizations_parentId" ON "organizations" ("parentId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_organization_closure_ancestor" ON "organization_closure" ("id_ancestor")`);
-    await queryRunner.query(`CREATE INDEX "IDX_organization_closure_descendant" ON "organization_closure" ("id_descendant")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_organizations_parentId" ON "organizations" ("parentId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_organization_closure_ancestor" ON "organization_closure" ("id_ancestor")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_organization_closure_descendant" ON "organization_closure" ("id_descendant")`,
+    );
     await queryRunner.query(`CREATE INDEX "IDX_users_email" ON "users" ("email")`);
     await queryRunner.query(`CREATE INDEX "IDX_users_cognitoId" ON "users" ("cognitoId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_memberships_userId" ON "user_organization_memberships" ("userId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_memberships_organizationId" ON "user_organization_memberships" ("organizationId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_policies_organizationId" ON "policies" ("organizationId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_policies_resource_action" ON "policies" ("resource", "action")`);
-    await queryRunner.query(`CREATE INDEX "IDX_products_organizationId" ON "products" ("organizationId")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_memberships_userId" ON "user_organization_memberships" ("userId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_memberships_organizationId" ON "user_organization_memberships" ("organizationId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_policies_organizationId" ON "policies" ("organizationId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_policies_resource_action" ON "policies" ("resource", "action")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_products_organizationId" ON "products" ("organizationId")`,
+    );
     await queryRunner.query(`CREATE INDEX "IDX_products_sku" ON "products" ("sku")`);
-    await queryRunner.query(`CREATE INDEX "IDX_customers_organizationId" ON "customers" ("organizationId")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_customers_organizationId" ON "customers" ("organizationId")`,
+    );
     await queryRunner.query(`CREATE INDEX "IDX_customers_email" ON "customers" ("email")`);
-    await queryRunner.query(`CREATE INDEX "IDX_orders_organizationId" ON "orders" ("organizationId")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_orders_organizationId" ON "orders" ("organizationId")`,
+    );
     await queryRunner.query(`CREATE INDEX "IDX_orders_customerId" ON "orders" ("customerId")`);
     await queryRunner.query(`CREATE INDEX "IDX_order_items_orderId" ON "order_items" ("orderId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_transactions_organizationId" ON "transactions" ("organizationId")`);
-    await queryRunner.query(`CREATE INDEX "IDX_transactions_customerId" ON "transactions" ("customerId")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_transactions_organizationId" ON "transactions" ("organizationId")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_transactions_customerId" ON "transactions" ("customerId")`,
+    );
 
     // Add foreign key constraints
-    await queryRunner.query(`ALTER TABLE "organizations" ADD CONSTRAINT "FK_organizations_parent" FOREIGN KEY ("parentId") REFERENCES "organizations"("id") ON DELETE CASCADE`);
-    await queryRunner.query(`ALTER TABLE "organization_closure" ADD CONSTRAINT "FK_closure_ancestor" FOREIGN KEY ("id_ancestor") REFERENCES "organizations"("id") ON DELETE CASCADE`);
-    await queryRunner.query(`ALTER TABLE "organization_closure" ADD CONSTRAINT "FK_closure_descendant" FOREIGN KEY ("id_descendant") REFERENCES "organizations"("id") ON DELETE CASCADE`);
-    await queryRunner.query(`ALTER TABLE "user_organization_memberships" ADD CONSTRAINT "FK_membership_user" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE`);
-    await queryRunner.query(`ALTER TABLE "user_organization_memberships" ADD CONSTRAINT "FK_membership_organization" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE`);
-    await queryRunner.query(`ALTER TABLE "attribute_definitions" ADD CONSTRAINT "FK_attribute_organization" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE`);
-    await queryRunner.query(`ALTER TABLE "policy_sets" ADD CONSTRAINT "FK_policy_set_organization" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE`);
-    await queryRunner.query(`ALTER TABLE "policies" ADD CONSTRAINT "FK_policy_organization" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE`);
-    await queryRunner.query(`ALTER TABLE "policies" ADD CONSTRAINT "FK_policy_set" FOREIGN KEY ("policySetId") REFERENCES "policy_sets"("id") ON DELETE CASCADE`);
-    await queryRunner.query(`ALTER TABLE "products" ADD CONSTRAINT "FK_product_organization" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE`);
-    await queryRunner.query(`ALTER TABLE "customers" ADD CONSTRAINT "FK_customer_organization" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE`);
-    await queryRunner.query(`ALTER TABLE "orders" ADD CONSTRAINT "FK_order_organization" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE`);
-    await queryRunner.query(`ALTER TABLE "orders" ADD CONSTRAINT "FK_order_customer" FOREIGN KEY ("customerId") REFERENCES "customers"("id") ON DELETE RESTRICT`);
-    await queryRunner.query(`ALTER TABLE "order_items" ADD CONSTRAINT "FK_order_item_order" FOREIGN KEY ("orderId") REFERENCES "orders"("id") ON DELETE CASCADE`);
-    await queryRunner.query(`ALTER TABLE "order_items" ADD CONSTRAINT "FK_order_item_product" FOREIGN KEY ("productId") REFERENCES "products"("id") ON DELETE RESTRICT`);
-    await queryRunner.query(`ALTER TABLE "transactions" ADD CONSTRAINT "FK_transaction_organization" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE`);
-    await queryRunner.query(`ALTER TABLE "transactions" ADD CONSTRAINT "FK_transaction_customer" FOREIGN KEY ("customerId") REFERENCES "customers"("id") ON DELETE RESTRICT`);
-    await queryRunner.query(`ALTER TABLE "transactions" ADD CONSTRAINT "FK_transaction_order" FOREIGN KEY ("orderId") REFERENCES "orders"("id") ON DELETE SET NULL`);
+    await queryRunner.query(
+      `ALTER TABLE "organizations" ADD CONSTRAINT "FK_organizations_parent" FOREIGN KEY ("parentId") REFERENCES "organizations"("id") ON DELETE CASCADE`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "organization_closure" ADD CONSTRAINT "FK_closure_ancestor" FOREIGN KEY ("id_ancestor") REFERENCES "organizations"("id") ON DELETE CASCADE`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "organization_closure" ADD CONSTRAINT "FK_closure_descendant" FOREIGN KEY ("id_descendant") REFERENCES "organizations"("id") ON DELETE CASCADE`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "user_organization_memberships" ADD CONSTRAINT "FK_membership_user" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "user_organization_memberships" ADD CONSTRAINT "FK_membership_organization" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "attribute_definitions" ADD CONSTRAINT "FK_attribute_organization" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "policy_sets" ADD CONSTRAINT "FK_policy_set_organization" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "policies" ADD CONSTRAINT "FK_policy_organization" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "policies" ADD CONSTRAINT "FK_policy_set" FOREIGN KEY ("policySetId") REFERENCES "policy_sets"("id") ON DELETE CASCADE`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "products" ADD CONSTRAINT "FK_product_organization" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "customers" ADD CONSTRAINT "FK_customer_organization" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "orders" ADD CONSTRAINT "FK_order_organization" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "orders" ADD CONSTRAINT "FK_order_customer" FOREIGN KEY ("customerId") REFERENCES "customers"("id") ON DELETE RESTRICT`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "order_items" ADD CONSTRAINT "FK_order_item_order" FOREIGN KEY ("orderId") REFERENCES "orders"("id") ON DELETE CASCADE`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "order_items" ADD CONSTRAINT "FK_order_item_product" FOREIGN KEY ("productId") REFERENCES "products"("id") ON DELETE RESTRICT`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "transactions" ADD CONSTRAINT "FK_transaction_organization" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "transactions" ADD CONSTRAINT "FK_transaction_customer" FOREIGN KEY ("customerId") REFERENCES "customers"("id") ON DELETE RESTRICT`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "transactions" ADD CONSTRAINT "FK_transaction_order" FOREIGN KEY ("orderId") REFERENCES "orders"("id") ON DELETE SET NULL`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Drop foreign key constraints
     await queryRunner.query(`ALTER TABLE "transactions" DROP CONSTRAINT "FK_transaction_order"`);
     await queryRunner.query(`ALTER TABLE "transactions" DROP CONSTRAINT "FK_transaction_customer"`);
-    await queryRunner.query(`ALTER TABLE "transactions" DROP CONSTRAINT "FK_transaction_organization"`);
+    await queryRunner.query(
+      `ALTER TABLE "transactions" DROP CONSTRAINT "FK_transaction_organization"`,
+    );
     await queryRunner.query(`ALTER TABLE "order_items" DROP CONSTRAINT "FK_order_item_product"`);
     await queryRunner.query(`ALTER TABLE "order_items" DROP CONSTRAINT "FK_order_item_order"`);
     await queryRunner.query(`ALTER TABLE "orders" DROP CONSTRAINT "FK_order_customer"`);
@@ -281,13 +343,27 @@ export class InitialSchema1704000000000 implements MigrationInterface {
     await queryRunner.query(`ALTER TABLE "products" DROP CONSTRAINT "FK_product_organization"`);
     await queryRunner.query(`ALTER TABLE "policies" DROP CONSTRAINT "FK_policy_set"`);
     await queryRunner.query(`ALTER TABLE "policies" DROP CONSTRAINT "FK_policy_organization"`);
-    await queryRunner.query(`ALTER TABLE "policy_sets" DROP CONSTRAINT "FK_policy_set_organization"`);
-    await queryRunner.query(`ALTER TABLE "attribute_definitions" DROP CONSTRAINT "FK_attribute_organization"`);
-    await queryRunner.query(`ALTER TABLE "user_organization_memberships" DROP CONSTRAINT "FK_membership_organization"`);
-    await queryRunner.query(`ALTER TABLE "user_organization_memberships" DROP CONSTRAINT "FK_membership_user"`);
-    await queryRunner.query(`ALTER TABLE "organization_closure" DROP CONSTRAINT "FK_closure_descendant"`);
-    await queryRunner.query(`ALTER TABLE "organization_closure" DROP CONSTRAINT "FK_closure_ancestor"`);
-    await queryRunner.query(`ALTER TABLE "organizations" DROP CONSTRAINT "FK_organizations_parent"`);
+    await queryRunner.query(
+      `ALTER TABLE "policy_sets" DROP CONSTRAINT "FK_policy_set_organization"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "attribute_definitions" DROP CONSTRAINT "FK_attribute_organization"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "user_organization_memberships" DROP CONSTRAINT "FK_membership_organization"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "user_organization_memberships" DROP CONSTRAINT "FK_membership_user"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "organization_closure" DROP CONSTRAINT "FK_closure_descendant"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "organization_closure" DROP CONSTRAINT "FK_closure_ancestor"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "organizations" DROP CONSTRAINT "FK_organizations_parent"`,
+    );
 
     // Drop indexes
     await queryRunner.query(`DROP INDEX "IDX_transactions_customerId"`);

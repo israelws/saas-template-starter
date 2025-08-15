@@ -12,7 +12,7 @@ const AUTH_TOKEN = process.env.AUTH_TOKEN || '';
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Authorization': `Bearer ${AUTH_TOKEN}`,
+    Authorization: `Bearer ${AUTH_TOKEN}`,
     'Content-Type': 'application/json',
   },
 });
@@ -232,22 +232,23 @@ const testPolicyCreation = {
 async function testPolicyEvaluation(scenario: any) {
   console.log(`\n🧪 Testing: ${scenario.name}`);
   console.log(`   ${scenario.description}`);
-  
+
   try {
     const response = await api.post('/abac/policies/evaluate', scenario.context);
     const result = response.data;
-    
-    const passed = (result.allowed && scenario.expectedResult === 'allow') ||
-                   (!result.allowed && scenario.expectedResult === 'deny');
-    
+
+    const passed =
+      (result.allowed && scenario.expectedResult === 'allow') ||
+      (!result.allowed && scenario.expectedResult === 'deny');
+
     console.log(`   Result: ${result.allowed ? '✅ ALLOWED' : '❌ DENIED'}`);
     console.log(`   Expected: ${scenario.expectedResult.toUpperCase()}`);
     console.log(`   Status: ${passed ? '✅ PASSED' : '❌ FAILED'}`);
-    
+
     if (result.reasons && result.reasons.length > 0) {
       console.log(`   Reasons: ${result.reasons.join(', ')}`);
     }
-    
+
     return passed;
   } catch (error: any) {
     console.log(`   ❌ ERROR: ${error.response?.data?.message || error.message}`);
@@ -257,7 +258,7 @@ async function testPolicyEvaluation(scenario: any) {
 
 async function createTestPolicy() {
   console.log('\n📝 Creating test policy with resource attribute conditions...');
-  
+
   try {
     const response = await api.post('/abac/policies', testPolicyCreation);
     console.log('   ✅ Policy created successfully');
@@ -271,19 +272,20 @@ async function createTestPolicy() {
 
 async function testPolicyRetrieval(policyId: string) {
   console.log('\n🔍 Retrieving created policy...');
-  
+
   try {
     const response = await api.get(`/abac/policies/${policyId}`);
     const policy = response.data;
-    
+
     // Check if resource attributes are properly stored
-    const hasResourceAttributes = policy.resources?.attributes?.organizationId === '${subject.organizationId}';
+    const hasResourceAttributes =
+      policy.resources?.attributes?.organizationId === '${subject.organizationId}';
     const hasMetadataRules = policy.metadata?.resourceRules?.length > 0;
-    
+
     console.log('   ✅ Policy retrieved successfully');
     console.log(`   Has resource attributes: ${hasResourceAttributes ? '✅' : '❌'}`);
     console.log(`   Has metadata rules: ${hasMetadataRules ? '✅' : '❌'}`);
-    
+
     return policy;
   } catch (error: any) {
     console.log(`   ❌ ERROR: ${error.response?.data?.message || error.message}`);
@@ -294,20 +296,20 @@ async function testPolicyRetrieval(policyId: string) {
 async function runAllTests() {
   console.log('🚀 Starting Policy System Test Suite');
   console.log('=====================================');
-  
+
   if (!AUTH_TOKEN) {
     console.log('⚠️  WARNING: No AUTH_TOKEN provided. Tests may fail.');
     console.log('   Set AUTH_TOKEN environment variable with a valid JWT token.');
   }
-  
+
   let passedTests = 0;
   let totalTests = 0;
-  
+
   // Test policy creation
   const policyId = await createTestPolicy();
   if (policyId) {
     passedTests++;
-    
+
     // Test policy retrieval
     const policy = await testPolicyRetrieval(policyId);
     if (policy) {
@@ -315,14 +317,14 @@ async function runAllTests() {
     }
   }
   totalTests += 2;
-  
+
   // Test policy evaluations
   for (const scenario of testScenarios) {
     const passed = await testPolicyEvaluation(scenario);
     if (passed) passedTests++;
     totalTests++;
   }
-  
+
   // Summary
   console.log('\n=====================================');
   console.log('📊 Test Summary');
@@ -330,7 +332,7 @@ async function runAllTests() {
   console.log(`   Passed: ${passedTests}`);
   console.log(`   Failed: ${totalTests - passedTests}`);
   console.log(`   Success Rate: ${Math.round((passedTests / totalTests) * 100)}%`);
-  
+
   if (passedTests === totalTests) {
     console.log('\n🎉 All tests passed!');
   } else {

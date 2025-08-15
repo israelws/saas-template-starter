@@ -23,17 +23,12 @@ import { UpdateMembershipDto } from '../dto/update-membership.dto';
 @Controller('users/:userId/memberships')
 @UseGuards(JwtAuthGuard, AbacGuard)
 export class UserMembershipsController {
-  constructor(
-    private readonly membershipsService: UserMembershipsService,
-  ) {}
+  constructor(private readonly membershipsService: UserMembershipsService) {}
 
   @Get()
   @RequirePermission('user', 'memberships:read')
   @ApiOperation({ summary: 'Get user organization memberships' })
-  async getUserMemberships(
-    @Param('userId') userId: string,
-    @Query('status') status?: string,
-  ) {
+  async getUserMemberships(@Param('userId') userId: string, @Query('status') status?: string) {
     return this.membershipsService.getUserMemberships(userId, status);
   }
 
@@ -55,11 +50,7 @@ export class UserMembershipsController {
     @Param('organizationId') organizationId: string,
     @Body() updateMembershipDto: UpdateMembershipDto,
   ) {
-    return this.membershipsService.updateMembership(
-      userId,
-      organizationId,
-      updateMembershipDto,
-    );
+    return this.membershipsService.updateMembership(userId, organizationId, updateMembershipDto);
   }
 
   @Delete(':organizationId')
@@ -85,10 +76,7 @@ export class UserMembershipsController {
   @Delete('bulk')
   @RequirePermission('user', 'memberships:delete')
   @ApiOperation({ summary: 'Remove user from multiple organizations' })
-  async removeBulkMemberships(
-    @Param('userId') userId: string,
-    @Body() organizationIds: string[],
-  ) {
+  async removeBulkMemberships(@Param('userId') userId: string, @Body() organizationIds: string[]) {
     return this.membershipsService.removeBulkMemberships(userId, organizationIds);
   }
 }

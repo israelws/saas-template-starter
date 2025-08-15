@@ -29,16 +29,19 @@ export function Log(level: 'debug' | 'info' | 'warn' | 'error' = 'debug') {
         return result;
       } catch (error) {
         const duration = Date.now() - startTime;
-        
+
         logger.error({
           message: `Failed ${propertyName}`,
           method: propertyName,
           duration,
-          error: error instanceof Error ? {
-            name: error.name,
-            message: error.message,
-            stack: error.stack,
-          } : error,
+          error:
+            error instanceof Error
+              ? {
+                  name: error.name,
+                  message: error.message,
+                  stack: error.stack,
+                }
+              : error,
         });
 
         throw error;
@@ -65,21 +68,30 @@ export function LogPerformance(thresholdMs: number = 100) {
         const duration = Date.now() - startTime;
 
         if (duration > thresholdMs) {
-          logger.warn({ message: `Slow method execution: ${propertyName}`, method: propertyName,
+          logger.warn({
+            message: `Slow method execution: ${propertyName}`,
+            method: propertyName,
             duration,
-            threshold: thresholdMs,});
+            threshold: thresholdMs,
+          });
         } else {
-          logger.debug({ message: `Method execution: ${propertyName}`, method: propertyName,
-            duration,});
+          logger.debug({
+            message: `Method execution: ${propertyName}`,
+            method: propertyName,
+            duration,
+          });
         }
 
         return result;
       } catch (error) {
         const duration = Date.now() - startTime;
-        
-        logger.error({ message: `Method failed: ${propertyName}`, method: propertyName,
+
+        logger.error({
+          message: `Method failed: ${propertyName}`,
+          method: propertyName,
           duration,
-          error: error instanceof Error ? error.message : error,});
+          error: error instanceof Error ? error.message : error,
+        });
 
         throw error;
       }
@@ -97,16 +109,16 @@ export function LogClass(level: 'debug' | 'info' | 'warn' | 'error' = 'debug') {
     for (const propertyName of Object.getOwnPropertyNames(target.prototype)) {
       const descriptor = Object.getOwnPropertyDescriptor(target.prototype, propertyName);
       const isMethod = descriptor?.value instanceof Function;
-      
+
       if (!isMethod || propertyName === 'constructor') {
         continue;
       }
 
       const originalMethod = descriptor.value;
-      
+
       descriptor.value = async function (...args: any[]) {
         const logger = new LoggerService(target.name);
-        
+
         try {
           logger[level]({ message: `${target.name}.${propertyName} called` });
           const result = await originalMethod.apply(this, args);

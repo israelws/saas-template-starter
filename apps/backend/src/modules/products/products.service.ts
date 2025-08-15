@@ -41,9 +41,10 @@ export class ProductsService {
       product.inventory = {
         quantity: createProductDto.inventory.quantity || 0,
         reserved: createProductDto.inventory.reserved || 0,
-        available: createProductDto.inventory.available !== undefined 
-          ? createProductDto.inventory.available 
-          : (createProductDto.inventory.quantity || 0),
+        available:
+          createProductDto.inventory.available !== undefined
+            ? createProductDto.inventory.available
+            : createProductDto.inventory.quantity || 0,
         reorderLevel: createProductDto.inventory.reorderLevel || 0,
         reorderQuantity: createProductDto.inventory.reorderQuantity || 0,
         location: createProductDto.inventory.location,
@@ -53,26 +54,29 @@ export class ProductsService {
     // Handle variants if provided
     if (createProductDto.variants && createProductDto.variants.length > 0) {
       // Validate variant SKUs are unique
-      const variantSkus = createProductDto.variants.map(v => v.sku);
+      const variantSkus = createProductDto.variants.map((v) => v.sku);
       const uniqueSkus = new Set(variantSkus);
       if (uniqueSkus.size !== variantSkus.length) {
         throw new BadRequestException('Variant SKUs must be unique');
       }
 
       // Process variants with proper inventory initialization
-      product.variants = createProductDto.variants.map(variant => ({
+      product.variants = createProductDto.variants.map((variant) => ({
         ...variant,
         id: undefined, // Let the frontend handle IDs
-        inventory: variant.inventory ? {
-          quantity: variant.inventory.quantity || 0,
-          reserved: variant.inventory.reserved || 0,
-          available: variant.inventory.available !== undefined
-            ? variant.inventory.available
-            : (variant.inventory.quantity || 0),
-          reorderLevel: variant.inventory.reorderLevel || 0,
-          reorderQuantity: variant.inventory.reorderQuantity || 0,
-          location: variant.inventory.location,
-        } : undefined,
+        inventory: variant.inventory
+          ? {
+              quantity: variant.inventory.quantity || 0,
+              reserved: variant.inventory.reserved || 0,
+              available:
+                variant.inventory.available !== undefined
+                  ? variant.inventory.available
+                  : variant.inventory.quantity || 0,
+              reorderLevel: variant.inventory.reorderLevel || 0,
+              reorderQuantity: variant.inventory.reorderQuantity || 0,
+              location: variant.inventory.location,
+            }
+          : undefined,
       }));
     }
 
@@ -86,16 +90,16 @@ export class ProductsService {
 
   async findAll(
     organizationId: string,
-    params: PaginationParams & { 
-      status?: ProductStatus; 
+    params: PaginationParams & {
+      status?: ProductStatus;
       category?: string;
       search?: string;
     },
   ): Promise<PaginatedResponse<Product>> {
-    const { 
-      page, 
-      limit, 
-      sortBy = 'createdAt', 
+    const {
+      page,
+      limit,
+      sortBy = 'createdAt',
       sortOrder = 'DESC',
       status,
       category,
@@ -107,7 +111,7 @@ export class ProductsService {
     const limitNum = Number(limit) || 10;
 
     const query = this.productRepository.createQueryBuilder('product');
-    
+
     query.where('product.organizationId = :organizationId', { organizationId });
 
     if (status) {
@@ -165,11 +169,8 @@ export class ProductsService {
 
     // If updating SKU, check for duplicates
     if (updateProductDto.sku && updateProductDto.sku !== product.sku) {
-      const existing = await this.findBySku(
-        updateProductDto.sku,
-        product.organizationId,
-      );
-      
+      const existing = await this.findBySku(updateProductDto.sku, product.organizationId);
+
       if (existing) {
         throw new BadRequestException('Product with this SKU already exists');
       }
@@ -180,11 +181,15 @@ export class ProductsService {
       product.inventory = {
         quantity: updateProductDto.inventory.quantity ?? product.inventory?.quantity ?? 0,
         reserved: updateProductDto.inventory.reserved ?? product.inventory?.reserved ?? 0,
-        available: updateProductDto.inventory.available !== undefined 
-          ? updateProductDto.inventory.available 
-          : (updateProductDto.inventory.quantity ?? product.inventory?.quantity ?? 0) - (updateProductDto.inventory.reserved ?? product.inventory?.reserved ?? 0),
-        reorderLevel: updateProductDto.inventory.reorderLevel ?? product.inventory?.reorderLevel ?? 0,
-        reorderQuantity: updateProductDto.inventory.reorderQuantity ?? product.inventory?.reorderQuantity ?? 0,
+        available:
+          updateProductDto.inventory.available !== undefined
+            ? updateProductDto.inventory.available
+            : (updateProductDto.inventory.quantity ?? product.inventory?.quantity ?? 0) -
+              (updateProductDto.inventory.reserved ?? product.inventory?.reserved ?? 0),
+        reorderLevel:
+          updateProductDto.inventory.reorderLevel ?? product.inventory?.reorderLevel ?? 0,
+        reorderQuantity:
+          updateProductDto.inventory.reorderQuantity ?? product.inventory?.reorderQuantity ?? 0,
         location: updateProductDto.inventory.location ?? product.inventory?.location,
       };
     }
@@ -193,25 +198,28 @@ export class ProductsService {
     if (updateProductDto.variants !== undefined) {
       if (updateProductDto.variants.length > 0) {
         // Validate variant SKUs are unique
-        const variantSkus = updateProductDto.variants.map(v => v.sku);
+        const variantSkus = updateProductDto.variants.map((v) => v.sku);
         const uniqueSkus = new Set(variantSkus);
         if (uniqueSkus.size !== variantSkus.length) {
           throw new BadRequestException('Variant SKUs must be unique');
         }
 
         // Process variants with proper inventory initialization
-        product.variants = updateProductDto.variants.map(variant => ({
+        product.variants = updateProductDto.variants.map((variant) => ({
           ...variant,
-          inventory: variant.inventory ? {
-            quantity: variant.inventory.quantity || 0,
-            reserved: variant.inventory.reserved || 0,
-            available: variant.inventory.available !== undefined
-              ? variant.inventory.available
-              : (variant.inventory.quantity || 0),
-            reorderLevel: variant.inventory.reorderLevel || 0,
-            reorderQuantity: variant.inventory.reorderQuantity || 0,
-            location: variant.inventory.location,
-          } : undefined,
+          inventory: variant.inventory
+            ? {
+                quantity: variant.inventory.quantity || 0,
+                reserved: variant.inventory.reserved || 0,
+                available:
+                  variant.inventory.available !== undefined
+                    ? variant.inventory.available
+                    : variant.inventory.quantity || 0,
+                reorderLevel: variant.inventory.reorderLevel || 0,
+                reorderQuantity: variant.inventory.reorderQuantity || 0,
+                location: variant.inventory.location,
+              }
+            : undefined,
         }));
       } else {
         product.variants = [];
@@ -226,7 +234,7 @@ export class ProductsService {
     // Update other fields
     const { inventory, variants, images, ...otherFields } = updateProductDto;
     Object.assign(product, otherFields);
-    
+
     product.updatedAt = new Date();
 
     return this.productRepository.save(product);
@@ -305,7 +313,7 @@ export class ProductsService {
 
   async remove(id: string): Promise<void> {
     const product = await this.findOne(id);
-    
+
     // Soft delete by setting status to discontinued
     product.status = ProductStatus.DISCONTINUED;
     await this.productRepository.save(product);
@@ -317,7 +325,9 @@ export class ProductsService {
       .where('product.organizationId = :organizationId', { organizationId })
       .andWhere('product.status = :status', { status: ProductStatus.ACTIVE })
       .andWhere('product.inventory IS NOT NULL')
-      .andWhere("(product.inventory->>'available')::int <= (product.inventory->>'reorderLevel')::int")
+      .andWhere(
+        "(product.inventory->>'available')::int <= (product.inventory->>'reorderLevel')::int",
+      )
       .getMany();
   }
 

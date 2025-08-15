@@ -83,7 +83,8 @@ export interface CreateOrderItemDto {
   notes?: string;
 }
 
-export interface UpdateOrderDto extends Partial<Omit<CreateOrderDto, 'customerId' | 'organizationId' | 'items'>> {
+export interface UpdateOrderDto
+  extends Partial<Omit<CreateOrderDto, 'customerId' | 'organizationId' | 'items'>> {
   status?: OrderStatus;
   paymentStatus?: PaymentStatus;
 }

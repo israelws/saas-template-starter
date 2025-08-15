@@ -10,8 +10,5 @@ export interface Permission {
 }
 
 export const RequirePermission = (resource: string, action: string) => {
-  return applyDecorators(
-    SetMetadata(PERMISSION_KEY, { resource, action }),
-    UseGuards(AbacGuard),
-  );
+  return applyDecorators(SetMetadata(PERMISSION_KEY, { resource, action }), UseGuards(AbacGuard));
 };

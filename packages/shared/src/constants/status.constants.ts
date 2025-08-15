@@ -1,14 +1,6 @@
 export const DEFAULT_CURRENCY = 'USD';
 
-export const SUPPORTED_CURRENCIES = [
-  'USD',
-  'EUR',
-  'GBP',
-  'CAD',
-  'AUD',
-  'JPY',
-  'CNY',
-] as const;
+export const SUPPORTED_CURRENCIES = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CNY'] as const;
 
 export const DEFAULT_LANGUAGE = 'en';
 

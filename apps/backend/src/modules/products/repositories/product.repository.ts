@@ -13,10 +13,7 @@ export class ProductRepository extends Repository<Product> {
     super(Product, dataSource.createEntityManager());
   }
 
-  async findByOrganization(
-    organizationId: string,
-    includeDescendants = false,
-  ): Promise<Product[]> {
+  async findByOrganization(organizationId: string, includeDescendants = false): Promise<Product[]> {
     if (!includeDescendants) {
       return this.find({
         where: { organizationId },
@@ -158,12 +155,8 @@ export class ProductRepository extends Repository<Product> {
     return this.save(product);
   }
 
-  async bulkUpdatePrices(
-    updates: Array<{ productId: string; price: number }>,
-  ): Promise<void> {
-    const promises = updates.map(({ productId, price }) =>
-      this.update(productId, { price }),
-    );
+  async bulkUpdatePrices(updates: Array<{ productId: string; price: number }>): Promise<void> {
+    const promises = updates.map(({ productId, price }) => this.update(productId, { price }));
 
     await Promise.all(promises);
   }
@@ -191,13 +184,13 @@ export class ProductRepository extends Repository<Product> {
 
     const stats = {
       totalProducts: products.length,
-      activeProducts: products.filter(p => p.status === 'active').length,
-      totalValue: products.reduce((sum, p) => sum + (p.price * (p.inventory?.quantity || 0)), 0),
-      outOfStock: products.filter(p => (p.inventory?.quantity || 0) === 0).length,
+      activeProducts: products.filter((p) => p.status === 'active').length,
+      totalValue: products.reduce((sum, p) => sum + p.price * (p.inventory?.quantity || 0), 0),
+      outOfStock: products.filter((p) => (p.inventory?.quantity || 0) === 0).length,
       categoryCounts: {} as Record<string, number>,
     };
 
-    products.forEach(product => {
+    products.forEach((product) => {
       // Assuming category is a top-level field or in metadata
       const category = product.metadata?.category || 'Uncategorized';
       stats.categoryCounts[category] = (stats.categoryCounts[category] || 0) + 1;
@@ -206,10 +199,7 @@ export class ProductRepository extends Repository<Product> {
     return stats;
   }
 
-  async findLowStockProducts(
-    threshold: number,
-    organizationId?: string,
-  ): Promise<Product[]> {
+  async findLowStockProducts(threshold: number, organizationId?: string): Promise<Product[]> {
     const queryBuilder = this.createQueryBuilder('product')
       .where("(product.inventory->>'quantity')::int <= :threshold", { threshold })
       .andWhere("(product.inventory->>'quantity')::int > 0")

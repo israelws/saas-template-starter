@@ -75,7 +75,11 @@ export class UserAttributesService {
     }
 
     // Validate against attribute definition if exists
-    await this.validateAttributeValue(organizationId, createAttributeDto.key, createAttributeDto.value);
+    await this.validateAttributeValue(
+      organizationId,
+      createAttributeDto.key,
+      createAttributeDto.value,
+    );
 
     const attribute = this.userAttributeRepository.create({
       userId,
@@ -86,10 +90,13 @@ export class UserAttributesService {
 
     const savedAttribute = await this.userAttributeRepository.save(attribute);
 
-    this.logger.log({ message: "User attribute created", userId,
+    this.logger.log({
+      message: 'User attribute created',
+      userId,
       organizationId,
       attributeKey: createAttributeDto.key,
-      isPublic: attribute.isPublic,});
+      isPublic: attribute.isPublic,
+    });
 
     return savedAttribute;
   }
@@ -110,16 +117,10 @@ export class UserAttributesService {
       queryBuilder.andWhere('attr.isPublic = true');
     }
 
-    return queryBuilder
-      .orderBy('attr.key', 'ASC')
-      .getMany();
+    return queryBuilder.orderBy('attr.key', 'ASC').getMany();
   }
 
-  async getAttribute(
-    userId: string,
-    organizationId: string,
-    key: string,
-  ): Promise<UserAttribute> {
+  async getAttribute(userId: string, organizationId: string, key: string): Promise<UserAttribute> {
     await this.verifyUserInOrganization(userId, organizationId);
 
     const attribute = await this.userAttributeRepository.findOne({
@@ -160,26 +161,28 @@ export class UserAttributesService {
 
     const savedAttribute = await this.userAttributeRepository.save(attribute);
 
-    this.logger.log({ message: "User attribute updated", userId,
+    this.logger.log({
+      message: 'User attribute updated',
+      userId,
       organizationId,
       attributeKey: key,
-      changes: updateAttributeDto,});
+      changes: updateAttributeDto,
+    });
 
     return savedAttribute;
   }
 
-  async deleteAttribute(
-    userId: string,
-    organizationId: string,
-    key: string,
-  ): Promise<void> {
+  async deleteAttribute(userId: string, organizationId: string, key: string): Promise<void> {
     const attribute = await this.getAttribute(userId, organizationId, key);
-    
+
     await this.userAttributeRepository.remove(attribute);
 
-    this.logger.log({ message: "User attribute deleted", userId,
+    this.logger.log({
+      message: 'User attribute deleted',
+      userId,
       organizationId,
-      attributeKey: key,});
+      attributeKey: key,
+    });
   }
 
   async bulkOperation(
@@ -201,7 +204,7 @@ export class UserAttributesService {
 
     for (const userId of operationDto.userIds) {
       await queryRunner.startTransaction();
-      
+
       try {
         await this.verifyUserInOrganization(userId, organizationId);
 
@@ -229,28 +232,28 @@ export class UserAttributesService {
                   value: attr.value,
                   isPublic: attr.isPublic,
                   description: attr.description,
-                }
+                },
               );
             }
             break;
 
           case 'delete':
-            const keys = operationDto.attributes.map(attr => attr.key);
+            const keys = operationDto.attributes.map((attr) => attr.key);
             await queryRunner.manager.delete(UserAttribute, {
               userId,
               organizationId,
-              key: queryRunner.manager.getRepository(UserAttribute)
+              key: queryRunner.manager
+                .getRepository(UserAttribute)
                 .createQueryBuilder()
                 .select()
                 .where('key IN (:...keys)', { keys })
-                .getQuery()
+                .getQuery(),
             });
             break;
         }
 
         await queryRunner.commitTransaction();
         results.successful++;
-
       } catch (error) {
         await queryRunner.rollbackTransaction();
         results.failed++;
@@ -263,11 +266,14 @@ export class UserAttributesService {
 
     await queryRunner.release();
 
-    this.logger.log({ message: "Bulk user attribute operation completed", organizationId,
+    this.logger.log({
+      message: 'Bulk user attribute operation completed',
+      organizationId,
       operation: operationDto.operation,
       successful: results.successful,
       failed: results.failed,
-      totalUsers: operationDto.userIds.length,});
+      totalUsers: operationDto.userIds.length,
+    });
 
     return results;
   }
@@ -310,15 +316,19 @@ export class UserAttributesService {
       .getManyAndCount();
 
     return {
-      users: users.map(user => ({
+      users: users.map((user) => ({
         id: user.id,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        attributes: user.userAttributes?.reduce((acc, attr) => {
-          acc[attr.key] = attr.value;
-          return acc;
-        }, {} as Record<string, any>) || {},
+        attributes:
+          user.userAttributes?.reduce(
+            (acc, attr) => {
+              acc[attr.key] = attr.value;
+              return acc;
+            },
+            {} as Record<string, any>,
+          ) || {},
       })),
       total,
       page: pagination.page,
@@ -329,10 +339,7 @@ export class UserAttributesService {
 
   async getAvailableAttributeDefinitions(organizationId: string) {
     return this.attributeDefinitionRepository.find({
-      where: [
-        { organizationId },
-        { isSystem: true },
-      ],
+      where: [{ organizationId }, { isSystem: true }],
       order: { name: 'ASC' },
     });
   }
@@ -347,7 +354,7 @@ export class UserAttributesService {
       throw new NotFoundException('User not found');
     }
 
-    const isMember = user.memberships?.some(m => m.organizationId === organizationId);
+    const isMember = user.memberships?.some((m) => m.organizationId === organizationId);
     if (!isMember) {
       throw new NotFoundException('User not found in organization');
     }

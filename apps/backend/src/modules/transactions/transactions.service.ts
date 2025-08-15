@@ -47,8 +47,9 @@ export class TransactionsService {
       }
 
       // Generate reference number
-      const referenceNumber = createTransactionDto.referenceNumber || 
-        await this.generateReferenceNumber(createTransactionDto.type);
+      const referenceNumber =
+        createTransactionDto.referenceNumber ||
+        (await this.generateReferenceNumber(createTransactionDto.type));
 
       const transaction = queryRunner.manager.create(Transaction, {
         ...createTransactionDto,
@@ -67,18 +68,14 @@ export class TransactionsService {
           'subtract',
         );
       } else if (createTransactionDto.type === TransactionType.REFUND) {
-        await this.customersService.updateBalance(
-          customer.id,
-          createTransactionDto.amount,
-          'add',
-        );
+        await this.customersService.updateBalance(customer.id, createTransactionDto.amount, 'add');
       }
 
       // Update order payment status if applicable
       if (createTransactionDto.orderId && createTransactionDto.type === TransactionType.PAYMENT) {
         const order = await this.ordersService.findOne(createTransactionDto.orderId);
         const totalPaid = await this.getTotalPaidForOrder(createTransactionDto.orderId);
-        
+
         if (totalPaid >= order.total) {
           await this.ordersService.updatePaymentStatus(order.id, PaymentStatus.PAID);
         } else if (totalPaid > 0) {
@@ -87,7 +84,7 @@ export class TransactionsService {
       }
 
       await queryRunner.commitTransaction();
-      
+
       return this.findOne(savedTransaction.id);
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -126,7 +123,7 @@ export class TransactionsService {
     const limitNum = Number(limit) || 10;
 
     const query = this.transactionRepository.createQueryBuilder('transaction');
-    
+
     query
       .leftJoinAndSelect('transaction.customer', 'customer')
       .leftJoinAndSelect('transaction.order', 'order')
@@ -234,9 +231,9 @@ export class TransactionsService {
       }
 
       const updated = await queryRunner.manager.save(transaction);
-      
+
       await queryRunner.commitTransaction();
-      
+
       return updated;
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -266,9 +263,10 @@ export class TransactionsService {
 
       // Create reversal transaction
       const reversalTransaction = queryRunner.manager.create(Transaction, {
-        type: transaction.type === TransactionType.PAYMENT 
-          ? TransactionType.REFUND 
-          : TransactionType.PAYMENT,
+        type:
+          transaction.type === TransactionType.PAYMENT
+            ? TransactionType.REFUND
+            : TransactionType.PAYMENT,
         status: TransactionStatus.COMPLETED,
         orderId: transaction.orderId,
         customerId: transaction.customerId,
@@ -311,9 +309,9 @@ export class TransactionsService {
       }
 
       const updated = await queryRunner.manager.save(transaction);
-      
+
       await queryRunner.commitTransaction();
-      
+
       return updated;
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -329,7 +327,7 @@ export class TransactionsService {
     endDate?: Date,
   ): Promise<TransactionSummary> {
     const query = this.transactionRepository.createQueryBuilder('transaction');
-    
+
     query.where('transaction.organizationId = :organizationId', { organizationId });
 
     if (startDate && endDate) {
@@ -353,13 +351,16 @@ export class TransactionsService {
       .groupBy('transaction.type')
       .getRawMany();
 
-    const transactionsByType = typeBreakdown.reduce((acc, curr) => {
-      acc[curr.type] = {
-        count: parseInt(curr.count),
-        amount: parseFloat(curr.amount),
-      };
-      return acc;
-    }, {} as Record<TransactionType, { count: number; amount: number }>);
+    const transactionsByType = typeBreakdown.reduce(
+      (acc, curr) => {
+        acc[curr.type] = {
+          count: parseInt(curr.count),
+          amount: parseFloat(curr.amount),
+        };
+        return acc;
+      },
+      {} as Record<TransactionType, { count: number; amount: number }>,
+    );
 
     // Get breakdown by status
     const statusBreakdown = await query
@@ -368,10 +369,13 @@ export class TransactionsService {
       .groupBy('transaction.status')
       .getRawMany();
 
-    const transactionsByStatus = statusBreakdown.reduce((acc, curr) => {
-      acc[curr.status] = parseInt(curr.count);
-      return acc;
-    }, {} as Record<TransactionStatus, number>);
+    const transactionsByStatus = statusBreakdown.reduce(
+      (acc, curr) => {
+        acc[curr.status] = parseInt(curr.count);
+        return acc;
+      },
+      {} as Record<TransactionStatus, number>,
+    );
 
     // Get payment method breakdown
     const paymentMethodBreakdown = await query
@@ -382,13 +386,16 @@ export class TransactionsService {
       .groupBy('transaction.paymentMethod')
       .getRawMany();
 
-    const paymentMethodBreakdownResult = paymentMethodBreakdown.reduce((acc, curr) => {
-      acc[curr.method] = {
-        count: parseInt(curr.count),
-        amount: parseFloat(curr.amount),
-      };
-      return acc;
-    }, {} as Record<PaymentMethod, { count: number; amount: number }>);
+    const paymentMethodBreakdownResult = paymentMethodBreakdown.reduce(
+      (acc, curr) => {
+        acc[curr.method] = {
+          count: parseInt(curr.count),
+          amount: parseFloat(curr.amount),
+        };
+        return acc;
+      },
+      {} as Record<PaymentMethod, { count: number; amount: number }>,
+    );
 
     return {
       totalTransactions: parseInt(totals.totalTransactions),
@@ -412,13 +419,13 @@ export class TransactionsService {
   }
 
   private async generateReferenceNumber(type: TransactionType): Promise<string> {
-    const prefix = type === TransactionType.PAYMENT ? 'PAY' : 
-                  type === TransactionType.REFUND ? 'REF' : 'TXN';
-    
+    const prefix =
+      type === TransactionType.PAYMENT ? 'PAY' : type === TransactionType.REFUND ? 'REF' : 'TXN';
+
     const date = new Date();
     const timestamp = date.getTime().toString(36).toUpperCase();
     const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-    
+
     return `${prefix}-${timestamp}-${random}`;
   }
 
@@ -427,10 +434,10 @@ export class TransactionsService {
   ): Promise<{ success: boolean; error?: string }> {
     // Simulate payment gateway processing
     // In real application, integrate with actual payment gateway
-    
+
     // For demo purposes, randomly succeed/fail
     const success = Math.random() > 0.1; // 90% success rate
-    
+
     if (!success) {
       return {
         success: false,

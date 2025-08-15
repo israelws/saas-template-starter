@@ -178,8 +178,12 @@ export class CreateUserAttributesTable1704300000000 implements MigrationInterfac
     await queryRunner.query(`DROP VIEW IF EXISTS user_attribute_stats`);
 
     // Drop triggers
-    await queryRunner.query(`DROP TRIGGER IF EXISTS trigger_update_user_attributes_updated_at ON "user_attributes"`);
-    await queryRunner.query(`DROP TRIGGER IF EXISTS trigger_validate_user_attribute_data_type ON "user_attributes"`);
+    await queryRunner.query(
+      `DROP TRIGGER IF EXISTS trigger_update_user_attributes_updated_at ON "user_attributes"`,
+    );
+    await queryRunner.query(
+      `DROP TRIGGER IF EXISTS trigger_validate_user_attribute_data_type ON "user_attributes"`,
+    );
 
     // Drop functions
     await queryRunner.query(`DROP FUNCTION IF EXISTS update_user_attributes_updated_at()`);

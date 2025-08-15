@@ -6,67 +6,67 @@ export class MetricsService {
   private readonly httpRequestsTotal = new Counter({
     name: 'http_requests_total',
     help: 'Total number of HTTP requests',
-    labelNames: ['method', 'route', 'status_code', 'organization_id']
+    labelNames: ['method', 'route', 'status_code', 'organization_id'],
   });
 
   private readonly httpRequestDuration = new Histogram({
     name: 'http_request_duration_ms',
     help: 'Duration of HTTP requests in milliseconds',
     labelNames: ['method', 'route', 'status_code'],
-    buckets: [0.1, 5, 15, 50, 100, 500, 1000, 2000, 5000]
+    buckets: [0.1, 5, 15, 50, 100, 500, 1000, 2000, 5000],
   });
 
   private readonly policyEvaluationDuration = new Histogram({
     name: 'policy_evaluation_duration_ms',
     help: 'Duration of policy evaluation in milliseconds',
     labelNames: ['organization_id', 'decision'],
-    buckets: [1, 5, 10, 25, 50, 100, 250, 500]
+    buckets: [1, 5, 10, 25, 50, 100, 250, 500],
   });
 
   private readonly policyEvaluationsTotal = new Counter({
     name: 'policy_evaluations_total',
     help: 'Total number of policy evaluations',
-    labelNames: ['organization_id', 'decision', 'resource_type']
+    labelNames: ['organization_id', 'decision', 'resource_type'],
   });
 
   private readonly databaseConnectionsActive = new Gauge({
     name: 'database_connections_active',
-    help: 'Number of active database connections'
+    help: 'Number of active database connections',
   });
 
   private readonly redisConnectionsActive = new Gauge({
     name: 'redis_connections_active',
-    help: 'Number of active Redis connections'
+    help: 'Number of active Redis connections',
   });
 
   private readonly websocketConnectionsActive = new Gauge({
     name: 'websocket_connections_active',
     help: 'Number of active WebSocket connections',
-    labelNames: ['organization_id']
+    labelNames: ['organization_id'],
   });
 
   private readonly cacheHitRate = new Counter({
     name: 'cache_operations_total',
     help: 'Total cache operations',
-    labelNames: ['operation', 'result'] // operation: get/set, result: hit/miss
+    labelNames: ['operation', 'result'], // operation: get/set, result: hit/miss
   });
 
   private readonly organizationOperations = new Counter({
     name: 'organization_operations_total',
     help: 'Total organization operations',
-    labelNames: ['operation', 'organization_type']
+    labelNames: ['operation', 'organization_type'],
   });
 
   private readonly userOperations = new Counter({
     name: 'user_operations_total',
     help: 'Total user operations',
-    labelNames: ['operation', 'organization_id']
+    labelNames: ['operation', 'organization_id'],
   });
 
   private readonly errorRate = new Counter({
     name: 'application_errors_total',
     help: 'Total application errors',
-    labelNames: ['error_type', 'module', 'severity']
+    labelNames: ['error_type', 'module', 'severity'],
   });
 
   /**
@@ -77,7 +77,7 @@ export class MetricsService {
     route: string,
     statusCode: number,
     duration: number,
-    organizationId?: string
+    organizationId?: string,
   ) {
     const labels = { method, route, status_code: statusCode.toString() };
     const labelsWithOrg = { ...labels, organization_id: organizationId || 'unknown' };
@@ -93,17 +93,14 @@ export class MetricsService {
     organizationId: string,
     decision: 'allow' | 'deny',
     resourceType: string,
-    duration: number
+    duration: number,
   ) {
-    this.policyEvaluationDuration.observe(
-      { organization_id: organizationId, decision },
-      duration
-    );
-    
+    this.policyEvaluationDuration.observe({ organization_id: organizationId, decision }, duration);
+
     this.policyEvaluationsTotal.inc({
       organization_id: organizationId,
       decision,
-      resource_type: resourceType
+      resource_type: resourceType,
     });
   }
 

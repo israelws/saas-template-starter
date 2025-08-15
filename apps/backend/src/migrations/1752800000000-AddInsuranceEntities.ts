@@ -263,14 +263,26 @@ export class AddInsuranceEntities1752800000000 implements MigrationInterface {
 
     // Create indexes
     await queryRunner.query(`CREATE INDEX "IDX_territories_type" ON "territories" ("type")`);
-    await queryRunner.query(`CREATE INDEX "IDX_territories_parent" ON "territories" ("parent_territory_id")`);
-    
-    await queryRunner.query(`CREATE INDEX "IDX_insurance_branches_org" ON "insurance_branches" ("organization_id")`);
-    await queryRunner.query(`CREATE INDEX "IDX_insurance_branches_manager" ON "insurance_branches" ("manager_id")`);
-    
-    await queryRunner.query(`CREATE INDEX "IDX_insurance_agents_user" ON "insurance_agents" ("user_id")`);
-    await queryRunner.query(`CREATE INDEX "IDX_insurance_agents_branch" ON "insurance_agents" ("branch_id")`);
-    await queryRunner.query(`CREATE INDEX "IDX_insurance_agents_license" ON "insurance_agents" ("license_number")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_territories_parent" ON "territories" ("parent_territory_id")`,
+    );
+
+    await queryRunner.query(
+      `CREATE INDEX "IDX_insurance_branches_org" ON "insurance_branches" ("organization_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_insurance_branches_manager" ON "insurance_branches" ("manager_id")`,
+    );
+
+    await queryRunner.query(
+      `CREATE INDEX "IDX_insurance_agents_user" ON "insurance_agents" ("user_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_insurance_agents_branch" ON "insurance_agents" ("branch_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_insurance_agents_license" ON "insurance_agents" ("license_number")`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

@@ -12,9 +12,9 @@ import {
   HttpStatus,
   Request,
 } from '@nestjs/common';
-import { 
-  ApiTags, 
-  ApiOperation, 
+import {
+  ApiTags,
+  ApiOperation,
   ApiBearerAuth,
   ApiResponse,
   ApiParam,
@@ -54,11 +54,12 @@ export class PolicyController {
   @Get()
   // @RequirePermission('policy', 'list') // Temporarily disabled for testing
   @ApiOperation({ summary: 'Get all policies (optionally filtered by organization)' })
-  @ApiQuery({ 
-    name: 'organizationId', 
-    required: false, 
+  @ApiQuery({
+    name: 'organizationId',
+    required: false,
     type: String,
-    description: 'Organization ID to filter policies. If provided, returns system policies and org-specific policies.'
+    description:
+      'Organization ID to filter policies. If provided, returns system policies and org-specific policies.',
   })
   findAll(
     @Query('organizationId') organizationId?: string,
@@ -76,12 +77,12 @@ export class PolicyController {
     return {
       message: 'Public test endpoint',
       totalPolicies: policies.total,
-      policies: policies.data.map(p => ({
+      policies: policies.data.map((p) => ({
         id: p.id,
         name: p.name,
         scope: p.scope,
         effect: p.effect,
-      }))
+      })),
     };
   }
 
@@ -95,10 +96,7 @@ export class PolicyController {
   @Patch(':id')
   @RequirePermission('policy', 'update')
   @ApiOperation({ summary: 'Update policy' })
-  update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updatePolicyDto: UpdatePolicyDto,
-  ) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() updatePolicyDto: UpdatePolicyDto) {
     return this.policyService.update(id, updatePolicyDto);
   }
 
@@ -113,10 +111,7 @@ export class PolicyController {
   @RequirePermission('policy', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Clone a policy' })
-  clone(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body('name') name: string,
-  ) {
+  clone(@Param('id', ParseUUIDPipe) id: string, @Body('name') name: string) {
     return this.policyService.clone(id, name);
   }
 
@@ -124,20 +119,17 @@ export class PolicyController {
   @RequirePermission('policy', 'read')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Test a policy against a context' })
-  testPolicy(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() context: PolicyEvaluationContext,
-  ) {
+  testPolicy(@Param('id', ParseUUIDPipe) id: string, @Body() context: PolicyEvaluationContext) {
     return this.policyService.testPolicy(id, context);
   }
 
   @Post('evaluate')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Evaluate policies for a given context',
-    description: 'Evaluate ABAC policies with hierarchical inheritance for authorization decisions'
+    description: 'Evaluate ABAC policies with hierarchical inheritance for authorization decisions',
   })
-  @ApiBody({ 
+  @ApiBody({
     type: PolicyEvaluationContextDto,
     description: 'Policy evaluation context',
     examples: {
@@ -148,26 +140,26 @@ export class PolicyController {
             id: 'user-123',
             roles: ['admin'],
             groups: [],
-            attributes: { department: 'IT' }
+            attributes: { department: 'IT' },
           },
           resource: {
             type: 'organization',
             id: 'org-456',
-            attributes: { owner: 'user-123' }
+            attributes: { owner: 'user-123' },
           },
           action: 'read',
           environment: {
             timestamp: new Date().toISOString(),
             ipAddress: '192.168.1.1',
-            attributes: {}
+            attributes: {},
           },
-          organizationId: 'org-456'
-        }
-      }
-    }
+          organizationId: 'org-456',
+        },
+      },
+    },
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Policy evaluation result',
     schema: {
       example: {
@@ -175,9 +167,9 @@ export class PolicyController {
         reason: 'Policy "Admin Full Access" allowed the action',
         policiesEvaluated: ['Admin Full Access', 'Default Deny'],
         evaluationTime: 23,
-        cacheHit: false
-      }
-    }
+        cacheHit: false,
+      },
+    },
   })
   async evaluate(@Body() context: PolicyEvaluationContext, @Request() req) {
     // Add current user information to context if not provided
@@ -192,7 +184,8 @@ export class PolicyController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Evaluate cross-organization access' })
   async evaluateCrossOrganization(
-    @Body() body: {
+    @Body()
+    body: {
       context: PolicyEvaluationContext;
       targetOrganizationId: string;
     },
@@ -203,10 +196,7 @@ export class PolicyController {
       body.context.subject.id = req.user.id;
     }
 
-    return this.hierarchicalAbac.evaluateCrossOrganization(
-      body.context,
-      body.targetOrganizationId,
-    );
+    return this.hierarchicalAbac.evaluateCrossOrganization(body.context, body.targetOrganizationId);
   }
 
   @Get('effective/:userId')
@@ -217,11 +207,7 @@ export class PolicyController {
     @Query('organizationId', ParseUUIDPipe) organizationId: string,
     @Query('resourceType') resourceType?: string,
   ) {
-    return this.hierarchicalAbac.getEffectivePolicies(
-      userId,
-      organizationId,
-      resourceType,
-    );
+    return this.hierarchicalAbac.getEffectivePolicies(userId, organizationId, resourceType);
   }
 
   @Post('cache/clear')
@@ -242,18 +228,8 @@ export class PolicyController {
   @Post('sets')
   @RequirePermission('policy', 'create')
   @ApiOperation({ summary: 'Create a new policy set' })
-  createPolicySet(
-    @Body() body: {
-      name: string;
-      description: string;
-      organizationId: string;
-    },
-  ) {
-    return this.policyService.createPolicySet(
-      body.name,
-      body.description,
-      body.organizationId,
-    );
+  createPolicySet(@Body() body: { name: string; description: string; organizationId: string }) {
+    return this.policyService.createPolicySet(body.name, body.description, body.organizationId);
   }
 
   @Get('sets')

@@ -83,14 +83,14 @@ export class Policy extends BaseEntity {
   @Column({ type: 'jsonb', nullable: true })
   metadata?: Record<string, any>;
 
-  @Column({ 
+  @Column({
     name: 'field_permissions',
-    type: 'jsonb', 
+    type: 'jsonb',
     nullable: true,
-    comment: 'Field-level permissions configuration'
+    comment: 'Field-level permissions configuration',
   })
   fieldPermissions?: Record<string, any>;
 
-  @OneToMany(() => PolicyFieldRule, fieldRule => fieldRule.policy)
+  @OneToMany(() => PolicyFieldRule, (fieldRule) => fieldRule.policy)
   fieldRules: PolicyFieldRule[];
 }

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { AttributeDefinition } from '../entities/attribute-definition.entity';
@@ -19,8 +24,19 @@ export class AttributeService {
   ) {}
 
   async create(createAttributeDto: CreateAttributeDto): Promise<AttributeDefinition> {
-    const { key, name, description, category, type, dataType, isRequired, defaultValue, allowedValues, organizationId } = createAttributeDto;
-    
+    const {
+      key,
+      name,
+      description,
+      category,
+      type,
+      dataType,
+      isRequired,
+      defaultValue,
+      allowedValues,
+      organizationId,
+    } = createAttributeDto;
+
     // Check if attribute key already exists
     const existing = await this.attributeRepository.findOne({
       where: { key },
@@ -94,7 +110,7 @@ export class AttributeService {
     organizationId?: string,
   ): Promise<AttributeDefinition[]> {
     const query = this.attributeRepository.createQueryBuilder('attribute');
-    
+
     query.where('attribute.category = :category', { category });
 
     if (organizationId) {
@@ -109,10 +125,7 @@ export class AttributeService {
     return query.getMany();
   }
 
-  async update(
-    id: string,
-    updateAttributeDto: UpdateAttributeDto,
-  ): Promise<AttributeDefinition> {
+  async update(id: string, updateAttributeDto: UpdateAttributeDto): Promise<AttributeDefinition> {
     const attribute = await this.findOne(id);
 
     if (attribute.isSystem) {
@@ -135,7 +148,7 @@ export class AttributeService {
     if (updateAttributeDto.allowedValues !== undefined) {
       attribute.allowedValues = updateAttributeDto.allowedValues;
     }
-    
+
     attribute.updatedAt = new Date();
 
     return this.attributeRepository.save(attribute);
@@ -281,9 +294,7 @@ export class AttributeService {
     }
   }
 
-  async getAttributesByContext(
-    organizationId: string,
-  ): Promise<{
+  async getAttributesByContext(organizationId: string): Promise<{
     user: AttributeDefinition[];
     resource: AttributeDefinition[];
     environment: AttributeDefinition[];
@@ -299,7 +310,7 @@ export class AttributeService {
 
   async createBulk(createAttributeDtos: CreateAttributeDto[]): Promise<AttributeDefinition[]> {
     const createdAttributes: AttributeDefinition[] = [];
-    
+
     for (const dto of createAttributeDtos) {
       try {
         const attribute = await this.create(dto);
@@ -309,11 +320,14 @@ export class AttributeService {
         console.error(`Failed to create attribute ${dto.key}:`, error);
       }
     }
-    
+
     return createdAttributes;
   }
 
-  async validateValue(attributeKey: string, value: any): Promise<{ valid: boolean; errors?: string[] }> {
+  async validateValue(
+    attributeKey: string,
+    value: any,
+  ): Promise<{ valid: boolean; errors?: string[] }> {
     const attribute = await this.attributeRepository.findOne({
       where: { key: attributeKey },
     });
@@ -328,7 +342,11 @@ export class AttributeService {
     const actualType = Array.isArray(value) ? 'array' : typeof value;
     if (attribute.type === 'object' && actualType !== 'object') {
       errors.push(`Expected type ${attribute.type}, got ${actualType}`);
-    } else if (attribute.type !== 'object' && attribute.type !== 'array' && actualType !== attribute.type) {
+    } else if (
+      attribute.type !== 'object' &&
+      attribute.type !== 'array' &&
+      actualType !== attribute.type
+    ) {
       errors.push(`Expected type ${attribute.type}, got ${actualType}`);
     }
 

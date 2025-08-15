@@ -14,13 +14,13 @@ import {
   UseInterceptors,
   Request,
 } from '@nestjs/common';
-import { 
-  ApiTags, 
-  ApiOperation, 
+import {
+  ApiTags,
+  ApiOperation,
   ApiBearerAuth,
   ApiResponse,
   ApiParam,
-  ApiQuery
+  ApiQuery,
 } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import {
@@ -32,10 +32,10 @@ import {
 import { RequirePermission } from '../abac/decorators/require-permission.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CaslAbacGuard, CheckAbility } from '../abac/guards/casl-abac.guard';
-import { 
-  FieldAccessInterceptor, 
+import {
+  FieldAccessInterceptor,
   UseFieldFiltering,
-  FieldFilterService 
+  FieldFilterService,
 } from '../abac/interceptors/field-access.interceptor';
 
 @ApiTags('Products')
@@ -62,8 +62,9 @@ export class ProductsController {
   @ApiOperation({ summary: 'Get all products for organization' })
   findAll(
     @Query('organizationId', ParseUUIDPipe) organizationId: string,
-    @Query() params: PaginationParams & { 
-      status?: ProductStatus; 
+    @Query()
+    params: PaginationParams & {
+      status?: ProductStatus;
       category?: string;
       search?: string;
     },
@@ -101,10 +102,7 @@ export class ProductsController {
   @Patch(':id')
   @RequirePermission('product', 'update')
   @ApiOperation({ summary: 'Update product' })
-  update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateProductDto: UpdateProductDto,
-  ) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateProductDto: UpdateProductDto) {
     return this.productsService.update(id, updateProductDto);
   }
 
@@ -116,21 +114,14 @@ export class ProductsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: { quantity: number; operation?: 'set' | 'add' | 'subtract' },
   ) {
-    return this.productsService.updateInventory(
-      id,
-      body.quantity,
-      body.operation || 'set',
-    );
+    return this.productsService.updateInventory(id, body.quantity, body.operation || 'set');
   }
 
   @Post(':id/inventory/reserve')
   @RequirePermission('product', 'update')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Reserve product inventory' })
-  reserveInventory(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body('quantity') quantity: number,
-  ) {
+  reserveInventory(@Param('id', ParseUUIDPipe) id: string, @Body('quantity') quantity: number) {
     return this.productsService.reserveInventory(id, quantity);
   }
 
@@ -138,10 +129,7 @@ export class ProductsController {
   @RequirePermission('product', 'update')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Release reserved inventory' })
-  releaseInventory(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body('quantity') quantity: number,
-  ) {
+  releaseInventory(@Param('id', ParseUUIDPipe) id: string, @Body('quantity') quantity: number) {
     return this.productsService.releaseInventory(id, quantity);
   }
 
@@ -157,31 +145,24 @@ export class ProductsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Bulk update product status' })
   async bulkUpdateStatus(
-    @Body() body: {
-      ids: string[];
-      status: ProductStatus;
-      organizationId: string;
-    },
+    @Body() body: { ids: string[]; status: ProductStatus; organizationId: string },
   ) {
-    await this.productsService.bulkUpdateStatus(
-      body.ids,
-      body.status,
-      body.organizationId,
-    );
+    await this.productsService.bulkUpdateStatus(body.ids, body.status, body.organizationId);
     return { message: 'Products updated successfully' };
   }
 
   @Get(':id/field-permissions')
   @RequirePermission('product', 'read')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get field permissions for the current user',
-    description: 'Returns the field-level permissions for a specific product, showing which fields the current user can read, write, or are denied access to'
+    description:
+      'Returns the field-level permissions for a specific product, showing which fields the current user can read, write, or are denied access to',
   })
   @ApiParam({
     name: 'id',
     description: 'Product ID',
     type: 'string',
-    format: 'uuid'
+    format: 'uuid',
   })
   @ApiResponse({
     status: 200,
@@ -194,40 +175,37 @@ export class ProductsController {
         permissions: {
           type: 'object',
           properties: {
-            readable: { 
-              type: 'array', 
+            readable: {
+              type: 'array',
               items: { type: 'string' },
               example: ['id', 'name', 'price', 'description'],
-              description: 'Fields the user can read'
+              description: 'Fields the user can read',
             },
-            writable: { 
-              type: 'array', 
+            writable: {
+              type: 'array',
               items: { type: 'string' },
               example: ['name', 'price', 'description'],
-              description: 'Fields the user can modify'
+              description: 'Fields the user can modify',
             },
-            denied: { 
-              type: 'array', 
+            denied: {
+              type: 'array',
               items: { type: 'string' },
               example: ['costPrice', 'profitMargin'],
-              description: 'Fields explicitly denied (overrides readable/writable)'
-            }
-          }
+              description: 'Fields explicitly denied (overrides readable/writable)',
+            },
+          },
         },
         canDelete: { type: 'boolean', description: 'Whether user can delete this product' },
-        canApprove: { type: 'boolean', description: 'Whether user can approve this product' }
-      }
-    }
+        canApprove: { type: 'boolean', description: 'Whether user can approve this product' },
+      },
+    },
   })
   @ApiResponse({ status: 404, description: 'Product not found' })
-  async getFieldPermissions(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Request() req,
-  ) {
+  async getFieldPermissions(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
     // This endpoint shows what fields the user can read/write
     const product = await this.productsService.findOne(id);
     const ability = req.caslAbility;
-    
+
     if (!ability) {
       return {
         resourceType: 'Product',
@@ -241,7 +219,7 @@ export class ProductsController {
     }
 
     const fieldPermissions = ability.fieldPermissions?.get('Product');
-    
+
     return {
       resourceType: 'Product',
       resourceId: id,
@@ -257,21 +235,22 @@ export class ProductsController {
 
   @Get('test-field-permissions')
   @RequirePermission('product', 'read')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Test field permissions for a user',
-    description: 'Tests and returns the field-level permissions for a specific user and resource type. This endpoint is useful for debugging and understanding what fields a user can access.'
+    description:
+      'Tests and returns the field-level permissions for a specific user and resource type. This endpoint is useful for debugging and understanding what fields a user can access.',
   })
   @ApiQuery({
     name: 'userId',
     description: 'ID of the user to test permissions for',
     type: 'string',
-    required: true
+    required: true,
   })
   @ApiQuery({
     name: 'organizationId',
     description: 'Organization context for permission evaluation',
     type: 'string',
-    required: true
+    required: true,
   })
   @ApiQuery({
     name: 'resourceType',
@@ -279,7 +258,7 @@ export class ProductsController {
     type: 'string',
     required: true,
     enum: ['Customer', 'Product', 'User', 'Order', 'Transaction'],
-    example: 'Product'
+    example: 'Product',
   })
   @ApiQuery({
     name: 'action',
@@ -287,7 +266,7 @@ export class ProductsController {
     type: 'string',
     required: true,
     enum: ['read', 'write'],
-    example: 'read'
+    example: 'read',
   })
   @ApiResponse({
     status: 200,
@@ -295,36 +274,36 @@ export class ProductsController {
     schema: {
       type: 'object',
       properties: {
-        allowed: { 
-          type: 'boolean', 
-          description: 'Whether the action is allowed' 
+        allowed: {
+          type: 'boolean',
+          description: 'Whether the action is allowed',
         },
-        resourceType: { 
-          type: 'string', 
-          description: 'Resource type tested' 
+        resourceType: {
+          type: 'string',
+          description: 'Resource type tested',
         },
-        action: { 
-          type: 'string', 
+        action: {
+          type: 'string',
           enum: ['read', 'write'],
-          description: 'Action tested' 
+          description: 'Action tested',
         },
-        readable: { 
-          type: 'array', 
+        readable: {
+          type: 'array',
           items: { type: 'string' },
           description: 'Fields the user can read',
-          example: ['id', 'name', 'email', 'phone', 'address']
+          example: ['id', 'name', 'email', 'phone', 'address'],
         },
-        writable: { 
-          type: 'array', 
+        writable: {
+          type: 'array',
           items: { type: 'string' },
           description: 'Fields the user can modify',
-          example: ['phone', 'email', 'address']
+          example: ['phone', 'email', 'address'],
         },
-        denied: { 
-          type: 'array', 
+        denied: {
+          type: 'array',
           items: { type: 'string' },
           description: 'Fields explicitly denied to the user',
-          example: ['ssn', 'dateOfBirth', 'creditScore']
+          example: ['ssn', 'dateOfBirth', 'creditScore'],
         },
         fieldPermissions: {
           type: 'object',
@@ -332,11 +311,11 @@ export class ProductsController {
           properties: {
             readable: { type: 'array', items: { type: 'string' } },
             writable: { type: 'array', items: { type: 'string' } },
-            denied: { type: 'array', items: { type: 'string' } }
-          }
-        }
-      }
-    }
+            denied: { type: 'array', items: { type: 'string' } },
+          },
+        },
+      },
+    },
   })
   async testFieldPermissions(
     @Query('userId', ParseUUIDPipe) userId: string,

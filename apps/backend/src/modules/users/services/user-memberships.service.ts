@@ -131,9 +131,11 @@ export class UserMembershipsService {
     }
 
     // Prevent changing owner role if it's the last owner
-    if (membership.role === UserRole.SUPER_ADMIN && 
-        updateMembershipDto.role && 
-        updateMembershipDto.role !== UserRole.SUPER_ADMIN) {
+    if (
+      membership.role === UserRole.SUPER_ADMIN &&
+      updateMembershipDto.role &&
+      updateMembershipDto.role !== UserRole.SUPER_ADMIN
+    ) {
       const ownerCount = await this.membershipRepository.count({
         where: {
           organizationId,
@@ -161,10 +163,7 @@ export class UserMembershipsService {
     return this.membershipRepository.save(membership);
   }
 
-  async removeMembership(
-    userId: string,
-    organizationId: string,
-  ): Promise<void> {
+  async removeMembership(userId: string, organizationId: string): Promise<void> {
     const membership = await this.membershipRepository.findOne({
       where: {
         userId,
@@ -213,17 +212,17 @@ export class UserMembershipsService {
         createdMemberships.push(membership);
       } catch (error) {
         // Continue with other memberships if one fails
-        console.error(`Failed to add membership for organization ${membershipDto.organizationId}:`, error);
+        console.error(
+          `Failed to add membership for organization ${membershipDto.organizationId}:`,
+          error,
+        );
       }
     }
 
     return createdMemberships;
   }
 
-  async removeBulkMemberships(
-    userId: string,
-    organizationIds: string[],
-  ): Promise<void> {
+  async removeBulkMemberships(userId: string, organizationIds: string[]): Promise<void> {
     for (const organizationId of organizationIds) {
       try {
         await this.removeMembership(userId, organizationId);

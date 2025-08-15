@@ -58,9 +58,7 @@ describe('CaslAbilityFactory', () => {
     });
 
     it('should apply field permissions from policies', async () => {
-      jest.spyOn(usersService, 'getUserRoles').mockResolvedValue([
-        { roleName: 'agent' } as any,
-      ]);
+      jest.spyOn(usersService, 'getUserRoles').mockResolvedValue([{ roleName: 'agent' } as any]);
 
       jest.spyOn(policyService, 'findApplicablePolicies').mockResolvedValue([
         {
@@ -78,11 +76,9 @@ describe('CaslAbilityFactory', () => {
         } as any,
       ]);
 
-      const ability = await factory.createForUser(
-        mockUser,
-        mockOrganizationId,
-        { includeFieldPermissions: true }
-      );
+      const ability = await factory.createForUser(mockUser, mockOrganizationId, {
+        includeFieldPermissions: true,
+      });
 
       const fieldPerms = ability.fieldPermissions.get('Customer');
       expect(fieldPerms).toBeDefined();
@@ -94,7 +90,7 @@ describe('CaslAbilityFactory', () => {
 
     it('should handle multiple roles with priority', async () => {
       const mockRoles = [
-        { 
+        {
           roleName: 'branch_manager',
           priority: 200,
         },
@@ -110,16 +106,11 @@ describe('CaslAbilityFactory', () => {
       const ability = await factory.createForUser(mockUser, mockOrganizationId);
 
       // Should have called getUserRoles
-      expect(usersService.getUserRoles).toHaveBeenCalledWith(
-        mockUser.id,
-        mockOrganizationId
-      );
+      expect(usersService.getUserRoles).toHaveBeenCalledWith(mockUser.id, mockOrganizationId);
     });
 
     it('should apply role-based defaults when no policies found', async () => {
-      jest.spyOn(usersService, 'getUserRoles').mockResolvedValue([
-        { roleName: 'manager' } as any,
-      ]);
+      jest.spyOn(usersService, 'getUserRoles').mockResolvedValue([{ roleName: 'manager' } as any]);
       jest.spyOn(policyService, 'findApplicablePolicies').mockResolvedValue([]);
 
       const ability = await factory.createForUser(mockUser, mockOrganizationId);
@@ -131,9 +122,7 @@ describe('CaslAbilityFactory', () => {
     });
 
     it('should handle deny policies correctly', async () => {
-      jest.spyOn(usersService, 'getUserRoles').mockResolvedValue([
-        { roleName: 'agent' } as any,
-      ]);
+      jest.spyOn(usersService, 'getUserRoles').mockResolvedValue([{ roleName: 'agent' } as any]);
 
       jest.spyOn(policyService, 'findApplicablePolicies').mockResolvedValue([
         {
@@ -160,9 +149,7 @@ describe('CaslAbilityFactory', () => {
     });
 
     it('should replace template variables in conditions', async () => {
-      jest.spyOn(usersService, 'getUserRoles').mockResolvedValue([
-        { roleName: 'user' } as any,
-      ]);
+      jest.spyOn(usersService, 'getUserRoles').mockResolvedValue([{ roleName: 'user' } as any]);
 
       jest.spyOn(policyService, 'findApplicablePolicies').mockResolvedValue([
         {
@@ -182,19 +169,23 @@ describe('CaslAbilityFactory', () => {
       const ability = await factory.createForUser(mockUser, mockOrganizationId);
 
       // User can read/update their own record
-      expect(ability.can('read', 'User', { id: mockUser.id, organizationId: mockOrganizationId })).toBe(true);
-      expect(ability.can('update', 'User', { id: mockUser.id, organizationId: mockOrganizationId })).toBe(true);
-      
+      expect(
+        ability.can('read', 'User', { id: mockUser.id, organizationId: mockOrganizationId }),
+      ).toBe(true);
+      expect(
+        ability.can('update', 'User', { id: mockUser.id, organizationId: mockOrganizationId }),
+      ).toBe(true);
+
       // But not others
-      expect(ability.can('read', 'User', { id: 'other-user', organizationId: mockOrganizationId })).toBe(false);
+      expect(
+        ability.can('read', 'User', { id: 'other-user', organizationId: mockOrganizationId }),
+      ).toBe(false);
     });
   });
 
   describe('canWithFields', () => {
     it('should check action permission and return field permissions', async () => {
-      jest.spyOn(usersService, 'getUserRoles').mockResolvedValue([
-        { roleName: 'agent' } as any,
-      ]);
+      jest.spyOn(usersService, 'getUserRoles').mockResolvedValue([{ roleName: 'agent' } as any]);
 
       jest.spyOn(policyService, 'findApplicablePolicies').mockResolvedValue([
         {
@@ -219,12 +210,7 @@ describe('CaslAbilityFactory', () => {
         organizationId: mockOrganizationId,
       };
 
-      const result = await factory.canWithFields(
-        mockUser,
-        'read',
-        customer,
-        mockOrganizationId
-      );
+      const result = await factory.canWithFields(mockUser, 'read', customer, mockOrganizationId);
 
       expect(result.allowed).toBe(true);
       expect(result.readableFields).toEqual(['id', 'name', 'email']);
@@ -233,9 +219,7 @@ describe('CaslAbilityFactory', () => {
     });
 
     it('should return allowed false when action is denied', async () => {
-      jest.spyOn(usersService, 'getUserRoles').mockResolvedValue([
-        { roleName: 'guest' } as any,
-      ]);
+      jest.spyOn(usersService, 'getUserRoles').mockResolvedValue([{ roleName: 'guest' } as any]);
       jest.spyOn(policyService, 'findApplicablePolicies').mockResolvedValue([]);
 
       const product = {
@@ -244,12 +228,7 @@ describe('CaslAbilityFactory', () => {
         organizationId: mockOrganizationId,
       };
 
-      const result = await factory.canWithFields(
-        mockUser,
-        'delete',
-        product,
-        mockOrganizationId
-      );
+      const result = await factory.canWithFields(mockUser, 'delete', product, mockOrganizationId);
 
       expect(result.allowed).toBe(false);
       expect(result.readableFields).toBeUndefined();

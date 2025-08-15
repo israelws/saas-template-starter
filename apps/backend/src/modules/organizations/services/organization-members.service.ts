@@ -124,7 +124,10 @@ export class OrganizationMembersService {
     }
 
     // Prevent changing owner role if it's the last owner
-    if (membership.role === UserRole.SUPER_ADMIN && updateMembershipDto.role !== UserRole.SUPER_ADMIN) {
+    if (
+      membership.role === UserRole.SUPER_ADMIN &&
+      updateMembershipDto.role !== UserRole.SUPER_ADMIN
+    ) {
       const ownerCount = await this.membershipRepository.count({
         where: {
           organizationId,
@@ -204,10 +207,7 @@ export class OrganizationMembersService {
     return memberships;
   }
 
-  async removeMultipleMembers(
-    organizationId: string,
-    userIds: string[],
-  ): Promise<void> {
+  async removeMultipleMembers(organizationId: string, userIds: string[]): Promise<void> {
     for (const userId of userIds) {
       try {
         await this.removeMember(organizationId, userId);
@@ -273,10 +273,7 @@ export class OrganizationMembersService {
     return [];
   }
 
-  async cancelInvitation(
-    organizationId: string,
-    invitationId: string,
-  ): Promise<void> {
+  async cancelInvitation(organizationId: string, invitationId: string): Promise<void> {
     // TODO: Implement invitation cancellation
     // This would update the invitation status or delete it
   }

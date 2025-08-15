@@ -47,21 +47,21 @@ export class UserSeeder {
         lastName: 'Administrator',
         phone: '+1-555-0001',
         status: 'active',
-        attributes: { 
+        attributes: {
           role: 'admin',
           clearanceLevel: 'top-secret',
           department: 'executive',
           employeeId: 'TC001',
           hireDate: '2020-01-15',
-          location: 'San Francisco, CA'
+          location: 'San Francisco, CA',
         },
         memberships: [
           {
             organizationCode: 'TECHCORP',
             role: 'admin',
-            attributes: { permissions: ['all'], accessLevel: 'global' }
-          }
-        ]
+            attributes: { permissions: ['all'], accessLevel: 'global' },
+          },
+        ],
       },
       {
         cognitoId: 'cognito-cto-techcorp-002',
@@ -77,20 +77,20 @@ export class UserSeeder {
           employeeId: 'TC002',
           title: 'Chief Technology Officer',
           hireDate: '2020-03-01',
-          location: 'San Francisco, CA'
+          location: 'San Francisco, CA',
         },
         memberships: [
           {
             organizationCode: 'TECHCORP',
             role: 'executive',
-            attributes: { title: 'CTO', scope: 'global' }
+            attributes: { title: 'CTO', scope: 'global' },
           },
           {
             organizationCode: 'ENG_DIV',
             role: 'director',
-            attributes: { title: 'Engineering Director' }
-          }
-        ]
+            attributes: { title: 'Engineering Director' },
+          },
+        ],
       },
       {
         cognitoId: 'cognito-engmgr-techcorp-003',
@@ -106,20 +106,20 @@ export class UserSeeder {
           employeeId: 'TC003',
           title: 'Engineering Manager',
           hireDate: '2021-06-15',
-          location: 'San Francisco, CA'
+          location: 'San Francisco, CA',
         },
         memberships: [
           {
             organizationCode: 'ENG_DIV',
             role: 'manager',
-            attributes: { team: 'backend', scope: 'division' }
+            attributes: { team: 'backend', scope: 'division' },
           },
           {
             organizationCode: 'BACKEND_TEAM',
             role: 'lead',
-            attributes: { title: 'Team Lead' }
-          }
-        ]
+            attributes: { title: 'Team Lead' },
+          },
+        ],
       },
       {
         cognitoId: 'cognito-dev-techcorp-004',
@@ -136,15 +136,15 @@ export class UserSeeder {
           title: 'Senior Backend Developer',
           hireDate: '2022-01-10',
           location: 'San Francisco, CA',
-          skills: ['nodejs', 'python', 'postgresql', 'redis']
+          skills: ['nodejs', 'python', 'postgresql', 'redis'],
         },
         memberships: [
           {
             organizationCode: 'BACKEND_TEAM',
             role: 'member',
-            attributes: { level: 'senior', specialization: 'api_development' }
-          }
-        ]
+            attributes: { level: 'senior', specialization: 'api_development' },
+          },
+        ],
       },
       {
         cognitoId: 'cognito-dev-techcorp-005',
@@ -161,15 +161,15 @@ export class UserSeeder {
           title: 'Frontend Developer',
           hireDate: '2022-03-20',
           location: 'Austin, TX',
-          skills: ['react', 'typescript', 'nextjs', 'tailwind']
+          skills: ['react', 'typescript', 'nextjs', 'tailwind'],
         },
         memberships: [
           {
             organizationCode: 'FRONTEND_TEAM',
             role: 'member',
-            attributes: { level: 'mid', specialization: 'ui_components' }
-          }
-        ]
+            attributes: { level: 'mid', specialization: 'ui_components' },
+          },
+        ],
       },
       {
         cognitoId: 'cognito-salesmgr-techcorp-006',
@@ -186,20 +186,20 @@ export class UserSeeder {
           title: 'Sales Manager',
           hireDate: '2021-09-01',
           location: 'New York, NY',
-          quota: 2000000
+          quota: 2000000,
         },
         memberships: [
           {
             organizationCode: 'SALES_DIV',
             role: 'manager',
-            attributes: { territory: 'east_coast', quota: 2000000 }
+            attributes: { territory: 'east_coast', quota: 2000000 },
           },
           {
             organizationCode: 'ENT_SALES',
             role: 'lead',
-            attributes: { focus: 'enterprise_accounts' }
-          }
-        ]
+            attributes: { focus: 'enterprise_accounts' },
+          },
+        ],
       },
 
       // RetailMax Enterprises Users
@@ -217,15 +217,15 @@ export class UserSeeder {
           employeeId: 'RM001',
           title: 'Chief Executive Officer',
           hireDate: '2018-01-01',
-          location: 'Chicago, IL'
+          location: 'Chicago, IL',
         },
         memberships: [
           {
             organizationCode: 'RETAILMAX',
             role: 'admin',
-            attributes: { title: 'CEO', scope: 'global' }
-          }
-        ]
+            attributes: { title: 'CEO', scope: 'global' },
+          },
+        ],
       },
       {
         cognitoId: 'cognito-regional-retailmax-008',
@@ -241,25 +241,25 @@ export class UserSeeder {
           employeeId: 'RM002',
           title: 'Regional Director - North America',
           hireDate: '2019-03-15',
-          location: 'Chicago, IL'
+          location: 'Chicago, IL',
         },
         memberships: [
           {
             organizationCode: 'NA_REGION',
             role: 'director',
-            attributes: { region: 'north_america', stores: 250 }
+            attributes: { region: 'north_america', stores: 250 },
           },
           {
             organizationCode: 'US_EAST',
             role: 'manager',
-            attributes: { stores: 120 }
+            attributes: { stores: 120 },
           },
           {
             organizationCode: 'US_WEST',
             role: 'manager',
-            attributes: { stores: 100 }
-          }
-        ]
+            attributes: { stores: 100 },
+          },
+        ],
       },
       {
         cognitoId: 'cognito-ops-retailmax-009',
@@ -275,20 +275,20 @@ export class UserSeeder {
           employeeId: 'RM003',
           title: 'Operations Manager',
           hireDate: '2020-07-01',
-          location: 'Chicago, IL'
+          location: 'Chicago, IL',
         },
         memberships: [
           {
             organizationCode: 'OPS_DIV',
             role: 'manager',
-            attributes: { focus: 'supply_chain', warehouses: 25 }
+            attributes: { focus: 'supply_chain', warehouses: 25 },
           },
           {
             organizationCode: 'SUPPLY_CHAIN',
             role: 'lead',
-            attributes: { suppliers: 500 }
-          }
-        ]
+            attributes: { suppliers: 500 },
+          },
+        ],
       },
 
       // FinanceFlow Solutions Users
@@ -306,15 +306,15 @@ export class UserSeeder {
           employeeId: 'FF001',
           title: 'Founder & CEO',
           hireDate: '2018-06-01',
-          location: 'Austin, TX'
+          location: 'Austin, TX',
         },
         memberships: [
           {
             organizationCode: 'FINFLOW',
             role: 'admin',
-            attributes: { title: 'Founder & CEO', equity: 35 }
-          }
-        ]
+            attributes: { title: 'Founder & CEO', equity: 35 },
+          },
+        ],
       },
       {
         cognitoId: 'cognito-cto-finflow-011',
@@ -330,20 +330,20 @@ export class UserSeeder {
           employeeId: 'FF002',
           title: 'Chief Technology Officer',
           hireDate: '2018-08-15',
-          location: 'Austin, TX'
+          location: 'Austin, TX',
         },
         memberships: [
           {
             organizationCode: 'FINFLOW',
             role: 'executive',
-            attributes: { title: 'CTO', equity: 15 }
+            attributes: { title: 'CTO', equity: 15 },
           },
           {
             organizationCode: 'PROD_ENG',
             role: 'director',
-            attributes: { title: 'Engineering Director', microservices: 45 }
-          }
-        ]
+            attributes: { title: 'Engineering Director', microservices: 45 },
+          },
+        ],
       },
       {
         cognitoId: 'cognito-risk-finflow-012',
@@ -360,15 +360,15 @@ export class UserSeeder {
           title: 'Risk & Compliance Director',
           hireDate: '2019-02-01',
           location: 'Austin, TX',
-          certifications: ['frm', 'cisa', 'cism']
+          certifications: ['frm', 'cisa', 'cism'],
         },
         memberships: [
           {
             organizationCode: 'RISK_COMP',
             role: 'director',
-            attributes: { frameworks: ['basel', 'coso'], clearances: ['pci_dss'] }
-          }
-        ]
+            attributes: { frameworks: ['basel', 'coso'], clearances: ['pci_dss'] },
+          },
+        ],
       },
 
       // Cross-organization consultant
@@ -387,21 +387,21 @@ export class UserSeeder {
           title: 'Senior Business Consultant',
           startDate: '2023-01-01',
           endDate: '2024-12-31',
-          specialization: 'digital_transformation'
+          specialization: 'digital_transformation',
         },
         memberships: [
           {
             organizationCode: 'TECHCORP',
             role: 'consultant',
-            attributes: { project: 'digital_transformation', access: 'limited' }
+            attributes: { project: 'digital_transformation', access: 'limited' },
           },
           {
             organizationCode: 'RETAILMAX',
             role: 'consultant',
-            attributes: { project: 'omnichannel_strategy', access: 'limited' }
-          }
-        ]
-      }
+            attributes: { project: 'omnichannel_strategy', access: 'limited' },
+          },
+        ],
+      },
     ];
 
     // Create users and their memberships
@@ -427,19 +427,25 @@ export class UserSeeder {
     });
 
     const savedUser = await this.userRepository.save(user);
-    this.logger.debug(`Created user: ${userInfo.firstName} ${userInfo.lastName} (${userInfo.email})`);
-    
+    this.logger.debug(
+      `Created user: ${userInfo.firstName} ${userInfo.lastName} (${userInfo.email})`,
+    );
+
     return savedUser;
   }
 
   private async createMemberships(
-    user: User, 
-    memberships: Array<{organizationCode: string, role: string, attributes?: Record<string, any>}>
+    user: User,
+    memberships: Array<{
+      organizationCode: string;
+      role: string;
+      attributes?: Record<string, any>;
+    }>,
   ): Promise<void> {
     for (const membershipInfo of memberships) {
       // Find organization by code
       const organization = await this.organizationRepository.findOne({
-        where: { code: membershipInfo.organizationCode }
+        where: { code: membershipInfo.organizationCode },
       });
 
       if (!organization) {
@@ -456,7 +462,9 @@ export class UserSeeder {
       });
 
       await this.membershipRepository.save(membership);
-      this.logger.debug(`Created membership: ${user.email} -> ${organization.name} (${membershipInfo.role})`);
+      this.logger.debug(
+        `Created membership: ${user.email} -> ${organization.name} (${membershipInfo.role})`,
+      );
     }
   }
 }

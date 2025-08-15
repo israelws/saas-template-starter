@@ -8,11 +8,7 @@ import { ProductsModule } from '../products/products.module';
 import { CustomersModule } from '../customers/customers.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Order, OrderItem]),
-    ProductsModule,
-    CustomersModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Order, OrderItem]), ProductsModule, CustomersModule],
   controllers: [OrdersController],
   providers: [OrdersService],
   exports: [OrdersService],

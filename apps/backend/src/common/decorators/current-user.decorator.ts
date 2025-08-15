@@ -17,8 +17,8 @@ export const CurrentUser = createParamDecorator(
     const user = request.user;
 
     // Extract organization ID from headers or query params
-    const organizationId = 
-      request.headers['x-organization-id'] || 
+    const organizationId =
+      request.headers['x-organization-id'] ||
       request.query.organizationId ||
       request.body?.organizationId;
 

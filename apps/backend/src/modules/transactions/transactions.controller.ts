@@ -39,7 +39,8 @@ export class TransactionsController {
   @ApiOperation({ summary: 'Get all transactions for organization' })
   findAll(
     @Query('organizationId', ParseUUIDPipe) organizationId: string,
-    @Query() params: PaginationParams & {
+    @Query()
+    params: PaginationParams & {
       type?: TransactionType;
       status?: TransactionStatus;
       customerId?: string;
@@ -94,10 +95,7 @@ export class TransactionsController {
   @RequirePermission('transaction', 'reverse')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Reverse a completed transaction' })
-  reverse(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body('reason') reason: string,
-  ) {
+  reverse(@Param('id', ParseUUIDPipe) id: string, @Body('reason') reason: string) {
     return this.transactionsService.reverse(id, reason);
   }
 }

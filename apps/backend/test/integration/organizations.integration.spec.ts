@@ -10,7 +10,12 @@ import { LoggerModule } from '../../src/common/logger/logger.module';
 import { CacheModule } from '../../src/common/cache/cache.module';
 import { Organization } from '../../src/modules/organizations/entities/organization.entity';
 import { User } from '../../src/modules/users/entities/user.entity';
-import { TestDatabaseModule, cleanupDatabase, createMockUser, createMockOrganization } from '../utils/test-helpers';
+import {
+  TestDatabaseModule,
+  cleanupDatabase,
+  createMockUser,
+  createMockOrganization,
+} from '../utils/test-helpers';
 import { DataSource, Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 
@@ -40,29 +45,32 @@ describe('Organizations Integration', () => {
 
     app = moduleFixture.createNestApplication();
     dataSource = moduleFixture.get<DataSource>(DataSource);
-    organizationRepository = moduleFixture.get<Repository<Organization>>(getRepositoryToken(Organization));
+    organizationRepository = moduleFixture.get<Repository<Organization>>(
+      getRepositoryToken(Organization),
+    );
     userRepository = moduleFixture.get<Repository<User>>(getRepositoryToken(User));
-    
+
     await app.init();
   });
 
   beforeEach(async () => {
     await cleanupDatabase(dataSource);
-    
+
     // Create test user and auth token
     testUser = await userRepository.save(
       createMockUser({
         id: 'test-user-id',
         email: 'test@example.com',
         attributes: { role: 'admin', clearanceLevel: 'high' },
-      })
+      }),
     );
 
     // Mock JWT token (in real tests, you'd generate a proper JWT)
     authToken = 'mock-jwt-token';
 
     // Mock JWT verification middleware
-    jest.spyOn(require('../../src/modules/auth/guards/jwt-auth.guard'), 'JwtAuthGuard')
+    jest
+      .spyOn(require('../../src/modules/auth/guards/jwt-auth.guard'), 'JwtAuthGuard')
       .mockImplementation(() => ({
         canActivate: () => true,
       }));
@@ -98,7 +106,7 @@ describe('Organizations Integration', () => {
           status: 'active',
           isActive: true,
           settings: { industry: 'technology' },
-        })
+        }),
       );
 
       // Verify organization was saved to database
@@ -116,7 +124,7 @@ describe('Organizations Integration', () => {
           name: 'Parent Organization',
           code: 'PARENT_ORG',
           type: 'company',
-        })
+        }),
       );
 
       const createDto = {
@@ -137,7 +145,7 @@ describe('Organizations Integration', () => {
         expect.objectContaining({
           id: parentOrg.id,
           name: 'Parent Organization',
-        })
+        }),
       );
     });
 
@@ -147,7 +155,7 @@ describe('Organizations Integration', () => {
         createMockOrganization({
           name: 'Existing Organization',
           code: 'EXISTING_CODE',
-        })
+        }),
       );
 
       const createDto = {
@@ -289,7 +297,7 @@ describe('Organizations Integration', () => {
         createMockOrganization({
           name: 'Test Organization',
           code: 'TEST_ORG',
-        })
+        }),
       );
     });
 
@@ -304,7 +312,7 @@ describe('Organizations Integration', () => {
           id: testOrganization.id,
           name: 'Test Organization',
           code: 'TEST_ORG',
-        })
+        }),
       );
     });
 
@@ -325,7 +333,7 @@ describe('Organizations Integration', () => {
           name: 'Original Name',
           code: 'ORIGINAL_CODE',
           description: 'Original description',
-        })
+        }),
       );
     });
 
@@ -349,7 +357,7 @@ describe('Organizations Integration', () => {
           description: 'Updated description',
           code: 'ORIGINAL_CODE', // Should remain unchanged
           settings: { key: 'updated-value' },
-        })
+        }),
       );
 
       // Verify changes were persisted
@@ -375,7 +383,7 @@ describe('Organizations Integration', () => {
         createMockOrganization({
           name: 'Other Organization',
           code: 'OTHER_CODE',
-        })
+        }),
       );
 
       const updateDto = {
@@ -398,7 +406,7 @@ describe('Organizations Integration', () => {
         createMockOrganization({
           name: 'Test Organization',
           code: 'TEST_ORG',
-        })
+        }),
       );
     });
 
@@ -470,7 +478,7 @@ describe('Organizations Integration', () => {
         expect.objectContaining({
           name: 'Bulk Org 1',
           code: 'BULK1',
-        })
+        }),
       );
     });
 
@@ -480,7 +488,7 @@ describe('Organizations Integration', () => {
         createMockOrganization({
           name: 'Existing Organization',
           code: 'EXISTING',
-        })
+        }),
       );
 
       const bulkCreateDto = {
@@ -523,7 +531,7 @@ describe('Organizations Integration', () => {
           name: 'Parent Organization',
           code: 'PARENT',
           type: 'company',
-        })
+        }),
       );
 
       childOrg1 = await organizationRepository.save(
@@ -532,7 +540,7 @@ describe('Organizations Integration', () => {
           code: 'CHILD1',
           type: 'division',
           parent: parentOrg,
-        })
+        }),
       );
 
       childOrg2 = await organizationRepository.save(
@@ -541,7 +549,7 @@ describe('Organizations Integration', () => {
           code: 'CHILD2',
           type: 'division',
           parent: parentOrg,
-        })
+        }),
       );
     });
 
@@ -565,7 +573,7 @@ describe('Organizations Integration', () => {
               name: 'Child Organization 2',
             }),
           ]),
-        })
+        }),
       );
     });
   });
@@ -579,14 +587,14 @@ describe('Organizations Integration', () => {
         createMockOrganization({
           name: 'Organization to Move',
           code: 'MOVE_ORG',
-        })
+        }),
       );
 
       newParent = await organizationRepository.save(
         createMockOrganization({
           name: 'New Parent',
           code: 'NEW_PARENT',
-        })
+        }),
       );
     });
 
@@ -605,7 +613,7 @@ describe('Organizations Integration', () => {
         expect.objectContaining({
           id: newParent.id,
           name: 'New Parent',
-        })
+        }),
       );
     });
 

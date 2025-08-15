@@ -47,20 +47,20 @@ export class InvitationsService {
     if (!inviter) {
       throw new NotFoundException('Inviter not found');
     }
-    
+
     // Check if this is a system-level invitation
     const isSystemLevel = !createInvitationDto.organizationId;
-    
+
     // Only super admins can send system-level invitations
     if (isSystemLevel && !inviter.isSuperAdmin()) {
       throw new BadRequestException('Only super admins can send system-level invitations');
     }
-    
+
     // Check if super_admin role is being assigned
     if (createInvitationDto.roleId === 'super_admin' && !inviter.isSuperAdmin()) {
       throw new BadRequestException('Only super admins can invite other super admins');
     }
-    
+
     // Check if user already exists
     const existingUser = await this.usersService.findByEmail(createInvitationDto.email);
     if (existingUser) {
@@ -68,7 +68,7 @@ export class InvitationsService {
       if (isSystemLevel && existingUser.isSuperAdmin()) {
         throw new ConflictException('User is already a system administrator');
       }
-      
+
       // For organization invitations, check membership
       if (!isSystemLevel) {
         const isMember = await this.usersService.isUserInOrganization(
@@ -86,7 +86,7 @@ export class InvitationsService {
       email: createInvitationDto.email,
       status: InvitationStatus.PENDING,
     };
-    
+
     // For organization invitations, check within the same org
     // For system invitations, check for any system-level invitation
     if (createInvitationDto.organizationId) {
@@ -94,7 +94,7 @@ export class InvitationsService {
     } else {
       whereClause.organizationId = null;
     }
-    
+
     const existingInvitation = await this.invitationRepository.findOne({
       where: whereClause,
     });
@@ -148,7 +148,8 @@ export class InvitationsService {
   }
 
   async findAll(organizationId?: string): Promise<Invitation[]> {
-    const query = this.invitationRepository.createQueryBuilder('invitation')
+    const query = this.invitationRepository
+      .createQueryBuilder('invitation')
       .leftJoinAndSelect('invitation.organization', 'organization')
       .leftJoinAndSelect('invitation.invitedBy', 'invitedBy')
       .leftJoinAndSelect('invitation.acceptedUser', 'acceptedUser');
@@ -186,7 +187,9 @@ export class InvitationsService {
     return invitation;
   }
 
-  async validate(validateDto: ValidateInvitationDto): Promise<{ valid: boolean; invitation?: Invitation; reason?: string }> {
+  async validate(
+    validateDto: ValidateInvitationDto,
+  ): Promise<{ valid: boolean; invitation?: Invitation; reason?: string }> {
     try {
       const invitation = await this.findByToken(validateDto.token);
 
@@ -315,9 +318,14 @@ export class InvitationsService {
             acceptedByName: `${user.firstName} ${user.lastName}`,
             acceptedByEmail: user.email,
             organizationName: organization?.name || 'SAAS Platform',
-            role: invitation.roleId === 'super_admin' ? 'Super Administrator' : 
-                  invitation.roleId === 'admin' ? 'Administrator' :
-                  invitation.roleId === 'member' ? 'Member' : invitation.roleId,
+            role:
+              invitation.roleId === 'super_admin'
+                ? 'Super Administrator'
+                : invitation.roleId === 'admin'
+                  ? 'Administrator'
+                  : invitation.roleId === 'member'
+                    ? 'Member'
+                    : invitation.roleId,
           },
           invitation.organizationId,
         );
@@ -391,11 +399,11 @@ export class InvitationsService {
       .execute();
 
     const expiredCount = result.affected || 0;
-    
+
     if (expiredCount > 0) {
       this.logger.log(`Expired ${expiredCount} invitation(s)`);
     }
-    
+
     return expiredCount;
   }
 
@@ -412,7 +420,7 @@ export class InvitationsService {
       .execute();
 
     const deletedCount = result.affected || 0;
-    
+
     if (deletedCount > 0) {
       this.logger.log(`Deleted ${deletedCount} old expired invitation(s)`);
     }
@@ -424,16 +432,16 @@ export class InvitationsService {
   async handleExpiredInvitations() {
     try {
       this.logger.debug('Running invitation expiry check...');
-      
+
       // First, expire any pending invitations that have passed their expiry date
       const expiredCount = await this.expireInvitations();
-      
+
       // Then, delete old expired invitations to keep the database clean
       const deletedCount = await this.deleteExpired();
-      
+
       if (expiredCount > 0 || deletedCount > 0) {
         this.logger.log(
-          `Invitation cleanup completed: ${expiredCount} expired, ${deletedCount} deleted`
+          `Invitation cleanup completed: ${expiredCount} expired, ${deletedCount} deleted`,
         );
       }
     } catch (error) {
@@ -455,7 +463,7 @@ export class InvitationsService {
     averageTimeToAccept: number;
   }> {
     const query = this.invitationRepository.createQueryBuilder('invitation');
-    
+
     if (organizationId) {
       query.where('invitation.organizationId = :organizationId', { organizationId });
     }
@@ -491,10 +499,11 @@ export class InvitationsService {
 
     // Calculate average time to accept (in hours)
     if (stats.accepted > 0) {
-      const acceptedQuery = this.invitationRepository.createQueryBuilder('invitation')
+      const acceptedQuery = this.invitationRepository
+        .createQueryBuilder('invitation')
         .where('invitation.status = :status', { status: InvitationStatus.ACCEPTED })
         .andWhere('invitation.acceptedAt IS NOT NULL');
-      
+
       if (organizationId) {
         acceptedQuery.andWhere('invitation.organizationId = :organizationId', { organizationId });
       }
@@ -524,22 +533,28 @@ export class InvitationsService {
   ): Promise<void> {
     const invitationLink = `${this.baseUrl}/onboarding?token=${invitation.token}`;
     const expiresIn = `${this.invitationExpiryHours} hours`;
-    
-    const recipientName = invitation.firstName && invitation.lastName 
-      ? `${invitation.firstName} ${invitation.lastName}`
-      : invitation.firstName || undefined;
-    
+
+    const recipientName =
+      invitation.firstName && invitation.lastName
+        ? `${invitation.firstName} ${invitation.lastName}`
+        : invitation.firstName || undefined;
+
     const emailData: any = {
       recipientName,
       inviterName: `${inviter.firstName} ${inviter.lastName}`,
       inviterEmail: inviter.email,
       invitationUrl: invitationLink,
       expiresIn,
-      role: invitation.roleId === 'super_admin' ? 'Super Administrator' : 
-            invitation.roleId === 'admin' ? 'Administrator' :
-            invitation.roleId === 'member' ? 'Member' : invitation.roleId,
+      role:
+        invitation.roleId === 'super_admin'
+          ? 'Super Administrator'
+          : invitation.roleId === 'admin'
+            ? 'Administrator'
+            : invitation.roleId === 'member'
+              ? 'Member'
+              : invitation.roleId,
     };
-    
+
     // Add organization name if it's an organization invitation
     if (organization) {
       emailData.organizationName = organization.name;
@@ -549,6 +564,10 @@ export class InvitationsService {
       emailData.isSystemInvitation = true;
     }
 
-    await this.emailService.sendInvitationEmail(invitation.email, emailData, invitation.organizationId);
+    await this.emailService.sendInvitationEmail(
+      invitation.email,
+      emailData,
+      invitation.organizationId,
+    );
   }
 }

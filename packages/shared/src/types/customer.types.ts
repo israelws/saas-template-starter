@@ -16,15 +16,15 @@ export interface Customer extends BaseEntity {
   type: CustomerType;
   status: CustomerStatus;
   organizationId: string;
-  
+
   // Individual customer fields
   firstName?: string;
   lastName?: string;
-  
+
   // Business customer fields
   companyName?: string;
   taxId?: string;
-  
+
   // Common fields
   email: string;
   contactInfo?: ContactInfo;
@@ -49,15 +49,15 @@ export interface CreateCustomerDto {
   type: CustomerType;
   email: string;
   organizationId: string;
-  
+
   // Individual fields
   firstName?: string;
   lastName?: string;
-  
+
   // Business fields
   companyName?: string;
   taxId?: string;
-  
+
   contactInfo?: ContactInfo;
   billingAddress?: Address;
   shippingAddress?: Address;
@@ -67,7 +67,8 @@ export interface CreateCustomerDto {
   metadata?: Record<string, any>;
 }
 
-export interface UpdateCustomerDto extends Partial<Omit<CreateCustomerDto, 'type' | 'organizationId'>> {
+export interface UpdateCustomerDto
+  extends Partial<Omit<CreateCustomerDto, 'type' | 'organizationId'>> {
   status?: CustomerStatus;
   balance?: number;
 }

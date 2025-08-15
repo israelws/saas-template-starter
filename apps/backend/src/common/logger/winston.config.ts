@@ -53,11 +53,7 @@ const consoleTransport = new winston.transports.Console({
 export const winstonConfig = {
   level: process.env.LOG_LEVEL || 'info',
   format: fileFormat,
-  transports: [
-    consoleTransport,
-    errorFileTransport,
-    combinedFileTransport,
-  ],
+  transports: [consoleTransport, errorFileTransport, combinedFileTransport],
   // Don't exit on handled exceptions
   exitOnError: false,
 };
@@ -67,7 +63,7 @@ export const logger = winston.createLogger(winstonConfig);
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error({ message: "Unhandled Rejection at:", promise, reason});
+  logger.error({ message: 'Unhandled Rejection at:', promise, reason });
 });
 
 // Handle uncaught exceptions

@@ -11,7 +11,7 @@ export class SesEmailService implements IEmailService {
 
   constructor(private readonly configService: ConfigService) {
     const region = this.configService.get<string>('AWS_REGION', 'us-east-1');
-    
+
     this.sesClient = new SESClient({
       region,
       credentials: {
@@ -57,7 +57,7 @@ export class SesEmailService implements IEmailService {
       });
 
       const response = await this.sesClient.send(command);
-      
+
       this.logger.log(`Email sent successfully: ${response.MessageId}`);
     } catch (error) {
       this.logger.error('Failed to send email:', error);

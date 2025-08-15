@@ -21,7 +21,7 @@ export class AddProductVariantsAndImages1752599999000 implements MigrationInterf
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Drop the index
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_products_variants"`);
-    
+
     // Drop the columns
     await queryRunner.query(`
       ALTER TABLE "products" 

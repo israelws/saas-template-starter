@@ -1,9 +1,4 @@
-import {
-  ExceptionFilter,
-  Catch,
-  ArgumentsHost,
-  BadRequestException,
-} from '@nestjs/common';
+import { ExceptionFilter, Catch, ArgumentsHost, BadRequestException } from '@nestjs/common';
 import { Response } from 'express';
 import { LoggerService } from '../logger/logger.service';
 
@@ -28,7 +23,7 @@ export class ValidationExceptionFilter implements ExceptionFilter {
     const exceptionResponse = exception.getResponse() as any;
 
     // Check if this is a validation error from class-validator
-    const isValidationError = 
+    const isValidationError =
       typeof exceptionResponse === 'object' &&
       Array.isArray(exceptionResponse.message) &&
       exceptionResponse.message.length > 0 &&
@@ -54,16 +49,19 @@ export class ValidationExceptionFilter implements ExceptionFilter {
         validationErrors,
         details: {
           totalErrors: validationErrors.length,
-          failedFields: validationErrors.map(e => e.field),
+          failedFields: validationErrors.map((e) => e.field),
         },
       };
 
-      this.logger.warn({ message: "Validation Error", url: request.url,
+      this.logger.warn({
+        message: 'Validation Error',
+        url: request.url,
         method: request.method,
         userId: (request as any).user?.id,
         organizationId: (request as any).user?.organizationId,
         validationErrors,
-        requestBody: this.sanitizeRequestBody(request.body),});
+        requestBody: this.sanitizeRequestBody(request.body),
+      });
     } else {
       // Handle other BadRequestExceptions
       errorResponse = {
@@ -75,11 +73,14 @@ export class ValidationExceptionFilter implements ExceptionFilter {
         method: request.method,
       };
 
-      this.logger.warn({ message: "Bad Request", url: request.url,
+      this.logger.warn({
+        message: 'Bad Request',
+        url: request.url,
         method: request.method,
         userId: (request as any).user?.id,
         organizationId: (request as any).user?.organizationId,
-        exceptionMessage: exceptionResponse.message,});
+        exceptionMessage: exceptionResponse.message,
+      });
     }
 
     response.status(status).json(errorResponse);
@@ -93,7 +94,7 @@ export class ValidationExceptionFilter implements ExceptionFilter {
     const sensitiveFields = ['password', 'token', 'secret', 'key', 'authorization'];
     const sanitized = { ...body };
 
-    sensitiveFields.forEach(field => {
+    sensitiveFields.forEach((field) => {
       if (sanitized[field]) {
         sanitized[field] = '[REDACTED]';
       }

@@ -50,7 +50,7 @@ const AppDataSource = new DataSource({
 
 async function seed() {
   const logger = new LoggerService('DatabaseSeeder');
-  
+
   try {
     await AppDataSource.initialize();
     logger.log('Database connection initialized');
@@ -64,22 +64,21 @@ async function seed() {
 
     // Run seeders in order (dependencies matter)
     logger.log('🌱 Starting database seeding...');
-    
+
     logger.log('📁 Seeding organizations...');
     await organizationSeeder.seed();
-    
+
     logger.log('🔖 Seeding attribute definitions...');
     await attributeSeeder.seed();
-    
+
     logger.log('👥 Seeding users and memberships...');
     await userSeeder.seed();
-    
+
     logger.log('🛡️ Seeding policies and policy sets...');
     await policySeeder.seed();
-    
+
     logger.log('💼 Seeding business objects...');
     await businessObjectSeeder.seed();
-
 
     logger.log('\n✅ All seed data created successfully!');
     logger.log('\n📊 Summary:');

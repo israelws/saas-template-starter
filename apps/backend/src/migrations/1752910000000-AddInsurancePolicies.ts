@@ -8,9 +8,9 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
       WHERE type = 'insurance_agency'
       LIMIT 1
     `);
-    
+
     const agencyId = insuranceAgencies[0]?.id;
-    
+
     if (!agencyId) {
       console.log('No insurance agency found. Skipping insurance-specific policies.');
       return;
@@ -33,9 +33,9 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
             {
               attribute: 'agent.territory',
               operator: 'equals',
-              value: '${resource.territory}'
-            }
-          ]
+              value: '${resource.territory}',
+            },
+          ],
         },
         organizationId: agencyId,
         isActive: true,
@@ -47,11 +47,11 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
         priority: 75,
         resources: { types: ['Policy'] },
         actions: ['create'],
-        subjects: { 
-          attributes: { 
+        subjects: {
+          attributes: {
             'agent.license_status': 'active',
-            'role': ['agent', 'senior_agent', 'manager']
-          } 
+            role: ['agent', 'senior_agent', 'manager'],
+          },
         },
         conditions: {
           matchType: 'all',
@@ -59,9 +59,9 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
             {
               attribute: 'agent.license_type',
               operator: 'contains',
-              value: '${resource.policy.type}'
-            }
-          ]
+              value: '${resource.policy.type}',
+            },
+          ],
         },
         organizationId: agencyId,
         isActive: true,
@@ -71,16 +71,16 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
         description: 'Allows senior agents to handle high-value policies',
         effect: 'Allow',
         priority: 80,
-        resources: { 
+        resources: {
           types: ['Policy'],
-          attributes: { 'policy.coverage_amount': { $gt: 500000 } }
+          attributes: { 'policy.coverage_amount': { $gt: 500000 } },
         },
         actions: ['read', 'update', 'approve'],
-        subjects: { 
-          attributes: { 
-            'role': ['senior_agent', 'manager'],
-            'agent.license_status': 'active'
-          } 
+        subjects: {
+          attributes: {
+            role: ['senior_agent', 'manager'],
+            'agent.license_status': 'active',
+          },
         },
         organizationId: agencyId,
         isActive: true,
@@ -92,15 +92,15 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
         description: 'Grants branch managers full access to their branch data',
         effect: 'Allow',
         priority: 85,
-        resources: { 
-          types: ['InsuranceBranch', 'InsuranceAgent', 'Customer', 'Policy'] 
+        resources: {
+          types: ['InsuranceBranch', 'InsuranceAgent', 'Customer', 'Policy'],
         },
         actions: ['*'],
-        subjects: { 
-          attributes: { 
-            'role': 'manager',
-            'department': 'branch_management'
-          } 
+        subjects: {
+          attributes: {
+            role: 'manager',
+            department: 'branch_management',
+          },
         },
         conditions: {
           matchType: 'all',
@@ -108,9 +108,9 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
             {
               attribute: 'user.branchId',
               operator: 'equals',
-              value: '${resource.branchId}'
-            }
-          ]
+              value: '${resource.branchId}',
+            },
+          ],
         },
         organizationId: agencyId,
         isActive: true,
@@ -122,11 +122,11 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
         priority: 70,
         resources: { types: ['PerformanceMetrics', 'Report'] },
         actions: ['read', 'export'],
-        subjects: { 
-          attributes: { 
-            'role': ['manager', 'director'],
-            'department': 'branch_management'
-          } 
+        subjects: {
+          attributes: {
+            role: ['manager', 'director'],
+            department: 'branch_management',
+          },
         },
         organizationId: agencyId,
         isActive: true,
@@ -138,14 +138,14 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
         description: 'Restricts access to resources within assigned territories',
         effect: 'Allow',
         priority: 60,
-        resources: { 
-          types: ['Customer', 'Policy', 'Claim'] 
+        resources: {
+          types: ['Customer', 'Policy', 'Claim'],
         },
         actions: ['read', 'update'],
-        subjects: { 
-          attributes: { 
-            'agent.territory': { $exists: true }
-          } 
+        subjects: {
+          attributes: {
+            'agent.territory': { $exists: true },
+          },
         },
         conditions: {
           matchType: 'all',
@@ -153,9 +153,9 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
             {
               attribute: 'agent.territory',
               operator: 'equals',
-              value: '${resource.territory}'
-            }
-          ]
+              value: '${resource.territory}',
+            },
+          ],
         },
         organizationId: agencyId,
         isActive: true,
@@ -167,15 +167,15 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
         description: 'Requires manager approval for high-risk policies',
         effect: 'Deny',
         priority: 90,
-        resources: { 
+        resources: {
           types: ['Policy'],
-          attributes: { 'policy.risk_level': ['high', 'very_high'] }
+          attributes: { 'policy.risk_level': ['high', 'very_high'] },
         },
         actions: ['approve', 'activate'],
-        subjects: { 
-          attributes: { 
-            'role': 'agent'
-          } 
+        subjects: {
+          attributes: {
+            role: 'agent',
+          },
         },
         organizationId: agencyId,
         isActive: true,
@@ -185,16 +185,16 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
         description: 'Allows risk managers to assess and modify risk profiles',
         effect: 'Allow',
         priority: 85,
-        resources: { 
+        resources: {
           types: ['Customer', 'Policy'],
-          attributes: { 'customer.risk_profile': { $exists: true } }
+          attributes: { 'customer.risk_profile': { $exists: true } },
         },
         actions: ['read', 'update', 'assess_risk'],
-        subjects: { 
-          attributes: { 
-            'role': ['risk_manager', 'director'],
-            'certifications': { $contains: 'risk_assessment' }
-          } 
+        subjects: {
+          attributes: {
+            role: ['risk_manager', 'director'],
+            certifications: { $contains: 'risk_assessment' },
+          },
         },
         organizationId: agencyId,
         isActive: true,
@@ -208,10 +208,10 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
         priority: 50,
         resources: { types: ['Policy', 'Claim'] },
         actions: ['create', 'update', 'approve'],
-        subjects: { 
-          attributes: { 
-            'role': ['agent', 'junior_agent']
-          } 
+        subjects: {
+          attributes: {
+            role: ['agent', 'junior_agent'],
+          },
         },
         conditions: {
           matchType: 'all',
@@ -219,9 +219,9 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
             {
               attribute: 'environment.branch_hours',
               operator: 'equals',
-              value: 'open'
-            }
-          ]
+              value: 'open',
+            },
+          ],
         },
         organizationId: agencyId,
         isActive: true,
@@ -233,17 +233,17 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
         description: 'Special access rules for VIP customers',
         effect: 'Allow',
         priority: 75,
-        resources: { 
+        resources: {
           types: ['Customer'],
-          attributes: { 
-            'customer.loyalty_status': ['gold', 'platinum'] 
-          }
+          attributes: {
+            'customer.loyalty_status': ['gold', 'platinum'],
+          },
         },
         actions: ['read', 'update', 'provide_discount'],
-        subjects: { 
-          attributes: { 
-            'role': ['agent', 'senior_agent', 'manager']
-          } 
+        subjects: {
+          attributes: {
+            role: ['agent', 'senior_agent', 'manager'],
+          },
         },
         organizationId: agencyId,
         isActive: true,
@@ -257,20 +257,20 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
         priority: 65,
         resources: { types: ['Customer'] },
         actions: ['read'],
-        subjects: { 
-          attributes: { 
-            'role': 'agent'
-          } 
+        subjects: {
+          attributes: {
+            role: 'agent',
+          },
         },
         fieldRules: [
           {
             fields: ['ssn', 'bankAccount', 'creditScore'],
-            access: 'deny'
+            access: 'deny',
           },
           {
             fields: ['name', 'email', 'phone', 'address'],
-            access: 'read'
-          }
+            access: 'read',
+          },
         ],
         organizationId: agencyId,
         isActive: true,
@@ -282,16 +282,16 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
         priority: 85,
         resources: { types: ['Customer'] },
         actions: ['read', 'update'],
-        subjects: { 
-          attributes: { 
-            'role': ['manager', 'director']
-          } 
+        subjects: {
+          attributes: {
+            role: ['manager', 'director'],
+          },
         },
         fieldRules: [
           {
             fields: ['*'],
-            access: 'write'
-          }
+            access: 'write',
+          },
         ],
         organizationId: agencyId,
         isActive: true,
@@ -305,11 +305,11 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
         priority: 95,
         resources: { types: ['*'] },
         actions: ['read', 'audit'],
-        subjects: { 
-          attributes: { 
-            'role': 'compliance_officer',
-            'department': 'compliance'
-          } 
+        subjects: {
+          attributes: {
+            role: 'compliance_officer',
+            department: 'compliance',
+          },
         },
         organizationId: agencyId,
         isActive: true,
@@ -318,7 +318,8 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
 
     // Insert all policies
     for (const policy of policies) {
-      const result = await queryRunner.query(`
+      const result = await queryRunner.query(
+        `
         INSERT INTO policies (
           name, description, effect, priority, resources, 
           actions, subjects, conditions, "fieldRules", 
@@ -326,20 +327,22 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
         ) VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW()
         ) RETURNING id
-      `, [
-        policy.name,
-        policy.description,
-        policy.effect,
-        policy.priority,
-        JSON.stringify(policy.resources),
-        JSON.stringify(policy.actions),
-        JSON.stringify(policy.subjects),
-        policy.conditions ? JSON.stringify(policy.conditions) : null,
-        policy.fieldRules ? JSON.stringify(policy.fieldRules) : null,
-        policy.organizationId,
-        policy.isActive,
-        1, // version
-      ]);
+      `,
+        [
+          policy.name,
+          policy.description,
+          policy.effect,
+          policy.priority,
+          JSON.stringify(policy.resources),
+          JSON.stringify(policy.actions),
+          JSON.stringify(policy.subjects),
+          policy.conditions ? JSON.stringify(policy.conditions) : null,
+          policy.fieldRules ? JSON.stringify(policy.fieldRules) : null,
+          policy.organizationId,
+          policy.isActive,
+          1, // version
+        ],
+      );
 
       console.log(`Created policy: ${policy.name} (ID: ${result[0].id})`);
     }
@@ -365,9 +368,12 @@ export class AddInsurancePolicies1752910000000 implements MigrationInterface {
       'Compliance Officer Access',
     ];
 
-    await queryRunner.query(`
+    await queryRunner.query(
+      `
       DELETE FROM policies 
       WHERE name IN (${insurancePolicyNames.map((_, i) => `$${i + 1}`).join(', ')})
-    `, insurancePolicyNames);
+    `,
+      insurancePolicyNames,
+    );
   }
 }

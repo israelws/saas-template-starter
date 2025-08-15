@@ -16,11 +16,15 @@ export const invitationEmailTemplate = (data: InvitationEmailData): string => {
       You're invited to join ${data.organizationName}
     </h2>
     
-    ${data.recipientName ? `
+    ${
+      data.recipientName
+        ? `
     <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.5; color: #555555;">
       Hi ${data.recipientName},
     </p>
-    ` : ''}
+    `
+        : ''
+    }
     
     <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.5; color: #555555;">
       <strong>${data.inviterName}</strong> (${data.inviterEmail}) has invited you to join <strong>${data.organizationName}</strong> as a <strong>${data.role}</strong>.
@@ -53,11 +57,15 @@ export const invitationEmailTemplate = (data: InvitationEmailData): string => {
       </p>
     </div>
     
-    ${data.expiresIn ? `
+    ${
+      data.expiresIn
+        ? `
     <p style="margin: 0 0 20px 0; font-size: 14px; color: #dc3545; font-style: italic;">
       ⚠️ This invitation will expire in ${data.expiresIn}.
     </p>
-    ` : ''}
+    `
+        : ''
+    }
     
     <p style="margin: 0 0 20px 0; font-size: 14px; color: #666666;">
       If you're having trouble clicking the button, copy and paste the URL below into your web browser:
@@ -67,11 +75,11 @@ export const invitationEmailTemplate = (data: InvitationEmailData): string => {
       ${data.invitationUrl}
     </p>
   `;
-  
+
   return baseEmailTemplate({
     subject: `Invitation to join ${data.organizationName}`,
     previewText: `${data.inviterName} has invited you to join ${data.organizationName} as a ${data.role}`,
-    content
+    content,
   });
 };
 
@@ -105,27 +113,33 @@ export const invitationAcceptedEmailTemplate = (data: {
       You can manage their permissions and access from the organization settings page.
     </p>
   `;
-  
+
   return baseEmailTemplate({
     subject: `${data.acceptedByName} accepted your invitation`,
     previewText: `${data.acceptedByName} has joined ${data.organizationName} as a ${data.role}`,
-    content
+    content,
   });
 };
 
-export const invitationReminderEmailTemplate = (data: InvitationEmailData & { 
-  daysRemaining: number;
-}): string => {
+export const invitationReminderEmailTemplate = (
+  data: InvitationEmailData & {
+    daysRemaining: number;
+  },
+): string => {
   const content = `
     <h2 style="margin: 0 0 20px 0; color: #333333; font-size: 24px; font-weight: 600;">
       Reminder: You have a pending invitation
     </h2>
     
-    ${data.recipientName ? `
+    ${
+      data.recipientName
+        ? `
     <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.5; color: #555555;">
       Hi ${data.recipientName},
     </p>
-    ` : ''}
+    `
+        : ''
+    }
     
     <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.5; color: #555555;">
       This is a friendly reminder that you have a pending invitation from <strong>${data.inviterName}</strong> to join <strong>${data.organizationName}</strong>.
@@ -152,10 +166,10 @@ export const invitationReminderEmailTemplate = (data: InvitationEmailData & {
       Don't miss out on joining ${data.organizationName}!
     </p>
   `;
-  
+
   return baseEmailTemplate({
     subject: `Reminder: Your invitation to ${data.organizationName} expires soon`,
     previewText: `Your invitation expires in ${data.daysRemaining} day${data.daysRemaining !== 1 ? 's' : ''}`,
-    content
+    content,
   });
 };

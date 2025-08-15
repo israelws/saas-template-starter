@@ -36,19 +36,19 @@ import { LoggerModule } from '../logger/logger.module';
           maxRetriesPerRequest: 3,
           lazyConnect: true,
           keyPrefix: configService.get<string>('CACHE_KEY_PREFIX', 'saas_template:'),
-          
+
           // Connection error handling
           retryDelayOnClusterDown: 300,
           enableOfflineQueue: false,
-          
+
           // Performance settings
           connectTimeout: 10000,
           commandTimeout: 5000,
-          
+
           // Additional Redis options
           family: 4, // IPv4
           keepAlive: true,
-          
+
           // Serialization
           serialize: JSON.stringify,
           deserialize: JSON.parse,

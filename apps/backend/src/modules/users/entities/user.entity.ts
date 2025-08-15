@@ -1,11 +1,6 @@
 import { Entity, Column, Index, OneToMany } from 'typeorm';
 import { BaseEntity } from '@/common/entities/base.entity';
-import {
-  UserStatus,
-  ContactInfo,
-  UserAttributes,
-  UserPreferences,
-} from '@saas-template/shared';
+import { UserStatus, ContactInfo, UserAttributes, UserPreferences } from '@saas-template/shared';
 import { UserOrganizationMembership } from './user-organization-membership.entity';
 import { UserAttribute } from './user-attribute.entity';
 

@@ -13,13 +13,7 @@ import {
   Request,
   BadRequestException,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { SuperAdminGuard } from '../../common/guards/super-admin.guard';
 import { AdminOrSuperAdminGuard } from '../../common/guards/admin-or-super-admin.guard';
@@ -110,10 +104,7 @@ export class EmailConfigController {
   @ApiOperation({ summary: 'Test email service configuration' })
   @ApiResponse({ status: 200, description: 'Test email sent successfully' })
   @ApiResponse({ status: 400, description: 'Test failed' })
-  test(
-    @Param('provider') provider: EmailServiceProvider,
-    @Body() testDto: TestEmailServiceDto,
-  ) {
+  test(@Param('provider') provider: EmailServiceProvider, @Body() testDto: TestEmailServiceDto) {
     return this.emailConfigService.testConfiguration(provider, testDto.to);
   }
 

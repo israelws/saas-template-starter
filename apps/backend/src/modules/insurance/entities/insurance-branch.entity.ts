@@ -78,7 +78,7 @@ export class InsuranceBranch {
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
 
-  @OneToMany(() => InsuranceAgent, agent => agent.branch)
+  @OneToMany(() => InsuranceAgent, (agent) => agent.branch)
   agents: InsuranceAgent[];
 
   @CreateDateColumn({ name: 'created_at' })

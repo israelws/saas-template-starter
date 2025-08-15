@@ -12,9 +12,7 @@ export class HierarchicalAbacService {
     private readonly organizationsService: OrganizationsService,
   ) {}
 
-  async evaluateWithHierarchy(
-    context: PolicyEvaluationContext,
-  ): Promise<PolicyEvaluationResult> {
+  async evaluateWithHierarchy(context: PolicyEvaluationContext): Promise<PolicyEvaluationResult> {
     // First, evaluate policies at the current organization level
     const directResult = await this.policyEvaluator.evaluate(context);
 
@@ -30,7 +28,7 @@ export class HierarchicalAbacService {
 
     // If not explicitly allowed or denied, check parent organizations
     const ancestors = await this.organizationsService.getAncestors(context.organizationId);
-    
+
     for (const ancestor of ancestors) {
       // Skip the current organization (already evaluated)
       if (ancestor.id === context.organizationId) {
@@ -111,7 +109,7 @@ export class HierarchicalAbacService {
 
     // First check policies in the user's organization
     const sourceResult = await this.evaluateWithHierarchy(crossOrgContext);
-    
+
     if (!sourceResult.allowed) {
       return {
         ...sourceResult,

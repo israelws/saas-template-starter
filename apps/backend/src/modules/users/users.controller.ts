@@ -10,23 +10,18 @@ import {
   Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { 
-  ApiTags, 
-  ApiOperation, 
+import {
+  ApiTags,
+  ApiOperation,
   ApiBearerAuth,
   ApiResponse,
   ApiParam,
   ApiQuery,
-  ApiBody
+  ApiBody,
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import {
-  CreateUserDto,
-  UpdateUserDto,
-  PaginationParams,
-  UserRole,
-} from '@saas-template/shared';
+import { CreateUserDto, UpdateUserDto, PaginationParams, UserRole } from '@saas-template/shared';
 
 @ApiTags('Users')
 @Controller('users')
@@ -55,10 +50,7 @@ export class UsersController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update user' })
-  update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
   }
 
@@ -108,24 +100,25 @@ export class UsersController {
 
   // Multi-role management endpoints
   @Get(':id/roles')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get user roles for an organization',
-    description: 'Retrieves all roles assigned to a user within a specific organization, including priority and validity information'
+    description:
+      'Retrieves all roles assigned to a user within a specific organization, including priority and validity information',
   })
-  @ApiParam({ 
-    name: 'id', 
+  @ApiParam({
+    name: 'id',
     description: 'User ID',
     type: 'string',
-    format: 'uuid'
+    format: 'uuid',
   })
-  @ApiQuery({ 
-    name: 'organizationId', 
+  @ApiQuery({
+    name: 'organizationId',
     description: 'Organization ID to filter roles',
     type: 'string',
-    required: true
+    required: true,
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'List of user roles with details',
     schema: {
       type: 'array',
@@ -139,10 +132,10 @@ export class UsersController {
           assigned_by: { type: 'string', format: 'uuid' },
           valid_from: { type: 'string', format: 'date-time' },
           valid_to: { type: 'string', format: 'date-time', nullable: true },
-          is_active: { type: 'boolean' }
-        }
-      }
-    }
+          is_active: { type: 'boolean' },
+        },
+      },
+    },
   })
   @ApiResponse({ status: 404, description: 'User not found' })
   getUserRoles(
@@ -153,15 +146,16 @@ export class UsersController {
   }
 
   @Post(':id/roles')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Assign a role to user',
-    description: 'Assigns a new role to a user with optional priority and expiration date. Supports multi-role assignment.'
+    description:
+      'Assigns a new role to a user with optional priority and expiration date. Supports multi-role assignment.',
   })
-  @ApiParam({ 
-    name: 'id', 
+  @ApiParam({
+    name: 'id',
     description: 'User ID',
     type: 'string',
-    format: 'uuid'
+    format: 'uuid',
   })
   @ApiBody({
     description: 'Role assignment details',
@@ -169,40 +163,40 @@ export class UsersController {
       type: 'object',
       required: ['organizationId', 'roleName', 'assignedBy'],
       properties: {
-        organizationId: { 
-          type: 'string', 
+        organizationId: {
+          type: 'string',
           format: 'uuid',
-          description: 'Organization ID where role applies'
+          description: 'Organization ID where role applies',
         },
-        roleName: { 
+        roleName: {
           type: 'string',
           description: 'Role name to assign',
           example: 'manager',
-          enum: ['admin', 'manager', 'branch_manager', 'agent', 'secretary', 'auditor', 'user']
+          enum: ['admin', 'manager', 'branch_manager', 'agent', 'secretary', 'auditor', 'user'],
         },
-        assignedBy: { 
-          type: 'string', 
+        assignedBy: {
+          type: 'string',
           format: 'uuid',
-          description: 'ID of user assigning the role'
+          description: 'ID of user assigning the role',
         },
-        priority: { 
+        priority: {
           type: 'number',
           description: 'Role priority (higher number = higher priority)',
           example: 100,
           minimum: 0,
-          maximum: 1000
+          maximum: 1000,
         },
-        validTo: { 
-          type: 'string', 
+        validTo: {
+          type: 'string',
           format: 'date-time',
           description: 'Optional expiration date for temporary roles',
-          example: '2024-12-31T23:59:59Z'
-        }
-      }
-    }
+          example: '2024-12-31T23:59:59Z',
+        },
+      },
+    },
   })
-  @ApiResponse({ 
-    status: 201, 
+  @ApiResponse({
+    status: 201,
     description: 'Role successfully assigned',
     schema: {
       type: 'object',
@@ -216,15 +210,16 @@ export class UsersController {
         assignedBy: { type: 'string', format: 'uuid' },
         validFrom: { type: 'string', format: 'date-time' },
         validTo: { type: 'string', format: 'date-time', nullable: true },
-        isActive: { type: 'boolean' }
-      }
-    }
+        isActive: { type: 'boolean' },
+      },
+    },
   })
   @ApiResponse({ status: 400, description: 'Invalid role data or role already exists' })
   @ApiResponse({ status: 404, description: 'User or organization not found' })
   assignRole(
     @Param('id', ParseUUIDPipe) userId: string,
-    @Body() body: {
+    @Body()
+    body: {
       organizationId: string;
       roleName: string;
       assignedBy: string;
@@ -245,31 +240,31 @@ export class UsersController {
   }
 
   @Delete(':id/roles/:roleName')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Remove a role from user',
-    description: 'Removes a specific role from a user in an organization'
+    description: 'Removes a specific role from a user in an organization',
   })
-  @ApiParam({ 
-    name: 'id', 
+  @ApiParam({
+    name: 'id',
     description: 'User ID',
     type: 'string',
-    format: 'uuid'
+    format: 'uuid',
   })
-  @ApiParam({ 
-    name: 'roleName', 
+  @ApiParam({
+    name: 'roleName',
     description: 'Role name to remove',
     type: 'string',
-    example: 'manager'
+    example: 'manager',
   })
-  @ApiQuery({ 
-    name: 'organizationId', 
+  @ApiQuery({
+    name: 'organizationId',
     description: 'Organization ID where role is assigned',
     type: 'string',
-    required: true
+    required: true,
   })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Role successfully removed' 
+  @ApiResponse({
+    status: 200,
+    description: 'Role successfully removed',
   })
   @ApiResponse({ status: 404, description: 'User, role, or organization not found' })
   removeRole(
@@ -281,21 +276,22 @@ export class UsersController {
   }
 
   @Patch(':id/roles/:roleName')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Update role priority',
-    description: 'Updates the priority of an existing role assignment. Higher priority roles take precedence in permission evaluation.'
+    description:
+      'Updates the priority of an existing role assignment. Higher priority roles take precedence in permission evaluation.',
   })
-  @ApiParam({ 
-    name: 'id', 
+  @ApiParam({
+    name: 'id',
     description: 'User ID',
     type: 'string',
-    format: 'uuid'
+    format: 'uuid',
   })
-  @ApiParam({ 
-    name: 'roleName', 
+  @ApiParam({
+    name: 'roleName',
     description: 'Role name to update',
     type: 'string',
-    example: 'manager'
+    example: 'manager',
   })
   @ApiBody({
     description: 'Priority update details',
@@ -303,23 +299,23 @@ export class UsersController {
       type: 'object',
       required: ['organizationId', 'priority'],
       properties: {
-        organizationId: { 
-          type: 'string', 
+        organizationId: {
+          type: 'string',
           format: 'uuid',
-          description: 'Organization ID where role is assigned'
+          description: 'Organization ID where role is assigned',
         },
-        priority: { 
+        priority: {
           type: 'number',
           description: 'New priority value (higher = more precedence)',
           example: 200,
           minimum: 0,
-          maximum: 1000
-        }
-      }
-    }
+          maximum: 1000,
+        },
+      },
+    },
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Role priority successfully updated',
     schema: {
       type: 'object',
@@ -327,9 +323,9 @@ export class UsersController {
         id: { type: 'string', format: 'uuid' },
         roleName: { type: 'string' },
         priority: { type: 'number' },
-        updatedAt: { type: 'string', format: 'date-time' }
-      }
-    }
+        updatedAt: { type: 'string', format: 'date-time' },
+      },
+    },
   })
   @ApiResponse({ status: 404, description: 'User, role, or organization not found' })
   updateRolePriority(

@@ -57,10 +57,7 @@ export class UserRepository extends Repository<User> {
     return queryBuilder.distinct(true).getMany();
   }
 
-  async findUsersByRole(
-    role: string,
-    organizationId?: string,
-  ): Promise<User[]> {
+  async findUsersByRole(role: string, organizationId?: string): Promise<User[]> {
     const queryBuilder = this.createQueryBuilder('user')
       .innerJoin('user.memberships', 'membership')
       .leftJoinAndSelect('user.memberships', 'allMemberships')
@@ -110,17 +107,11 @@ export class UserRepository extends Repository<User> {
     return this.membershipRepository.save(membership);
   }
 
-  async removeUserFromOrganization(
-    userId: string,
-    organizationId: string,
-  ): Promise<void> {
+  async removeUserFromOrganization(userId: string, organizationId: string): Promise<void> {
     await this.membershipRepository.delete({ userId, organizationId });
   }
 
-  async updateUserAttributes(
-    userId: string,
-    attributes: Record<string, any>,
-  ): Promise<User> {
+  async updateUserAttributes(userId: string, attributes: Record<string, any>): Promise<User> {
     const user = await this.findOne({ where: { id: userId } });
     if (!user) {
       throw new Error('User not found');
@@ -192,7 +183,7 @@ export class UserRepository extends Repository<User> {
       where: { userId },
     });
 
-    const uniqueRoles = new Set(memberships.map(m => m.role));
+    const uniqueRoles = new Set(memberships.map((m) => m.role));
 
     const user = await this.findOne({ where: { id: userId } });
 
@@ -215,11 +206,7 @@ export class UserRepository extends Repository<User> {
       const savedUser = await this.save(user);
 
       if (organizationId && defaultRole) {
-        await this.addUserToOrganization(
-          savedUser.id,
-          organizationId,
-          defaultRole,
-        );
+        await this.addUserToOrganization(savedUser.id, organizationId, defaultRole);
       }
 
       createdUsers.push(savedUser);

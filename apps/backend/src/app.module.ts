@@ -15,6 +15,7 @@ import { TransactionsModule } from './modules/transactions/transactions.module';
 import { InsuranceModule } from './modules/insurance/insurance.module';
 import { InvitationsModule } from './modules/invitations/invitations.module';
 import { EmailModule } from './modules/email/email.module';
+import { TasksModule } from './modules/tasks/tasks.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { LoggerModule } from './common/logger/logger.module';
 import { CacheModule } from './common/cache/cache.module';
@@ -50,7 +51,7 @@ import { ValidationPipe } from '@nestjs/common';
         logger: configService.get('NODE_ENV') === 'development' ? new TypeOrmLogger() : undefined,
         maxQueryExecutionTime: 1000, // Log slow queries over 1 second
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
-        migrationsRun: true,
+        migrationsRun: false, // Temporarily disabled due to migration issues
       }),
       inject: [ConfigService],
     }),
@@ -68,6 +69,7 @@ import { ValidationPipe } from '@nestjs/common';
     OrdersModule,
     TransactionsModule,
     InsuranceModule,
+    TasksModule,
   ],
   controllers: [AppController],
   providers: [

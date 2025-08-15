@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  NestInterceptor,
-  ExecutionContext,
-  CallHandler,
-} from '@nestjs/common';
+import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { MetricsService } from './metrics.service';
@@ -27,35 +22,35 @@ export class PerformanceInterceptor implements NestInterceptor {
         next: () => {
           const duration = Date.now() - startTime;
           const statusCode = response.statusCode;
-          
+
           this.metricsService.recordHttpRequest(
             method,
             route,
             statusCode,
             duration,
-            organizationId
+            organizationId,
           );
         },
         error: (error) => {
           const duration = Date.now() - startTime;
           const statusCode = error.status || 500;
-          
+
           this.metricsService.recordHttpRequest(
             method,
             route,
             statusCode,
             duration,
-            organizationId
+            organizationId,
           );
 
           // Record error metrics
           this.metricsService.recordError(
             error.constructor.name,
             this.extractModule(route),
-            this.getErrorSeverity(statusCode)
+            this.getErrorSeverity(statusCode),
           );
-        }
-      })
+        },
+      }),
     );
   }
 
@@ -67,17 +62,17 @@ export class PerformanceInterceptor implements NestInterceptor {
 
   private extractOrganizationId(request: Request): string | undefined {
     // Try to extract organization ID from various sources
-    const organizationId = 
-      request.headers['x-organization-id'] as string ||
+    const organizationId =
+      (request.headers['x-organization-id'] as string) ||
       request.body?.organizationId ||
-      request.query?.organizationId as string ||
+      (request.query?.organizationId as string) ||
       request.params?.organizationId;
 
     return organizationId;
   }
 
   private extractModule(route: string): string {
-    const parts = route.split('/').filter(part => part.length > 0);
+    const parts = route.split('/').filter((part) => part.length > 0);
     return parts.length > 1 ? parts[1] : 'unknown';
   }
 

@@ -1,4 +1,11 @@
-import { MigrationInterface, QueryRunner, Table, TableColumn, TableForeignKey, TableIndex } from 'typeorm';
+import {
+  MigrationInterface,
+  QueryRunner,
+  Table,
+  TableColumn,
+  TableForeignKey,
+  TableIndex,
+} from 'typeorm';
 
 export class AddMultiRoleSupport1752700000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -245,13 +252,13 @@ export class AddMultiRoleSupport1752700000000 implements MigrationInterface {
 
     // Remove columns from user_attributes
     const userAttributesTable = await queryRunner.getTable('user_attributes');
-    const orgForeignKey = userAttributesTable?.foreignKeys.find(
-      fk => fk.columnNames.includes('organization_id')
+    const orgForeignKey = userAttributesTable?.foreignKeys.find((fk) =>
+      fk.columnNames.includes('organization_id'),
     );
     if (orgForeignKey) {
       await queryRunner.dropForeignKey('user_attributes', orgForeignKey);
     }
-    
+
     await queryRunner.dropColumn('user_attributes', 'organization_id');
     await queryRunner.dropColumn('user_attributes', 'valid_from');
     await queryRunner.dropColumn('user_attributes', 'valid_to');

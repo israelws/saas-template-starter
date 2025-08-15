@@ -29,15 +29,18 @@ export class PolicyEvaluatorService {
   @LogPerformance(100) // Log if evaluation takes more than 100ms
   async evaluate(context: PolicyEvaluationContext): Promise<PolicyEvaluationResult> {
     const startTime = Date.now();
-    
-    this.logger.debug({ message: "Starting policy evaluation", userId: context.subject.id,
+
+    this.logger.debug({
+      message: 'Starting policy evaluation',
+      userId: context.subject.id,
       resource: context.resource,
-      action: context.action,});
-    
+      action: context.action,
+    });
+
     // Check cache first
     const cacheKey = this.generateCacheKey(context);
     const cachedResult = await this.cacheManager.get<PolicyEvaluationResult>(cacheKey);
-    
+
     if (cachedResult) {
       return {
         ...cachedResult,
@@ -58,7 +61,7 @@ export class PolicyEvaluatorService {
 
     for (const policy of policies) {
       const policyMatches = await this.evaluatePolicy(policy, context);
-      
+
       if (policyMatches) {
         if (policy.effect === PolicyEffect.ALLOW) {
           matchedPolicies.push(policy);
@@ -93,12 +96,12 @@ export class PolicyEvaluatorService {
 
     // Log detailed info for denials
     if (!allowed && deniedPolicies.length > 0) {
-      this.logger.warn({ 
-        message: "Access denied by policy",
+      this.logger.warn({
+        message: 'Access denied by policy',
         userId: context.subject.id,
         resource: context.resource,
         action: context.action,
-        deniedPolicies: deniedPolicies.map(p => ({ id: p.id, name: p.name })),
+        deniedPolicies: deniedPolicies.map((p) => ({ id: p.id, name: p.name })),
         reasons,
       });
     }
@@ -109,10 +112,7 @@ export class PolicyEvaluatorService {
     return result;
   }
 
-  private async evaluatePolicy(
-    policy: Policy,
-    context: PolicyEvaluationContext,
-  ): Promise<boolean> {
+  private async evaluatePolicy(policy: Policy, context: PolicyEvaluationContext): Promise<boolean> {
     // Check if action matches
     if (!this.matchesAction(policy, context.action)) {
       return false;
@@ -129,7 +129,7 @@ export class PolicyEvaluatorService {
     }
 
     // Check conditions
-    if (!await this.matchesConditions(policy, context)) {
+    if (!(await this.matchesConditions(policy, context))) {
       return false;
     }
 
@@ -154,8 +154,8 @@ export class PolicyEvaluatorService {
 
     // Check roles
     if (subjects.roles?.length) {
-      const hasMatchingRole = subjects.roles.some(role => 
-        subject.roles.includes(role) || role === '*'
+      const hasMatchingRole = subjects.roles.some(
+        (role) => subject.roles.includes(role) || role === '*',
       );
       if (!hasMatchingRole) {
         return false;
@@ -164,8 +164,8 @@ export class PolicyEvaluatorService {
 
     // Check groups
     if (subjects.groups?.length) {
-      const hasMatchingGroup = subjects.groups.some(group => 
-        subject.groups.includes(group) || group === '*'
+      const hasMatchingGroup = subjects.groups.some(
+        (group) => subject.groups.includes(group) || group === '*',
       );
       if (!hasMatchingGroup) {
         return false;
@@ -244,7 +244,7 @@ export class PolicyEvaluatorService {
 
     // Check custom conditions
     if (conditions.customConditions) {
-      if (!await this.evaluateCustomConditions(conditions.customConditions, context)) {
+      if (!(await this.evaluateCustomConditions(conditions.customConditions, context))) {
         return false;
       }
     }
@@ -259,12 +259,12 @@ export class PolicyEvaluatorService {
   ): boolean {
     for (const [key, expectedValue] of Object.entries(policyAttributes)) {
       const actualValue = this.resolveAttributeValue(key, contextAttributes);
-      
+
       // Resolve variables in expected value if context is provided
-      const resolvedExpectedValue = context 
+      const resolvedExpectedValue = context
         ? this.resolveVariables(expectedValue, context)
         : expectedValue;
-      
+
       if (!this.compareAttributeValues(resolvedExpectedValue, actualValue)) {
         return false;
       }
@@ -311,8 +311,8 @@ export class PolicyEvaluatorService {
       if (typeof actual !== 'object' || actual === null) {
         return false;
       }
-      return Object.entries(expected).every(([key, value]) => 
-        this.compareAttributeValues(value, actual[key])
+      return Object.entries(expected).every(([key, value]) =>
+        this.compareAttributeValues(value, actual[key]),
       );
     }
 
@@ -340,18 +340,18 @@ export class PolicyEvaluatorService {
   }
 
   private matchesIpAddress(allowedIps: string[], clientIp: string): boolean {
-    return allowedIps.some(allowedIp => {
+    return allowedIps.some((allowedIp) => {
       // Support CIDR notation
       if (allowedIp.includes('/')) {
         return this.isIpInCidr(clientIp, allowedIp);
       }
-      
+
       // Support wildcards
       if (allowedIp.includes('*')) {
         const regex = new RegExp('^' + allowedIp.replace(/\*/g, '.*') + '$');
         return regex.test(clientIp);
       }
-      
+
       // Exact match
       return allowedIp === clientIp;
     });
@@ -361,9 +361,14 @@ export class PolicyEvaluatorService {
     // Simple CIDR check (can be enhanced with proper library)
     const [cidrIp, prefixLength] = cidr.split('/');
     const prefix = parseInt(prefixLength, 10);
-    
+
     // For simplicity, only check if IPs match (full CIDR implementation would be more complex)
-    return ip.startsWith(cidrIp.split('.').slice(0, Math.floor(prefix / 8)).join('.'));
+    return ip.startsWith(
+      cidrIp
+        .split('.')
+        .slice(0, Math.floor(prefix / 8))
+        .join('.'),
+    );
   }
 
   private async evaluateCustomConditions(
@@ -393,7 +398,7 @@ export class PolicyEvaluatorService {
       action: context.action,
       organizationId: context.organizationId,
     };
-    
+
     return `policy:eval:${JSON.stringify(key)}`;
   }
 

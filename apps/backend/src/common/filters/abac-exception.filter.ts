@@ -70,11 +70,14 @@ export class AbacExceptionFilter implements ExceptionFilter {
       status = HttpStatus.UNAUTHORIZED;
       errorCode = 'UNAUTHORIZED';
       message = 'Authentication required';
-      
-      this.logger.warn({ message: "Authentication Required", url: request.url,
+
+      this.logger.warn({
+        message: 'Authentication Required',
+        url: request.url,
         method: request.method,
         ip: request.ip,
-        userAgent: request.headers['user-agent'],});
+        userAgent: request.headers['user-agent'],
+      });
     } else if (exception instanceof PolicyEvaluationException) {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
       errorCode = 'POLICY_EVALUATION_FAILED';

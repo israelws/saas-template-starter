@@ -1,4 +1,11 @@
 import 'reflect-metadata';
+import * as dotenv from 'dotenv';
+
+// Load environment variables from .env file in development
+if (!process.env.CORS_ORIGIN) {
+  dotenv.config();
+}
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
@@ -13,9 +20,13 @@ async function bootstrap() {
     logger: WinstonModule.createLogger(winstonConfig),
   });
 
-  // Enable CORS
+  // Enable CORS - Support multiple origins
+  const corsOrigins = process.env.CORS_ORIGIN 
+    ? process.env.CORS_ORIGIN.split(',')
+    : ['http://localhost:3000', 'http://localhost:3001'];
+  
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+    origin: corsOrigins,
     credentials: true,
   });
 
@@ -34,7 +45,9 @@ async function bootstrap() {
   // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('SAAS Template API')
-    .setDescription('API documentation for SAAS Template Starter Kit with Multi-Organization Support and ABAC')
+    .setDescription(
+      'API documentation for SAAS Template Starter Kit with Multi-Organization Support and ABAC',
+    )
     .setVersion('1.0')
     .addBearerAuth(
       {
@@ -74,7 +87,7 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  
+
   logger.log(`Application is running on: http://localhost:${port}`, 'Bootstrap');
   logger.log(`Swagger documentation: http://localhost:${port}/api/docs`, 'Bootstrap');
   logger.log(`Environment: ${process.env.NODE_ENV || 'development'}`, 'Bootstrap');

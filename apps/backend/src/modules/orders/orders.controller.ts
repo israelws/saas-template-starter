@@ -41,7 +41,8 @@ export class OrdersController {
   @ApiOperation({ summary: 'Get all orders for organization' })
   findAll(
     @Query('organizationId', ParseUUIDPipe) organizationId: string,
-    @Query() params: PaginationParams & {
+    @Query()
+    params: PaginationParams & {
       status?: OrderStatus;
       customerId?: string;
       startDate?: Date;
@@ -72,20 +73,14 @@ export class OrdersController {
   @Patch(':id')
   @RequirePermission('order', 'update')
   @ApiOperation({ summary: 'Update order' })
-  update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateOrderDto: UpdateOrderDto,
-  ) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateOrderDto: UpdateOrderDto) {
     return this.ordersService.update(id, updateOrderDto);
   }
 
   @Patch(':id/status')
   @RequirePermission('order', 'update')
   @ApiOperation({ summary: 'Update order status' })
-  updateStatus(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body('status') status: OrderStatus,
-  ) {
+  updateStatus(@Param('id', ParseUUIDPipe) id: string, @Body('status') status: OrderStatus) {
     return this.ordersService.updateStatus(id, status);
   }
 
@@ -102,10 +97,7 @@ export class OrdersController {
   @Post(':id/items')
   @RequirePermission('order', 'update')
   @ApiOperation({ summary: 'Add item to order' })
-  addItem(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() item: CreateOrderItemDto,
-  ) {
+  addItem(@Param('id', ParseUUIDPipe) id: string, @Body() item: CreateOrderItemDto) {
     return this.ordersService.addItem(id, item);
   }
 
@@ -123,10 +115,7 @@ export class OrdersController {
   @RequirePermission('order', 'update')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Cancel order' })
-  cancel(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body('reason') reason?: string,
-  ) {
+  cancel(@Param('id', ParseUUIDPipe) id: string, @Body('reason') reason?: string) {
     return this.ordersService.cancel(id, reason);
   }
 }

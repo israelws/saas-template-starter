@@ -18,11 +18,12 @@ export const welcomeEmailTemplate = (data: WelcomeEmailData): string => {
     </p>
     
     <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.5; color: #555555;">
-      ${data.isSystemAdmin 
-        ? `Congratulations! You've been granted <strong>System Administrator</strong> access to the SAAS Platform. You now have full control over the platform, including managing organizations, users, and system settings.`
-        : data.organizationName 
-          ? `Welcome to <strong>${data.organizationName}</strong>! Your account has been successfully created and you're ready to get started.`
-          : `Welcome to SAAS Platform! Your account has been successfully created and you're ready to get started.`
+      ${
+        data.isSystemAdmin
+          ? `Congratulations! You've been granted <strong>System Administrator</strong> access to the SAAS Platform. You now have full control over the platform, including managing organizations, users, and system settings.`
+          : data.organizationName
+            ? `Welcome to <strong>${data.organizationName}</strong>! Your account has been successfully created and you're ready to get started.`
+            : `Welcome to SAAS Platform! Your account has been successfully created and you're ready to get started.`
       }
     </p>
     
@@ -41,7 +42,9 @@ export const welcomeEmailTemplate = (data: WelcomeEmailData): string => {
       <h3 style="margin: 0 0 15px 0; color: #333333; font-size: 18px;">
         Getting Started
       </h3>
-      ${data.isSystemAdmin ? `
+      ${
+        data.isSystemAdmin
+          ? `
       <ul style="margin: 0; padding-left: 20px; color: #555555;">
         <li style="margin-bottom: 8px;">Create and manage organizations</li>
         <li style="margin-bottom: 8px;">Configure system-wide settings</li>
@@ -49,14 +52,16 @@ export const welcomeEmailTemplate = (data: WelcomeEmailData): string => {
         <li style="margin-bottom: 8px;">Manage users and permissions</li>
         <li style="margin-bottom: 8px;">Monitor system performance and logs</li>
       </ul>
-      ` : `
+      `
+          : `
       <ul style="margin: 0; padding-left: 20px; color: #555555;">
         <li style="margin-bottom: 8px;">Complete your profile</li>
         <li style="margin-bottom: 8px;">Explore the dashboard</li>
         <li style="margin-bottom: 8px;">Check out the documentation</li>
         <li style="margin-bottom: 8px;">Invite team members</li>
       </ul>
-      `}
+      `
+      }
     </div>
     
     <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.5; color: #555555;">
@@ -67,12 +72,12 @@ export const welcomeEmailTemplate = (data: WelcomeEmailData): string => {
       We're excited to have you on board!
     </p>
   `;
-  
+
   return baseEmailTemplate({
-    subject: data.isSystemAdmin 
-      ? 'Welcome to SAAS Platform - System Administrator Access Granted' 
+    subject: data.isSystemAdmin
+      ? 'Welcome to SAAS Platform - System Administrator Access Granted'
       : `Welcome to ${data.organizationName || 'SAAS Platform'}!`,
     previewText: 'Your account is ready',
-    content
+    content,
   });
 };

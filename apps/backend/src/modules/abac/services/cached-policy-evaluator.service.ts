@@ -42,7 +42,7 @@ interface CachedEvaluationResult {
 @Injectable()
 export class CachedPolicyEvaluatorService {
   private logger = new LoggerService('CachedPolicyEvaluator');
-  
+
   // Cache TTL in seconds
   private readonly CACHE_TTL = {
     POLICY_RESULT: 300, // 5 minutes for policy evaluation results
@@ -61,20 +61,23 @@ export class CachedPolicyEvaluatorService {
    */
   async evaluate(request: AuthorizationRequest): Promise<AuthorizationResult> {
     const startTime = Date.now();
-    
+
     // Generate cache key based on stable request parameters
     const cacheKey = this.generateCacheKey(request);
-    
+
     try {
       // Try to get cached result
       const cachedResult = await this.cacheService.get<CachedEvaluationResult>(cacheKey);
-      
+
       if (cachedResult && this.isCacheValid(cachedResult)) {
-        this.logger.debug({ message: "Policy evaluation cache hit", userId: request.userId,
+        this.logger.debug({
+          message: 'Policy evaluation cache hit',
+          userId: request.userId,
           resource: request.resource,
           action: request.action,
           organizationId: request.organizationId,
-          cacheKey,});
+          cacheKey,
+        });
 
         return {
           ...cachedResult,
@@ -84,13 +87,16 @@ export class CachedPolicyEvaluatorService {
       }
 
       // Cache miss or invalid - evaluate policies
-      this.logger.debug({ message: "Policy evaluation cache miss", userId: request.userId,
+      this.logger.debug({
+        message: 'Policy evaluation cache miss',
+        userId: request.userId,
         resource: request.resource,
         action: request.action,
         organizationId: request.organizationId,
         cacheKey,
         hadCached: !!cachedResult,
-        wasExpired: cachedResult ? !this.isCacheValid(cachedResult) : false,});
+        wasExpired: cachedResult ? !this.isCacheValid(cachedResult) : false,
+      });
 
       // Convert AuthorizationRequest to PolicyEvaluationContext
       const policyContext = {
@@ -112,7 +118,7 @@ export class CachedPolicyEvaluatorService {
         },
         organizationId: request.organizationId,
       };
-      
+
       // Perform actual policy evaluation
       const result = await this.policyEvaluator.evaluate(policyContext);
       const evaluationTime = Date.now() - startTime;
@@ -121,7 +127,7 @@ export class CachedPolicyEvaluatorService {
       const cacheableResult: CachedEvaluationResult = {
         decision: result.allowed ? 'permit' : 'deny',
         reason: result.reasons.join('; '),
-        appliedPolicies: result.matchedPolicies.map(p => ({
+        appliedPolicies: result.matchedPolicies.map((p) => ({
           id: p.id,
           name: p.name,
           effect: p.effect === 'allow' ? 'permit' : 'deny',
@@ -129,14 +135,18 @@ export class CachedPolicyEvaluatorService {
         })),
         evaluationTime,
         cachedAt: Date.now(),
-        expiresAt: Date.now() + (this.CACHE_TTL.POLICY_RESULT * 1000),
+        expiresAt: Date.now() + this.CACHE_TTL.POLICY_RESULT * 1000,
       };
 
       // Cache the result (fire and forget)
-      this.cacheService.set(cacheKey, cacheableResult, this.CACHE_TTL.POLICY_RESULT)
-        .catch(error => {
-          this.logger.warn({ message: "Failed to cache policy evaluation result", error: error.message,
-            cacheKey,});
+      this.cacheService
+        .set(cacheKey, cacheableResult, this.CACHE_TTL.POLICY_RESULT)
+        .catch((error) => {
+          this.logger.warn({
+            message: 'Failed to cache policy evaluation result',
+            error: error.message,
+            cacheKey,
+          });
         });
 
       return {
@@ -144,14 +154,17 @@ export class CachedPolicyEvaluatorService {
         fromCache: false,
         evaluationTime,
       };
-
     } catch (error) {
-      this.logger.error({ message: "Policy evaluation failed", error: error, ...{
-        userId: request.userId,
-        resource: request.resource,
-        action: request.action,
-        organizationId: request.organizationId,
-      } });
+      this.logger.error({
+        message: 'Policy evaluation failed',
+        error: error,
+        ...{
+          userId: request.userId,
+          resource: request.resource,
+          action: request.action,
+          organizationId: request.organizationId,
+        },
+      });
 
       // Return a safe default
       return {
@@ -169,13 +182,13 @@ export class CachedPolicyEvaluatorService {
    */
   async batchEvaluate(requests: AuthorizationRequest[]): Promise<AuthorizationResult[]> {
     const startTime = Date.now();
-    
+
     // Generate cache keys for all requests
-    const cacheKeys = requests.map(req => this.generateCacheKey(req));
-    
+    const cacheKeys = requests.map((req) => this.generateCacheKey(req));
+
     // Try to get all cached results
     const cachedResults = await Promise.allSettled(
-      cacheKeys.map(key => this.cacheService.get<CachedEvaluationResult>(key))
+      cacheKeys.map((key) => this.cacheService.get<CachedEvaluationResult>(key)),
     );
 
     const results: AuthorizationResult[] = [];
@@ -184,7 +197,7 @@ export class CachedPolicyEvaluatorService {
     // Process cached results and identify uncached requests
     for (let i = 0; i < requests.length; i++) {
       const cachedResult = cachedResults[i];
-      
+
       if (
         cachedResult.status === 'fulfilled' &&
         cachedResult.value &&
@@ -223,14 +236,14 @@ export class CachedPolicyEvaluatorService {
           },
           organizationId: request.organizationId,
         };
-        
+
         const result = await this.policyEvaluator.evaluate(policyContext);
         const evaluationTime = Date.now() - startTime;
 
         const cacheableResult: CachedEvaluationResult = {
           decision: result.allowed ? 'permit' : 'deny',
           reason: result.reasons.join('; '),
-          appliedPolicies: result.matchedPolicies.map(p => ({
+          appliedPolicies: result.matchedPolicies.map((p) => ({
             id: p.id,
             name: p.name,
             effect: p.effect === 'allow' ? 'permit' : 'deny',
@@ -238,16 +251,20 @@ export class CachedPolicyEvaluatorService {
           })),
           evaluationTime,
           cachedAt: Date.now(),
-          expiresAt: Date.now() + (this.CACHE_TTL.POLICY_RESULT * 1000),
+          expiresAt: Date.now() + this.CACHE_TTL.POLICY_RESULT * 1000,
         };
 
         // Cache the result
         const cacheKey = this.generateCacheKey(request);
-        this.cacheService.set(cacheKey, cacheableResult, this.CACHE_TTL.POLICY_RESULT)
-          .catch(error => {
-            this.logger.warn({ message: "Failed to cache batch policy evaluation result", error: error.message,
+        this.cacheService
+          .set(cacheKey, cacheableResult, this.CACHE_TTL.POLICY_RESULT)
+          .catch((error) => {
+            this.logger.warn({
+              message: 'Failed to cache batch policy evaluation result',
+              error: error.message,
               cacheKey,
-              index,});
+              index,
+            });
           });
 
         return {
@@ -261,7 +278,7 @@ export class CachedPolicyEvaluatorService {
       });
 
       const evaluatedResults = await Promise.allSettled(evaluationPromises);
-      
+
       // Merge evaluated results back into the results array
       evaluatedResults.forEach((settledResult) => {
         if (settledResult.status === 'fulfilled') {
@@ -269,8 +286,8 @@ export class CachedPolicyEvaluatorService {
           results[index] = result;
         } else {
           // Handle evaluation failure - find the corresponding index
-          const failedRequest = uncachedRequests.find(ur => 
-            evaluatedResults.indexOf(settledResult) === uncachedRequests.indexOf(ur)
+          const failedRequest = uncachedRequests.find(
+            (ur) => evaluatedResults.indexOf(settledResult) === uncachedRequests.indexOf(ur),
           );
           if (failedRequest) {
             results[failedRequest.index] = {
@@ -285,10 +302,13 @@ export class CachedPolicyEvaluatorService {
       });
     }
 
-    this.logger.debug({ message: "Batch policy evaluation completed", totalRequests: requests.length,
-      cachedResults: results.filter(r => r.fromCache).length,
-      evaluatedResults: results.filter(r => !r.fromCache).length,
-      totalTime: Date.now() - startTime,});
+    this.logger.debug({
+      message: 'Batch policy evaluation completed',
+      totalRequests: requests.length,
+      cachedResults: results.filter((r) => r.fromCache).length,
+      evaluatedResults: results.filter((r) => !r.fromCache).length,
+      totalTime: Date.now() - startTime,
+    });
 
     return results;
   }
@@ -298,7 +318,7 @@ export class CachedPolicyEvaluatorService {
    */
   async invalidateUserCache(userId: string, organizationId: string): Promise<void> {
     await this.cacheService.invalidateUser(userId, organizationId);
-    this.logger.log({ message: "User policy cache invalidated", userId, organizationId});
+    this.logger.log({ message: 'User policy cache invalidated', userId, organizationId });
   }
 
   /**
@@ -306,7 +326,7 @@ export class CachedPolicyEvaluatorService {
    */
   async invalidateOrganizationCache(organizationId: string): Promise<void> {
     await this.cacheService.invalidatePolicies(organizationId);
-    this.logger.log({ message: "Organization policy cache invalidated", organizationId});
+    this.logger.log({ message: 'Organization policy cache invalidated', organizationId });
   }
 
   /**
@@ -322,28 +342,34 @@ export class CachedPolicyEvaluatorService {
   async warmUpUserCache(
     userId: string,
     organizationId: string,
-    commonOperations: Array<{ resource: string; action: string }>
+    commonOperations: Array<{ resource: string; action: string }>,
   ): Promise<void> {
-    const warmUpPromises = commonOperations.map(op =>
+    const warmUpPromises = commonOperations.map((op) =>
       this.evaluate({
         userId,
         organizationId,
         resource: op.resource,
         action: op.action,
-      }).catch(error => {
-        this.logger.warn({ message: "Cache warmup failed for operation", userId,
+      }).catch((error) => {
+        this.logger.warn({
+          message: 'Cache warmup failed for operation',
+          userId,
           organizationId,
           resource: op.resource,
           action: op.action,
-          error: error.message,});
-      })
+          error: error.message,
+        });
+      }),
     );
 
     await Promise.allSettled(warmUpPromises);
-    
-    this.logger.log({ message: "User cache warmed up", userId,
+
+    this.logger.log({
+      message: 'User cache warmed up',
+      userId,
       organizationId,
-      operations: commonOperations.length,});
+      operations: commonOperations.length,
+    });
   }
 
   private generateCacheKey(request: AuthorizationRequest): string {
@@ -365,11 +391,14 @@ export class CachedPolicyEvaluatorService {
       // Sort context keys for stable cache key
       const sortedContext = Object.keys(request.context)
         .sort()
-        .reduce((acc, key) => {
-          acc[key] = request.context![key];
-          return acc;
-        }, {} as Record<string, any>);
-      
+        .reduce(
+          (acc, key) => {
+            acc[key] = request.context![key];
+            return acc;
+          },
+          {} as Record<string, any>,
+        );
+
       keyParts.push(JSON.stringify(sortedContext));
     }
 

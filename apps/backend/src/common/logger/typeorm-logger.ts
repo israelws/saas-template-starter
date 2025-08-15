@@ -16,7 +16,12 @@ export class TypeOrmLogger implements Logger {
     });
   }
 
-  logQueryError(error: string | Error, query: string, parameters?: any[], queryRunner?: QueryRunner) {
+  logQueryError(
+    error: string | Error,
+    query: string,
+    parameters?: any[],
+    queryRunner?: QueryRunner,
+  ) {
     const sql = this.formatQuery(query, parameters);
     this.logger.logQuery({
       sql,
@@ -27,9 +32,7 @@ export class TypeOrmLogger implements Logger {
 
   logQuerySlow(time: number, query: string, parameters?: any[], queryRunner?: QueryRunner) {
     const sql = this.formatQuery(query, parameters);
-    this.logger.warn({ message: "Slow query detected", sql,
-      parameters,
-      duration: time,});
+    this.logger.warn({ message: 'Slow query detected', sql, parameters, duration: time });
   }
 
   logSchemaBuild(message: string, queryRunner?: QueryRunner) {

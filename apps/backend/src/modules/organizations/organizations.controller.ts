@@ -13,10 +13,10 @@ import {
   UseGuards,
   BadRequestException,
 } from '@nestjs/common';
-import { 
-  ApiTags, 
-  ApiOperation, 
-  ApiBearerAuth, 
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
   ApiResponse,
   ApiParam,
   ApiQuery,
@@ -37,13 +37,13 @@ export class OrganizationsController {
   constructor(private readonly organizationsService: OrganizationsService) {}
 
   @Post()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Create a new organization',
-    description: 'Create a new organization with hierarchical support' 
+    description: 'Create a new organization with hierarchical support',
   })
   @ApiBody({ type: CreateOrganizationDto })
-  @ApiResponse({ 
-    status: 201, 
+  @ApiResponse({
+    status: 201,
     description: 'Organization created successfully',
     schema: {
       example: {
@@ -54,9 +54,9 @@ export class OrganizationsController {
         status: 'active',
         parentId: null,
         createdAt: '2024-01-01T00:00:00Z',
-        updatedAt: '2024-01-01T00:00:00Z'
-      }
-    }
+        updatedAt: '2024-01-01T00:00:00Z',
+      },
+    },
   })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 409, description: 'Organization code already exists' })
@@ -78,12 +78,19 @@ export class OrganizationsController {
 
   @Get('search')
   @ApiOperation({ summary: 'Search organizations by name' })
-  @ApiQuery({ name: 'name', required: true, type: String, description: 'Organization name to search (min 3 chars)' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Maximum results to return (default: 10)' })
-  async search(
-    @Query('name') name: string,
-    @Query('limit') limit?: number,
-  ) {
+  @ApiQuery({
+    name: 'name',
+    required: true,
+    type: String,
+    description: 'Organization name to search (min 3 chars)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Maximum results to return (default: 10)',
+  })
+  async search(@Query('name') name: string, @Query('limit') limit?: number) {
     if (!name || name.length < 3) {
       throw new BadRequestException('Search query must be at least 3 characters long');
     }
@@ -126,10 +133,7 @@ export class OrganizationsController {
   @Post(':id/move')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Move organization to new parent' })
-  move(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body('parentId') parentId: string | null,
-  ) {
+  move(@Param('id', ParseUUIDPipe) id: string, @Body('parentId') parentId: string | null) {
     return this.organizationsService.move(id, parentId);
   }
 
@@ -140,9 +144,9 @@ export class OrganizationsController {
   }
 
   @Post('bulk/create')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Create multiple organizations',
-    description: 'Bulk create organizations with transaction support' 
+    description: 'Bulk create organizations with transaction support',
   })
   @ApiBody({
     schema: {
@@ -150,10 +154,10 @@ export class OrganizationsController {
       properties: {
         organizations: {
           type: 'array',
-          items: { $ref: '#/components/schemas/CreateOrganizationDto' }
-        }
-      }
-    }
+          items: { $ref: '#/components/schemas/CreateOrganizationDto' },
+        },
+      },
+    },
   })
   @ApiResponse({ status: 201, description: 'Organizations created successfully' })
   @ApiResponse({ status: 400, description: 'Validation errors for one or more organizations' })
@@ -162,9 +166,9 @@ export class OrganizationsController {
   }
 
   @Patch('bulk/update')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Update multiple organizations',
-    description: 'Bulk update organizations with transaction support' 
+    description: 'Bulk update organizations with transaction support',
   })
   @ApiBody({
     schema: {
@@ -176,24 +180,24 @@ export class OrganizationsController {
             type: 'object',
             properties: {
               id: { type: 'string', format: 'uuid' },
-              data: { $ref: '#/components/schemas/UpdateOrganizationDto' }
+              data: { $ref: '#/components/schemas/UpdateOrganizationDto' },
             },
-            required: ['id', 'data']
-          }
-        }
-      }
-    }
+            required: ['id', 'data'],
+          },
+        },
+      },
+    },
   })
   @ApiResponse({ status: 200, description: 'Organizations updated successfully' })
-  bulkUpdate(@Body('updates') updates: Array<{id: string, data: UpdateOrganizationDto}>) {
+  bulkUpdate(@Body('updates') updates: Array<{ id: string; data: UpdateOrganizationDto }>) {
     return this.organizationsService.bulkUpdate(updates);
   }
 
   @Post('bulk/move')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Move multiple organizations',
-    description: 'Bulk move organizations to new parents with validation' 
+    description: 'Bulk move organizations to new parents with validation',
   })
   @ApiBody({
     schema: {
@@ -205,23 +209,23 @@ export class OrganizationsController {
             type: 'object',
             properties: {
               organizationId: { type: 'string', format: 'uuid' },
-              newParentId: { type: 'string', format: 'uuid', nullable: true }
+              newParentId: { type: 'string', format: 'uuid', nullable: true },
             },
-            required: ['organizationId']
-          }
-        }
-      }
-    }
+            required: ['organizationId'],
+          },
+        },
+      },
+    },
   })
   @ApiResponse({ status: 200, description: 'Organizations moved successfully' })
-  bulkMove(@Body('moves') moves: Array<{organizationId: string, newParentId: string | null}>) {
+  bulkMove(@Body('moves') moves: Array<{ organizationId: string; newParentId: string | null }>) {
     return this.organizationsService.bulkMove(moves);
   }
 
   @Delete('bulk/archive')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Archive multiple organizations',
-    description: 'Bulk archive organizations and handle children' 
+    description: 'Bulk archive organizations and handle children',
   })
   @ApiBody({
     schema: {
@@ -229,25 +233,25 @@ export class OrganizationsController {
       properties: {
         organizationIds: {
           type: 'array',
-          items: { type: 'string', format: 'uuid' }
+          items: { type: 'string', format: 'uuid' },
         },
         archiveChildren: {
           type: 'boolean',
           default: false,
-          description: 'Whether to also archive child organizations'
-        }
-      }
-    }
+          description: 'Whether to also archive child organizations',
+        },
+      },
+    },
   })
   @ApiResponse({ status: 200, description: 'Organizations archived successfully' })
-  bulkArchive(@Body() body: {organizationIds: string[], archiveChildren?: boolean}) {
+  bulkArchive(@Body() body: { organizationIds: string[]; archiveChildren?: boolean }) {
     return this.organizationsService.bulkArchive(body.organizationIds, body.archiveChildren);
   }
 
   @Post('bulk/activate')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Activate multiple organizations',
-    description: 'Bulk activate archived organizations' 
+    description: 'Bulk activate archived organizations',
   })
   @ApiBody({
     schema: {
@@ -255,10 +259,10 @@ export class OrganizationsController {
       properties: {
         organizationIds: {
           type: 'array',
-          items: { type: 'string', format: 'uuid' }
-        }
-      }
-    }
+          items: { type: 'string', format: 'uuid' },
+        },
+      },
+    },
   })
   @ApiResponse({ status: 200, description: 'Organizations activated successfully' })
   bulkActivate(@Body('organizationIds') organizationIds: string[]) {

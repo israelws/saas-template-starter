@@ -18,12 +18,12 @@ import { UserAttributesService } from './services/user-attributes.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      User, 
+      User,
       UserOrganizationMembership,
       UserAttribute,
       UserRole,
       Organization,
-      AttributeDefinition
+      AttributeDefinition,
     ]),
   ],
   controllers: [UsersController, UserMembershipsController, UserAttributesController],

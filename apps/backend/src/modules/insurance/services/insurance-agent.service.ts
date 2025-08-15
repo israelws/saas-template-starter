@@ -2,8 +2,8 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InsuranceAgent } from '../entities/insurance-agent.entity';
-import { 
-  CreateInsuranceAgentDto, 
+import {
+  CreateInsuranceAgentDto,
   UpdateInsuranceAgentDto,
   PaginationParams,
   LicenseStatus,
@@ -31,7 +31,7 @@ export class InsuranceAgentService {
     const existing = await this.agentRepository.findOne({
       where: { agentCode: createDto.agentCode },
     });
-    
+
     if (existing) {
       throw new BadRequestException('Agent code already exists');
     }
@@ -65,7 +65,8 @@ export class InsuranceAgentService {
       isActive?: boolean;
     },
   ) {
-    const query = this.agentRepository.createQueryBuilder('agent')
+    const query = this.agentRepository
+      .createQueryBuilder('agent')
       .leftJoinAndSelect('agent.user', 'user')
       .leftJoinAndSelect('agent.branch', 'branch');
 
@@ -145,7 +146,7 @@ export class InsuranceAgentService {
       const existing = await this.agentRepository.findOne({
         where: { agentCode: updateDto.agentCode },
       });
-      
+
       if (existing) {
         throw new BadRequestException('Agent code already exists');
       }
@@ -178,13 +179,13 @@ export class InsuranceAgentService {
     metrics: Partial<InsuranceAgent['performanceMetrics']>,
   ): Promise<InsuranceAgent> {
     const agent = await this.findOne(id);
-    
+
     agent.performanceMetrics = {
       ...agent.performanceMetrics,
       ...metrics,
       lastUpdated: new Date(),
     };
-    
+
     return this.agentRepository.save(agent);
   }
 

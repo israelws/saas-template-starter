@@ -60,10 +60,10 @@ export class PolicySeeder {
             effect: 'allow',
             conditions: {
               'subject.attributes.role': { equals: 'admin' },
-              'subject.attributes.clearanceLevel': { equals: 'top-secret' }
+              'subject.attributes.clearanceLevel': { equals: 'top-secret' },
             },
             priority: 100,
-            status: 'active'
+            status: 'active',
           },
           {
             name: 'Executive Access',
@@ -73,10 +73,10 @@ export class PolicySeeder {
             effect: 'allow',
             conditions: {
               'subject.attributes.role': { equals: 'executive' },
-              'subject.attributes.clearanceLevel': { in: ['high', 'top-secret'] }
+              'subject.attributes.clearanceLevel': { in: ['high', 'top-secret'] },
             },
             priority: 95,
-            status: 'active'
+            status: 'active',
           },
           {
             name: 'Manager Organization Management',
@@ -86,10 +86,10 @@ export class PolicySeeder {
             effect: 'allow',
             conditions: {
               'subject.attributes.role': { equals: 'manager' },
-              'context.organizationHierarchy': { contains: 'subject.organizationId' }
+              'context.organizationHierarchy': { contains: 'subject.organizationId' },
             },
             priority: 80,
-            status: 'active'
+            status: 'active',
           },
           {
             name: 'User Self Management',
@@ -98,10 +98,10 @@ export class PolicySeeder {
             actions: ['read', 'update'],
             effect: 'allow',
             conditions: {
-              'resource.attributes.userId': { equals: 'subject.id' }
+              'resource.attributes.userId': { equals: 'subject.id' },
             },
             priority: 70,
-            status: 'active'
+            status: 'active',
           },
           {
             name: 'Default Organization Read',
@@ -111,10 +111,10 @@ export class PolicySeeder {
             effect: 'allow',
             conditions: {
               'subject.authenticated': { equals: true },
-              'context.organizationMembership': { exists: true }
+              'context.organizationMembership': { exists: true },
             },
             priority: 50,
-            status: 'active'
+            status: 'active',
           },
           {
             name: 'Sensitive Data Protection',
@@ -123,12 +123,12 @@ export class PolicySeeder {
             actions: ['*'],
             effect: 'deny',
             conditions: {
-              'subject.attributes.clearanceLevel': { not_in: ['high', 'top-secret'] }
+              'subject.attributes.clearanceLevel': { not_in: ['high', 'top-secret'] },
             },
             priority: 90,
-            status: 'active'
-          }
-        ]
+            status: 'active',
+          },
+        ],
       },
 
       // Engineering Division Policies
@@ -147,10 +147,12 @@ export class PolicySeeder {
             effect: 'allow',
             conditions: {
               'subject.attributes.department': { equals: 'engineering' },
-              'subject.membership.organizationCode': { in: ['ENG_DIV', 'BACKEND_TEAM', 'FRONTEND_TEAM', 'DEVOPS_TEAM', 'QA_TEAM'] }
+              'subject.membership.organizationCode': {
+                in: ['ENG_DIV', 'BACKEND_TEAM', 'FRONTEND_TEAM', 'DEVOPS_TEAM', 'QA_TEAM'],
+              },
             },
             priority: 85,
-            status: 'active'
+            status: 'active',
           },
           {
             name: 'Code Repository Access',
@@ -160,10 +162,10 @@ export class PolicySeeder {
             effect: 'allow',
             conditions: {
               'subject.attributes.role': { in: ['developer', 'manager'] },
-              'subject.attributes.department': { equals: 'engineering' }
+              'subject.attributes.department': { equals: 'engineering' },
             },
             priority: 80,
-            status: 'active'
+            status: 'active',
           },
           {
             name: 'Production Deploy Restriction',
@@ -173,10 +175,10 @@ export class PolicySeeder {
             effect: 'allow',
             conditions: {
               'subject.attributes.role': { in: ['manager'] },
-              'subject.attributes.clearanceLevel': { in: ['high', 'top-secret'] }
+              'subject.attributes.clearanceLevel': { in: ['high', 'top-secret'] },
             },
             priority: 95,
-            status: 'active'
+            status: 'active',
           },
           {
             name: 'API Documentation Access',
@@ -185,15 +187,15 @@ export class PolicySeeder {
             actions: ['read', 'comment'],
             effect: 'allow',
             conditions: {
-              'subject.attributes.department': { equals: 'engineering' }
+              'subject.attributes.department': { equals: 'engineering' },
             },
             priority: 60,
-            status: 'active'
-          }
-        ]
+            status: 'active',
+          },
+        ],
       },
 
-      // Sales Division Policies  
+      // Sales Division Policies
       {
         name: 'Sales Access Control',
         description: 'Sales team access policies',
@@ -209,10 +211,12 @@ export class PolicySeeder {
             effect: 'allow',
             conditions: {
               'subject.attributes.department': { equals: 'sales' },
-              'subject.membership.organizationCode': { in: ['SALES_DIV', 'ENT_SALES', 'SMB_SALES', 'CS_TEAM'] }
+              'subject.membership.organizationCode': {
+                in: ['SALES_DIV', 'ENT_SALES', 'SMB_SALES', 'CS_TEAM'],
+              },
             },
             priority: 80,
-            status: 'active'
+            status: 'active',
           },
           {
             name: 'Sales Analytics Access',
@@ -222,10 +226,10 @@ export class PolicySeeder {
             effect: 'allow',
             conditions: {
               'subject.attributes.role': { in: ['manager', 'director'] },
-              'subject.attributes.department': { equals: 'sales' }
+              'subject.attributes.department': { equals: 'sales' },
             },
             priority: 75,
-            status: 'active'
+            status: 'active',
           },
           {
             name: 'Quote Generation',
@@ -235,12 +239,12 @@ export class PolicySeeder {
             effect: 'allow',
             conditions: {
               'subject.attributes.department': { equals: 'sales' },
-              'subject.attributes.role': { in: ['manager', 'member'] }
+              'subject.attributes.role': { in: ['manager', 'member'] },
             },
             priority: 70,
-            status: 'active'
-          }
-        ]
+            status: 'active',
+          },
+        ],
       },
 
       // RetailMax Global Policies
@@ -259,10 +263,10 @@ export class PolicySeeder {
             effect: 'allow',
             conditions: {
               'subject.attributes.role': { equals: 'executive' },
-              'subject.attributes.clearanceLevel': { in: ['high', 'top-secret'] }
+              'subject.attributes.clearanceLevel': { in: ['high', 'top-secret'] },
             },
             priority: 100,
-            status: 'active'
+            status: 'active',
           },
           {
             name: 'Regional Director Access',
@@ -272,10 +276,10 @@ export class PolicySeeder {
             effect: 'allow',
             conditions: {
               'subject.attributes.role': { equals: 'director' },
-              'subject.membership.attributes.region': { equals: 'resource.attributes.region' }
+              'subject.membership.attributes.region': { equals: 'resource.attributes.region' },
             },
             priority: 85,
-            status: 'active'
+            status: 'active',
           },
           {
             name: 'Store Operations Access',
@@ -285,10 +289,10 @@ export class PolicySeeder {
             effect: 'allow',
             conditions: {
               'subject.attributes.role': { in: ['manager', 'assistant_manager'] },
-              'subject.membership.attributes.stores': { contains: 'resource.attributes.storeId' }
+              'subject.membership.attributes.stores': { contains: 'resource.attributes.storeId' },
             },
             priority: 70,
-            status: 'active'
+            status: 'active',
           },
           {
             name: 'Inventory Management',
@@ -298,12 +302,12 @@ export class PolicySeeder {
             effect: 'allow',
             conditions: {
               'subject.attributes.department': { equals: 'operations' },
-              'subject.membership.organizationCode': { in: ['OPS_DIV', 'INVENTORY'] }
+              'subject.membership.organizationCode': { in: ['OPS_DIV', 'INVENTORY'] },
             },
             priority: 75,
-            status: 'active'
-          }
-        ]
+            status: 'active',
+          },
+        ],
       },
 
       // FinanceFlow Compliance Policies
@@ -323,10 +327,10 @@ export class PolicySeeder {
             conditions: {
               'subject.attributes.clearanceLevel': { in: ['high', 'top-secret'] },
               'subject.membership.attributes.clearances': { contains: 'pci_dss' },
-              'environment.attributes.network': { equals: 'secure_zone' }
+              'environment.attributes.network': { equals: 'secure_zone' },
             },
             priority: 100,
-            status: 'active'
+            status: 'active',
           },
           {
             name: 'Financial Data Access',
@@ -336,10 +340,10 @@ export class PolicySeeder {
             effect: 'allow',
             conditions: {
               'subject.attributes.department': { equals: 'risk' },
-              'subject.attributes.certifications': { contains_any: ['frm', 'cisa', 'cism'] }
+              'subject.attributes.certifications': { contains_any: ['frm', 'cisa', 'cism'] },
             },
             priority: 90,
-            status: 'active'
+            status: 'active',
           },
           {
             name: 'Platform Engineering Access',
@@ -349,10 +353,10 @@ export class PolicySeeder {
             effect: 'allow',
             conditions: {
               'subject.attributes.department': { equals: 'engineering' },
-              'subject.membership.organizationCode': { equals: 'PROD_ENG' }
+              'subject.membership.organizationCode': { equals: 'PROD_ENG' },
             },
             priority: 80,
-            status: 'active'
+            status: 'active',
           },
           {
             name: 'Customer Support Access',
@@ -362,12 +366,12 @@ export class PolicySeeder {
             effect: 'allow',
             conditions: {
               'subject.attributes.department': { equals: 'customer_success' },
-              'subject.membership.organizationCode': { equals: 'CUST_SUCCESS' }
+              'subject.membership.organizationCode': { equals: 'CUST_SUCCESS' },
             },
             priority: 70,
-            status: 'active'
-          }
-        ]
+            status: 'active',
+          },
+        ],
       },
 
       // Cross-Organization Consultant Policies
@@ -387,10 +391,10 @@ export class PolicySeeder {
             conditions: {
               'subject.attributes.role': { equals: 'consultant' },
               'subject.membership.attributes.access': { equals: 'limited' },
-              'environment.attributes.time': { between: ['09:00', '17:00'] }
+              'environment.attributes.time': { between: ['09:00', '17:00'] },
             },
             priority: 60,
-            status: 'active'
+            status: 'active',
           },
           {
             name: 'Consultant Data Export Restriction',
@@ -399,12 +403,12 @@ export class PolicySeeder {
             actions: ['export', 'download', 'copy'],
             effect: 'deny',
             conditions: {
-              'subject.attributes.role': { equals: 'consultant' }
+              'subject.attributes.role': { equals: 'consultant' },
             },
             priority: 90,
-            status: 'active'
-          }
-        ]
+            status: 'active',
+          },
+        ],
       },
 
       // Default Deny Policies (Security)
@@ -422,10 +426,10 @@ export class PolicySeeder {
             actions: ['*'],
             effect: 'deny',
             conditions: {
-              'subject.attributes.clearanceLevel': { not_in: ['high', 'top-secret'] }
+              'subject.attributes.clearanceLevel': { not_in: ['high', 'top-secret'] },
             },
             priority: 95,
-            status: 'active'
+            status: 'active',
           },
           {
             name: 'After Hours Access Restriction',
@@ -435,10 +439,10 @@ export class PolicySeeder {
             effect: 'deny',
             conditions: {
               'environment.attributes.time': { not_between: ['08:00', '18:00'] },
-              'subject.attributes.role': { not_in: ['admin', 'on_call'] }
+              'subject.attributes.role': { not_in: ['admin', 'on_call'] },
             },
             priority: 85,
-            status: 'active'
+            status: 'active',
           },
           {
             name: 'Geographic Access Restriction',
@@ -447,10 +451,10 @@ export class PolicySeeder {
             actions: ['*'],
             effect: 'deny',
             conditions: {
-              'environment.attributes.location.country': { not_in: ['US', 'CA', 'GB', 'DE'] }
+              'environment.attributes.location.country': { not_in: ['US', 'CA', 'GB', 'DE'] },
             },
             priority: 80,
-            status: 'active'
+            status: 'active',
           },
           {
             name: 'Default Deny All',
@@ -460,10 +464,10 @@ export class PolicySeeder {
             effect: 'deny',
             conditions: {},
             priority: 1,
-            status: 'active'
-          }
-        ]
-      }
+            status: 'active',
+          },
+        ],
+      },
     ];
 
     // Create policy sets and their policies
@@ -478,7 +482,7 @@ export class PolicySeeder {
   private async createPolicySetWithPolicies(policySetInfo: PolicySetSeedData): Promise<void> {
     // Find organization by code
     const organization = await this.organizationRepository.findOne({
-      where: { code: policySetInfo.organizationCode }
+      where: { code: policySetInfo.organizationCode },
     });
 
     if (!organization) {

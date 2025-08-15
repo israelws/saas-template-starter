@@ -8,10 +8,10 @@ import { PolicyScope, PolicyEffect } from '@saas-template/shared';
 async function addAdminPolicyAccess() {
   const app = await NestFactory.create(AppModule);
   const dataSource = app.get(DataSource);
-  
+
   try {
     const policyRepository = dataSource.getRepository(Policy);
-    
+
     // Create a policy that allows admins to manage policies
     const adminPolicyAccess = policyRepository.create({
       name: 'Admin Policy Management',
@@ -22,17 +22,17 @@ async function addAdminPolicyAccess() {
       isActive: true,
       actions: ['create', 'read', 'update', 'delete', 'list'],
       subjects: {
-        roles: ['admin']
+        roles: ['admin'],
       },
       resources: {
-        types: ['policy', 'attribute', 'policy-set']
+        types: ['policy', 'attribute', 'policy-set'],
       },
-      conditions: {}
+      conditions: {},
     });
-    
+
     await policyRepository.save(adminPolicyAccess);
     console.log('✅ Admin policy access added successfully');
-    
+
     // Also create a temporary policy for all authenticated users to list policies
     const tempPolicyAccess = policyRepository.create({
       name: 'Temporary Policy List Access',
@@ -44,18 +44,17 @@ async function addAdminPolicyAccess() {
       actions: ['list'],
       subjects: {
         attributes: {
-          authenticated: true
-        }
+          authenticated: true,
+        },
       },
       resources: {
-        types: ['policy']
+        types: ['policy'],
       },
-      conditions: {}
+      conditions: {},
     });
-    
+
     await policyRepository.save(tempPolicyAccess);
     console.log('✅ Temporary policy list access added successfully');
-    
   } catch (error) {
     console.error('❌ Error adding admin policy access:', error);
   } finally {

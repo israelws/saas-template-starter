@@ -11,12 +11,7 @@ import {
   HttpStatus,
   Request,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { EmailConfigService } from './email-config.service';
 import {
@@ -76,7 +71,10 @@ export class OrganizationEmailConfigController {
     @Body() createDto: CreateEmailServiceConfigDto,
   ) {
     // Check if config exists
-    const existing = await this.emailConfigService.findOneOrNull(createDto.provider, organizationId);
+    const existing = await this.emailConfigService.findOneOrNull(
+      createDto.provider,
+      organizationId,
+    );
     if (existing) {
       // Update existing
       return this.emailConfigService.update(createDto.provider, createDto, organizationId);

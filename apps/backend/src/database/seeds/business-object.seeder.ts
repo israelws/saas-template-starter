@@ -47,27 +47,33 @@ export class BusinessObjectSeeder {
 
     // Create products
     await this.createProducts(techCorp, engDiv, salesDiv, retailMax, finFlow);
-    
+
     // Create customers
     await this.createCustomers(techCorp, salesDiv, retailMax, finFlow);
-    
+
     // Create orders and order items
     await this.createOrders(techCorp, retailMax, finFlow);
-    
+
     // Create transactions
     await this.createTransactions(techCorp, retailMax, finFlow);
 
     this.logger.log('Business objects seeding completed successfully');
   }
 
-  private async createProducts(techCorp: any, engDiv: any, salesDiv: any, retailMax: any, finFlow: any): Promise<void> {
+  private async createProducts(
+    techCorp: any,
+    engDiv: any,
+    salesDiv: any,
+    retailMax: any,
+    finFlow: any,
+  ): Promise<void> {
     const products = [
       // TechCorp Products
       {
         name: 'Enterprise Platform Suite',
         description: 'Complete enterprise software platform with CRM, ERP, and analytics',
         sku: 'TC-EPS-001',
-        price: 50000.00,
+        price: 50000.0,
         stockQuantity: 100,
         status: 'active',
         attributes: {
@@ -76,45 +82,45 @@ export class BusinessObjectSeeder {
           deployment: 'cloud',
           support: 'premium',
           integrations: ['salesforce', 'sap', 'office365'],
-          compliance: ['sox', 'gdpr', 'hipaa']
+          compliance: ['sox', 'gdpr', 'hipaa'],
         },
-        organization: techCorp
+        organization: techCorp,
       },
       {
         name: 'API Gateway Professional',
         description: 'High-performance API gateway with security and analytics',
         sku: 'TC-AGP-002',
-        price: 15000.00,
+        price: 15000.0,
         stockQuantity: 200,
         status: 'active',
         attributes: {
           category: 'infrastructure',
           deployment: 'hybrid',
           throughput: '10000_rps',
-          features: ['authentication', 'rate_limiting', 'analytics', 'monitoring']
+          features: ['authentication', 'rate_limiting', 'analytics', 'monitoring'],
         },
-        organization: engDiv
+        organization: engDiv,
       },
       {
         name: 'Data Analytics Platform',
         description: 'Real-time data analytics and business intelligence platform',
         sku: 'TC-DAP-003',
-        price: 25000.00,
+        price: 25000.0,
         stockQuantity: 75,
         status: 'active',
         attributes: {
           category: 'analytics',
           data_sources: ['databases', 'apis', 'files', 'streams'],
           visualization: true,
-          machine_learning: true
+          machine_learning: true,
         },
-        organization: techCorp
+        organization: techCorp,
       },
       {
         name: 'Cloud Storage Enterprise',
         description: 'Secure cloud storage with collaboration features',
         sku: 'TC-CSE-004',
-        price: 500.00,
+        price: 500.0,
         stockQuantity: 1000,
         status: 'active',
         attributes: {
@@ -122,24 +128,24 @@ export class BusinessObjectSeeder {
           capacity: '10TB',
           encryption: 'AES-256',
           collaboration: true,
-          backup: 'automated'
+          backup: 'automated',
         },
-        organization: techCorp
+        organization: techCorp,
       },
       {
         name: 'Professional Services Package',
         description: 'Implementation and consulting services',
         sku: 'TC-PSP-005',
-        price: 1500.00,
+        price: 1500.0,
         stockQuantity: 50,
         status: 'active',
         attributes: {
           category: 'service',
           unit: 'day',
           expertise: ['implementation', 'training', 'optimization'],
-          duration: 'flexible'
+          duration: 'flexible',
         },
-        organization: salesDiv
+        organization: salesDiv,
       },
 
       // RetailMax Products
@@ -155,9 +161,9 @@ export class BusinessObjectSeeder {
           gender: 'unisex',
           season: 'all-season',
           materials: ['cotton', 'wool', 'synthetic'],
-          sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+          sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
         },
-        organization: retailMax
+        organization: retailMax,
       },
       {
         name: 'Smart Home Electronics',
@@ -170,9 +176,9 @@ export class BusinessObjectSeeder {
           category: 'electronics',
           connectivity: ['wifi', 'bluetooth', 'zigbee'],
           warranty: '2-years',
-          energy_rating: 'A+++'
+          energy_rating: 'A+++',
         },
-        organization: retailMax
+        organization: retailMax,
       },
       {
         name: 'Outdoor Sports Equipment',
@@ -185,9 +191,9 @@ export class BusinessObjectSeeder {
           category: 'sports',
           activities: ['hiking', 'camping', 'cycling', 'climbing'],
           durability: 'professional',
-          weather_resistant: true
+          weather_resistant: true,
         },
-        organization: retailMax
+        organization: retailMax,
       },
 
       // FinanceFlow Products
@@ -203,15 +209,15 @@ export class BusinessObjectSeeder {
           pricing_model: 'per_transaction',
           currencies: ['USD', 'EUR', 'GBP', 'JPY', 'CAD'],
           compliance: ['pci_dss', 'gdpr'],
-          settlement: '24h'
+          settlement: '24h',
         },
-        organization: finFlow
+        organization: finFlow,
       },
       {
         name: 'Fraud Detection Service',
         description: 'AI-powered fraud detection and prevention',
         sku: 'FF-FDS-002',
-        price: 500.00,
+        price: 500.0,
         stockQuantity: 200,
         status: 'active',
         attributes: {
@@ -219,25 +225,25 @@ export class BusinessObjectSeeder {
           pricing_model: 'monthly',
           ai_engine: 'machine_learning',
           real_time: true,
-          accuracy: '99.7%'
+          accuracy: '99.7%',
         },
-        organization: finFlow
+        organization: finFlow,
       },
       {
         name: 'Risk Analytics Platform',
         description: 'Comprehensive risk assessment and analytics tools',
         sku: 'FF-RAP-003',
-        price: 2500.00,
+        price: 2500.0,
         stockQuantity: 100,
         status: 'active',
         attributes: {
           category: 'analytics',
           risk_models: ['credit', 'market', 'operational', 'liquidity'],
           reporting: 'real_time',
-          regulation: ['basel_III', 'dodd_frank']
+          regulation: ['basel_III', 'dodd_frank'],
         },
-        organization: finFlow
-      }
+        organization: finFlow,
+      },
     ];
 
     for (const productData of products) {
@@ -247,7 +253,12 @@ export class BusinessObjectSeeder {
     }
   }
 
-  private async createCustomers(techCorp: any, salesDiv: any, retailMax: any, finFlow: any): Promise<void> {
+  private async createCustomers(
+    techCorp: any,
+    salesDiv: any,
+    retailMax: any,
+    finFlow: any,
+  ): Promise<void> {
     const customers = [
       // TechCorp Customers
       {
@@ -255,7 +266,7 @@ export class BusinessObjectSeeder {
         email: 'procurement@globalmanufacturing.com',
         phone: '+1-555-1001',
         address: '123 Industrial Blvd, Detroit, MI 48201',
-        balance: 125000.00,
+        balance: 125000.0,
         status: 'active',
         attributes: {
           industry: 'manufacturing',
@@ -263,57 +274,57 @@ export class BusinessObjectSeeder {
           employees: 15000,
           annual_revenue: '2.5B',
           contract_tier: 'platinum',
-          payment_terms: 'net_30'
+          payment_terms: 'net_30',
         },
-        organization: techCorp
+        organization: techCorp,
       },
       {
         name: 'MedTech Innovations',
         email: 'it@medtechinnovations.com',
         phone: '+1-555-1002',
         address: '456 Healthcare Way, Boston, MA 02115',
-        balance: 75000.00,
+        balance: 75000.0,
         status: 'active',
         attributes: {
           industry: 'healthcare',
           size: 'large',
           employees: 5000,
           compliance: ['hipaa', 'fda'],
-          contract_tier: 'gold'
+          contract_tier: 'gold',
         },
-        organization: salesDiv
+        organization: salesDiv,
       },
       {
         name: 'StartupAccelerator Inc',
         email: 'tech@startupaccel.com',
         phone: '+1-555-1003',
         address: '789 Innovation St, Austin, TX 78701',
-        balance: 25000.00,
+        balance: 25000.0,
         status: 'active',
         attributes: {
           industry: 'technology',
           size: 'medium',
           employees: 200,
           growth_stage: 'series_b',
-          contract_tier: 'silver'
+          contract_tier: 'silver',
         },
-        organization: salesDiv
+        organization: salesDiv,
       },
       {
         name: 'Educational Solutions Network',
         email: 'admin@edusolutions.edu',
         phone: '+1-555-1004',
         address: '321 Learning Ave, Chicago, IL 60610',
-        balance: 45000.00,
+        balance: 45000.0,
         status: 'active',
         attributes: {
           industry: 'education',
           size: 'large',
           students: 50000,
           compliance: ['ferpa'],
-          contract_tier: 'gold'
+          contract_tier: 'gold',
         },
-        organization: techCorp
+        organization: techCorp,
       },
 
       // RetailMax Customers
@@ -322,46 +333,46 @@ export class BusinessObjectSeeder {
         email: 'buying@fashionforward.com',
         phone: '+1-555-2001',
         address: '555 Style Street, New York, NY 10001',
-        balance: 35000.00,
+        balance: 35000.0,
         status: 'active',
         attributes: {
           industry: 'retail',
           size: 'medium',
           stores: 25,
           customer_type: 'wholesale',
-          order_frequency: 'monthly'
+          order_frequency: 'monthly',
         },
-        organization: retailMax
+        organization: retailMax,
       },
       {
         name: 'Tech Gadget Distributors',
         email: 'orders@techgadgets.com',
         phone: '+1-555-2002',
         address: '777 Electronics Blvd, San Jose, CA 95110',
-        balance: 85000.00,
+        balance: 85000.0,
         status: 'active',
         attributes: {
           industry: 'electronics',
           size: 'large',
           distribution_channels: ['online', 'retail', 'b2b'],
-          volume_tier: 'high'
+          volume_tier: 'high',
         },
-        organization: retailMax
+        organization: retailMax,
       },
       {
         name: 'Outdoor Adventure Co',
         email: 'purchasing@outdooradventure.com',
         phone: '+1-555-2003',
         address: '888 Mountain View Dr, Denver, CO 80202',
-        balance: 22000.00,
+        balance: 22000.0,
         status: 'active',
         attributes: {
           industry: 'sporting_goods',
           size: 'medium',
           specialization: 'outdoor_equipment',
-          seasonality: 'spring_summer'
+          seasonality: 'spring_summer',
         },
-        organization: retailMax
+        organization: retailMax,
       },
 
       // FinanceFlow Customers
@@ -370,49 +381,49 @@ export class BusinessObjectSeeder {
         email: 'api@ecommerceplatform.com',
         phone: '+1-555-3001',
         address: '999 Digital Commerce St, Seattle, WA 98101',
-        balance: 15000.00,
+        balance: 15000.0,
         status: 'active',
         attributes: {
           industry: 'ecommerce',
           size: 'large',
           monthly_volume: 50000,
           integration_type: 'api',
-          risk_profile: 'low'
+          risk_profile: 'low',
         },
-        organization: finFlow
+        organization: finFlow,
       },
       {
         name: 'Regional Credit Union',
         email: 'tech@regionalcu.org',
         phone: '+1-555-3002',
         address: '111 Community Bank Way, Austin, TX 78702',
-        balance: 85000.00,
+        balance: 85000.0,
         status: 'active',
         attributes: {
           industry: 'financial_services',
           size: 'medium',
           members: 100000,
           assets: '500M',
-          regulation: ['ncua', 'ffiec']
+          regulation: ['ncua', 'ffiec'],
         },
-        organization: finFlow
+        organization: finFlow,
       },
       {
         name: 'FinTech Startup Solutions',
         email: 'dev@fintechstartup.com',
         phone: '+1-555-3003',
         address: '222 Innovation Hub, San Francisco, CA 94105',
-        balance: 5000.00,
+        balance: 5000.0,
         status: 'active',
         attributes: {
           industry: 'fintech',
           size: 'small',
           funding_stage: 'seed',
           use_case: 'payment_processing',
-          risk_profile: 'medium'
+          risk_profile: 'medium',
         },
-        organization: finFlow
-      }
+        organization: finFlow,
+      },
     ];
 
     for (const customerData of customers) {
@@ -437,71 +448,91 @@ export class BusinessObjectSeeder {
       {
         orderNumber: 'TC-2024-001',
         status: 'completed',
-        totalAmount: 75000.00,
-        customer: customers.find(c => c.name === 'Global Manufacturing Corp'),
-        createdBy: users.find(u => u.email === 'emma.sales@techcorp.com'),
+        totalAmount: 75000.0,
+        customer: customers.find((c) => c.name === 'Global Manufacturing Corp'),
+        createdBy: users.find((u) => u.email === 'emma.sales@techcorp.com'),
         organization: techCorp,
         attributes: {
           priority: 'high',
           contract_type: 'enterprise',
           payment_method: 'wire_transfer',
-          delivery_date: '2024-02-15'
+          delivery_date: '2024-02-15',
         },
         items: [
-          { product: products.find(p => p.sku === 'TC-EPS-001'), quantity: 1, unitPrice: 50000.00 },
-          { product: products.find(p => p.sku === 'TC-PSP-005'), quantity: 10, unitPrice: 1500.00 },
-          { product: products.find(p => p.sku === 'TC-CSE-004'), quantity: 15, unitPrice: 500.00 }
-        ]
+          {
+            product: products.find((p) => p.sku === 'TC-EPS-001'),
+            quantity: 1,
+            unitPrice: 50000.0,
+          },
+          {
+            product: products.find((p) => p.sku === 'TC-PSP-005'),
+            quantity: 10,
+            unitPrice: 1500.0,
+          },
+          { product: products.find((p) => p.sku === 'TC-CSE-004'), quantity: 15, unitPrice: 500.0 },
+        ],
       },
       {
         orderNumber: 'TC-2024-002',
         status: 'processing',
-        totalAmount: 40000.00,
-        customer: customers.find(c => c.name === 'MedTech Innovations'),
-        createdBy: users.find(u => u.email === 'emma.sales@techcorp.com'),
+        totalAmount: 40000.0,
+        customer: customers.find((c) => c.name === 'MedTech Innovations'),
+        createdBy: users.find((u) => u.email === 'emma.sales@techcorp.com'),
         organization: techCorp,
         attributes: {
           priority: 'medium',
           compliance_required: 'hipaa',
-          payment_method: 'ach'
+          payment_method: 'ach',
         },
         items: [
-          { product: products.find(p => p.sku === 'TC-DAP-003'), quantity: 1, unitPrice: 25000.00 },
-          { product: products.find(p => p.sku === 'TC-AGP-002'), quantity: 1, unitPrice: 15000.00 }
-        ]
+          {
+            product: products.find((p) => p.sku === 'TC-DAP-003'),
+            quantity: 1,
+            unitPrice: 25000.0,
+          },
+          {
+            product: products.find((p) => p.sku === 'TC-AGP-002'),
+            quantity: 1,
+            unitPrice: 15000.0,
+          },
+        ],
       },
       {
         orderNumber: 'RM-2024-001',
         status: 'shipped',
-        totalAmount: 15000.00,
-        customer: customers.find(c => c.name === 'Fashion Forward Boutiques'),
-        createdBy: users.find(u => u.email === 'lisa.na@retailmax.com'),
+        totalAmount: 15000.0,
+        customer: customers.find((c) => c.name === 'Fashion Forward Boutiques'),
+        createdBy: users.find((u) => u.email === 'lisa.na@retailmax.com'),
         organization: retailMax,
         attributes: {
           wholesale_order: true,
           shipping_method: 'ground',
-          expected_delivery: '2024-07-10'
+          expected_delivery: '2024-07-10',
         },
         items: [
-          { product: products.find(p => p.sku === 'RM-PFL-001'), quantity: 50, unitPrice: 299.99 }
-        ]
+          {
+            product: products.find((p) => p.sku === 'RM-PFL-001'),
+            quantity: 50,
+            unitPrice: 299.99,
+          },
+        ],
       },
       {
         orderNumber: 'FF-2024-001',
         status: 'completed',
-        totalAmount: 3000.00,
-        customer: customers.find(c => c.name === 'E-commerce Platform LLC'),
-        createdBy: users.find(u => u.email === 'alex.founder@financeflow.com'),
+        totalAmount: 3000.0,
+        customer: customers.find((c) => c.name === 'E-commerce Platform LLC'),
+        createdBy: users.find((u) => u.email === 'alex.founder@financeflow.com'),
         organization: finFlow,
         attributes: {
           service_setup: true,
           integration_support: true,
-          go_live_date: '2024-07-01'
+          go_live_date: '2024-07-01',
         },
         items: [
-          { product: products.find(p => p.sku === 'FF-FDS-002'), quantity: 6, unitPrice: 500.00 }
-        ]
-      }
+          { product: products.find((p) => p.sku === 'FF-FDS-002'), quantity: 6, unitPrice: 500.0 },
+        ],
+      },
     ];
 
     for (const orderData of orders) {
@@ -546,74 +577,74 @@ export class BusinessObjectSeeder {
       {
         transactionNumber: 'TXN-TC-2024-001',
         type: 'payment',
-        amount: 75000.00,
+        amount: 75000.0,
         status: 'completed',
-        order: orders.find(o => o.orderNumber === 'TC-2024-001'),
-        processedBy: users.find(u => u.email === 'john.admin@techcorp.com'),
+        order: orders.find((o) => o.orderNumber === 'TC-2024-001'),
+        processedBy: users.find((u) => u.email === 'john.admin@techcorp.com'),
         organization: techCorp,
         attributes: {
           payment_method: 'wire_transfer',
           reference_number: 'WIRE-2024-001',
           bank_confirmation: 'CONF-123456',
-          processing_fee: 25.00
-        }
+          processing_fee: 25.0,
+        },
       },
       {
         transactionNumber: 'TXN-RM-2024-001',
         type: 'payment',
-        amount: 15000.00,
+        amount: 15000.0,
         status: 'completed',
-        order: orders.find(o => o.orderNumber === 'RM-2024-001'),
-        processedBy: users.find(u => u.email === 'david.ceo@retailmax.com'),
+        order: orders.find((o) => o.orderNumber === 'RM-2024-001'),
+        processedBy: users.find((u) => u.email === 'david.ceo@retailmax.com'),
         organization: retailMax,
         attributes: {
           payment_method: 'credit_card',
           card_last_four: '4532',
           authorization_code: 'AUTH-789123',
-          processing_fee: 435.00
-        }
+          processing_fee: 435.0,
+        },
       },
       {
         transactionNumber: 'TXN-FF-2024-001',
         type: 'payment',
-        amount: 3000.00,
+        amount: 3000.0,
         status: 'completed',
-        order: orders.find(o => o.orderNumber === 'FF-2024-001'),
-        processedBy: users.find(u => u.email === 'alex.founder@financeflow.com'),
+        order: orders.find((o) => o.orderNumber === 'FF-2024-001'),
+        processedBy: users.find((u) => u.email === 'alex.founder@financeflow.com'),
         organization: finFlow,
         attributes: {
           payment_method: 'ach',
           ach_trace_number: 'ACH-2024-001',
           settlement_date: '2024-07-02',
-          processing_fee: 15.00
-        }
+          processing_fee: 15.0,
+        },
       },
       {
         transactionNumber: 'TXN-TC-2024-002',
         type: 'refund',
-        amount: -2500.00,
+        amount: -2500.0,
         status: 'completed',
-        processedBy: users.find(u => u.email === 'emma.sales@techcorp.com'),
+        processedBy: users.find((u) => u.email === 'emma.sales@techcorp.com'),
         organization: techCorp,
         attributes: {
           refund_reason: 'service_cancellation',
           original_transaction: 'TXN-TC-2024-001',
-          approved_by: 'john.admin@techcorp.com'
-        }
+          approved_by: 'john.admin@techcorp.com',
+        },
       },
       {
         transactionNumber: 'TXN-FF-2024-002',
         type: 'fee',
-        amount: 125.50,
+        amount: 125.5,
         status: 'completed',
-        processedBy: users.find(u => u.email === 'carlos.risk@financeflow.com'),
+        processedBy: users.find((u) => u.email === 'carlos.risk@financeflow.com'),
         organization: finFlow,
         attributes: {
           fee_type: 'monthly_service',
           period: '2024-07',
-          auto_deducted: true
-        }
-      }
+          auto_deducted: true,
+        },
+      },
     ];
 
     for (const transactionData of transactions) {

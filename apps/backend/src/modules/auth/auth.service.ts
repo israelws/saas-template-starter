@@ -30,8 +30,8 @@ export class AuthService {
   @LogPerformance(500) // Log if takes more than 500ms
   async login(loginDto: LoginDto) {
     try {
-      this.logger.log({ message: "Login attempt", email: loginDto.email});
-      
+      this.logger.log({ message: 'Login attempt', email: loginDto.email });
+
       // Authenticate with Cognito
       const cognitoAuth = await this.cognitoService.authenticateUser(
         loginDto.email,
@@ -40,12 +40,15 @@ export class AuthService {
 
       // Get or create user in our database
       let user = await this.usersService.findByCognitoId(cognitoAuth.cognitoId);
-      
+
       if (!user) {
         // User exists in Cognito but not in our DB, create them
-        this.logger.warn({ message: "User exists in Cognito but not in database", email: loginDto.email,
-          cognitoId: cognitoAuth.cognitoId,});
-        
+        this.logger.warn({
+          message: 'User exists in Cognito but not in database',
+          email: loginDto.email,
+          cognitoId: cognitoAuth.cognitoId,
+        });
+
         const cognitoUser = await this.cognitoService.getUserByEmail(loginDto.email);
         user = await this.usersService.create({
           cognitoId: cognitoAuth.cognitoId,
@@ -53,8 +56,12 @@ export class AuthService {
           firstName: cognitoUser.firstName || '',
           lastName: cognitoUser.lastName || '',
         });
-        
-        this.logger.log({ message: "Created user from Cognito", userId: user.id, email: user.email});
+
+        this.logger.log({
+          message: 'Created user from Cognito',
+          userId: user.id,
+          email: user.email,
+        });
       }
 
       const accessToken = cognitoAuth.accessToken;
@@ -86,15 +93,16 @@ export class AuthService {
         email: loginDto.email,
         reason: error.message,
       });
-      
+
       // Pass through specific error messages from Cognito
-      if (error.message && (
-        error.message.includes('verify your email') ||
-        error.message.includes('Invalid email or password')
-      )) {
+      if (
+        error.message &&
+        (error.message.includes('verify your email') ||
+          error.message.includes('Invalid email or password'))
+      ) {
         throw new UnauthorizedException(error.message);
       }
-      
+
       throw new UnauthorizedException('Invalid credentials');
     }
   }
@@ -102,11 +110,15 @@ export class AuthService {
   async register(registerDto: RegisterDto) {
     try {
       this.logger.log({ message: 'Registration attempt', email: registerDto.email });
-      
+
       // Check if user already exists
       const existingUser = await this.usersService.findByEmail(registerDto.email);
-      this.logger.log({ message: 'Existing user check', email: registerDto.email, found: !!existingUser });
-      
+      this.logger.log({
+        message: 'Existing user check',
+        email: registerDto.email,
+        found: !!existingUser,
+      });
+
       if (existingUser) {
         throw new BadRequestException('User already exists');
       }
@@ -134,7 +146,12 @@ export class AuthService {
         message: 'User registered successfully. Please check your email for verification.',
       };
     } catch (error) {
-      this.logger.error({ message: 'Registration error', email: registerDto.email, error: error.message, stack: error.stack });
+      this.logger.error({
+        message: 'Registration error',
+        email: registerDto.email,
+        error: error.message,
+        stack: error.stack,
+      });
       if (error instanceof BadRequestException) {
         throw error;
       }
@@ -144,9 +161,7 @@ export class AuthService {
 
   async refreshToken(refreshTokenDto: RefreshTokenDto) {
     try {
-      const tokens = await this.cognitoService.refreshToken(
-        refreshTokenDto.refreshToken,
-      );
+      const tokens = await this.cognitoService.refreshToken(refreshTokenDto.refreshToken);
 
       return {
         accessToken: tokens.accessToken,
@@ -160,7 +175,7 @@ export class AuthService {
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
     try {
       await this.cognitoService.forgotPassword(forgotPasswordDto.email);
-      
+
       return {
         message: 'Password reset code sent to your email',
       };
@@ -214,7 +229,7 @@ export class AuthService {
     // 1. Invalidate the refresh token in Cognito
     // 2. Add the token to a blacklist
     // 3. Clear any server-side sessions
-    
+
     return {
       message: 'Logged out successfully',
     };
@@ -241,14 +256,18 @@ export class AuthService {
   async resendConfirmationEmail(email: string) {
     try {
       this.logger.log({ message: 'Resending confirmation email', email });
-      
+
       await this.cognitoService.resendConfirmationCode(email);
-      
+
       return {
         message: 'Confirmation email sent successfully',
       };
     } catch (error) {
-      this.logger.error({ message: 'Failed to resend confirmation email', email, error: error.message });
+      this.logger.error({
+        message: 'Failed to resend confirmation email',
+        email,
+        error: error.message,
+      });
       throw new BadRequestException('Failed to resend confirmation email');
     }
   }
@@ -256,21 +275,21 @@ export class AuthService {
   async verifyEmail(email: string, code: string) {
     try {
       this.logger.log({ message: 'Verifying email', email });
-      
+
       await this.cognitoService.confirmSignUp(email, code);
-      
+
       // Update user's email verification status in our database
       const user = await this.usersService.findByEmail(email);
       if (user) {
         await this.usersService.updateEmailVerified(user.id, true);
-        
-        this.logger.log({ 
-          message: 'Email verified', 
-          userId: user.id, 
-          email: user.email 
+
+        this.logger.log({
+          message: 'Email verified',
+          userId: user.id,
+          email: user.email,
         });
       }
-      
+
       return {
         message: 'Email verified successfully',
       };

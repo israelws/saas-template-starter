@@ -76,11 +76,11 @@ describe('PolicyController', () => {
         effect: PolicyEffect.ALLOW,
         priority: 50,
         subjects: { roles: ['user'] },
-        resources: { 
+        resources: {
           types: ['product'],
           attributes: {
-            organizationId: '${subject.organizationId}'
-          }
+            organizationId: '${subject.organizationId}',
+          },
         },
         actions: ['read'],
         organizationId: 'org-123',
@@ -159,9 +159,9 @@ describe('PolicyController', () => {
           types: ['product', 'customer'],
           attributes: {
             organizationId: '${subject.organizationId}',
-            status: 'active'
-          }
-        }
+            status: 'active',
+          },
+        },
       };
 
       const expectedPolicy = {

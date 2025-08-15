@@ -72,9 +72,15 @@ export class UpdateBusinessObjectTables1753000000000 implements MigrationInterfa
     `);
 
     // Create indexes
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_orders_orderDate" ON "orders" ("orderDate")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_products_category" ON "products" ("category")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_customers_type" ON "customers" ("type")`);
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_orders_orderDate" ON "orders" ("orderDate")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_products_category" ON "products" ("category")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_customers_type" ON "customers" ("type")`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

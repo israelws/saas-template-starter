@@ -1,12 +1,4 @@
-import {
-  Entity,
-  Column,
-  Tree,
-  TreeParent,
-  TreeChildren,
-  Index,
-  OneToMany,
-} from 'typeorm';
+import { Entity, Column, Tree, TreeParent, TreeChildren, Index, OneToMany } from 'typeorm';
 import { BaseEntity } from '@/common/entities/base.entity';
 import { OrganizationType, OrganizationSettings } from '@saas-template/shared';
 import { UserOrganizationMembership } from '@/modules/users/entities/user-organization-membership.entity';

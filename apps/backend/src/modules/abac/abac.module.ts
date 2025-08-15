@@ -17,7 +17,10 @@ import { AbacGuard } from './guards/abac.guard';
 import { CaslAbacGuard } from './guards/casl-abac.guard';
 import { PolicyRepository } from './repositories/policy.repository';
 import { CaslAbilityFactory } from './factories/casl-ability.factory';
-import { FieldAccessInterceptor, FieldFilterService } from './interceptors/field-access.interceptor';
+import {
+  FieldAccessInterceptor,
+  FieldFilterService,
+} from './interceptors/field-access.interceptor';
 import { CacheModule } from '../../common/cache/cache.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
 import { UsersModule } from '../users/users.module';

@@ -33,34 +33,34 @@ export class UserAttribute {
   @Column('jsonb')
   value: any;
 
-  @Column({ 
-    type: 'varchar', 
+  @Column({
+    type: 'varchar',
     length: 50,
     default: 'string',
-    comment: 'Data type: string, number, boolean, array, object'
+    comment: 'Data type: string, number, boolean, array, object',
   })
   dataType: string;
 
-  @Column({ 
+  @Column({
     default: true,
-    comment: 'Whether this attribute is visible to other users in the organization'
+    comment: 'Whether this attribute is visible to other users in the organization',
   })
   isPublic: boolean;
 
   @Column({ type: 'text', nullable: true })
   description?: string;
 
-  @Column({ 
+  @Column({
     name: 'valid_from',
-    type: 'timestamp', 
-    default: () => 'CURRENT_TIMESTAMP' 
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
   })
   validFrom: Date;
 
-  @Column({ 
+  @Column({
     name: 'valid_to',
-    type: 'timestamp', 
-    nullable: true 
+    type: 'timestamp',
+    nullable: true,
   })
   validTo: Date;
 
@@ -71,7 +71,7 @@ export class UserAttribute {
   updatedAt: Date;
 
   // Relationships
-  @ManyToOne(() => User, user => user.userAttributes, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.userAttributes, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: User;
 

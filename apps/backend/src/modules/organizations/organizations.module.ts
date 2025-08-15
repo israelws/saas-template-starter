@@ -4,9 +4,9 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { OrganizationsService } from './organizations.service';
 import { OrganizationsController } from './organizations.controller';
 import { OrganizationHierarchyController } from './controllers/organization-hierarchy.controller';
-import { 
-  OrganizationMembersController, 
-  OrganizationInvitationsController 
+import {
+  OrganizationMembersController,
+  OrganizationInvitationsController,
 } from './controllers/organization-members.controller';
 import { Organization } from './entities/organization.entity';
 import { User } from '../users/entities/user.entity';
@@ -18,16 +18,12 @@ import { WebSocketsModule } from '../../common/websockets/websockets.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      Organization, 
-      User,
-      UserOrganizationMembership,
-    ]),
+    TypeOrmModule.forFeature([Organization, User, UserOrganizationMembership]),
     ScheduleModule.forRoot(),
     forwardRef(() => WebSocketsModule),
   ],
   controllers: [
-    OrganizationsController, 
+    OrganizationsController,
     OrganizationHierarchyController,
     OrganizationMembersController,
     OrganizationInvitationsController,

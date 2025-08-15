@@ -13,9 +13,9 @@ import { Organization } from '../../organizations/entities/organization.entity';
 @Entity('user_roles')
 @Index(['userId', 'organizationId'])
 @Index(['organizationId', 'roleName'])
-@Index(['userId', 'roleName', 'organizationId'], { 
-  unique: true, 
-  where: 'is_active = true' 
+@Index(['userId', 'roleName', 'organizationId'], {
+  unique: true,
+  where: 'is_active = true',
 })
 export class UserRole {
   @PrimaryGeneratedColumn('uuid')
@@ -54,10 +54,10 @@ export class UserRole {
   @Column({ name: 'valid_to', type: 'timestamp', nullable: true })
   validTo: Date;
 
-  @Column({ 
-    type: 'int', 
+  @Column({
+    type: 'int',
     default: 0,
-    comment: 'Higher priority roles take precedence in conflicts'
+    comment: 'Higher priority roles take precedence in conflicts',
   })
   priority: number;
 

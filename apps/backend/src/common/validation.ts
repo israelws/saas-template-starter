@@ -65,7 +65,7 @@ export function validateOrganizationHierarchy(organization: Organization): Valid
 
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
   };
 }
 
@@ -75,9 +75,19 @@ export function validateOrganizationHierarchy(organization: Organization): Valid
 export function validatePolicyConditions(conditions: PolicyConditions): ValidationResult {
   const errors: string[] = [];
   const validOperators = [
-    'equals', 'in', 'not_in', 'between', 'not_between', 
-    'contains', 'contains_any', 'exists', 'greater_than', 
-    'less_than', 'starts_with', 'ends_with', 'matches'
+    'equals',
+    'in',
+    'not_in',
+    'between',
+    'not_between',
+    'contains',
+    'contains_any',
+    'exists',
+    'greater_than',
+    'less_than',
+    'starts_with',
+    'ends_with',
+    'matches',
   ];
 
   for (const [attributePath, condition] of Object.entries(conditions)) {
@@ -117,36 +127,41 @@ export function validatePolicyConditions(conditions: PolicyConditions): Validati
 
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
   };
 }
 
 /**
  * Validate user permissions against organization hierarchy
  */
-export function validateUserPermissions(user: User, organizationTree: OrganizationTree): ValidationResult {
+export function validateUserPermissions(
+  user: User,
+  organizationTree: OrganizationTree,
+): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
 
   const rolePermissionMap = {
-    'admin': ['read', 'write', 'delete', 'manage_users', 'manage_policies'],
-    'manager': ['read', 'write', 'manage_users'],
-    'employee': ['read', 'write'],
-    'viewer': ['read'],
-    'guest': []
+    admin: ['read', 'write', 'delete', 'manage_users', 'manage_policies'],
+    manager: ['read', 'write', 'manage_users'],
+    employee: ['read', 'write'],
+    viewer: ['read'],
+    guest: [],
   };
 
   for (const membership of user.memberships) {
     // Check if organization exists
     if (!organizationTree[membership.organizationId]) {
-      errors.push(`User has permissions for non-existent organization: ${membership.organizationId}`);
+      errors.push(
+        `User has permissions for non-existent organization: ${membership.organizationId}`,
+      );
       continue;
     }
 
     // Validate role-permission compatibility
     const allowedPermissions = rolePermissionMap[membership.role] || [];
     const excessivePermissions = membership.permissions.filter(
-      perm => !allowedPermissions.includes(perm)
+      (perm) => !allowedPermissions.includes(perm),
     );
 
     if (excessivePermissions.length > 0) {
@@ -162,7 +177,7 @@ export function validateUserPermissions(user: User, organizationTree: Organizati
   return {
     isValid: errors.length === 0,
     errors,
-    warnings
+    warnings,
   };
 }
 
@@ -201,7 +216,7 @@ function calculateHierarchyDepth(org: Organization): number {
     return 1;
   }
 
-  const childDepths = org.children.map(child => calculateHierarchyDepth(child));
+  const childDepths = org.children.map((child) => calculateHierarchyDepth(child));
   return 1 + Math.max(...childDepths);
 }
 
@@ -211,7 +226,7 @@ function calculateHierarchyDepth(org: Organization): number {
 function isValidAttributePath(path: string): boolean {
   const validPrefixes = ['subject', 'resource', 'environment', 'action'];
   const parts = path.split('.');
-  
+
   if (parts.length < 2) {
     return false;
   }

@@ -1,9 +1,4 @@
-import {
-  ExceptionFilter,
-  Catch,
-  ArgumentsHost,
-  HttpStatus,
-} from '@nestjs/common';
+import { ExceptionFilter, Catch, ArgumentsHost, HttpStatus } from '@nestjs/common';
 import { Response } from 'express';
 import { QueryFailedError, EntityNotFoundError, TypeORMError } from 'typeorm';
 import { LoggerService } from '../logger/logger.service';
@@ -30,7 +25,7 @@ export class DatabaseExceptionFilter implements ExceptionFilter {
       errorCode = 'ENTITY_NOT_FOUND';
     } else if (exception instanceof QueryFailedError) {
       const error = exception as any;
-      
+
       // Handle specific PostgreSQL error codes
       switch (error.code) {
         case '23505': // Unique violation
@@ -42,7 +37,7 @@ export class DatabaseExceptionFilter implements ExceptionFilter {
             duplicateKey: this.extractDuplicateKey(error.detail),
           };
           break;
-        
+
         case '23503': // Foreign key violation
           status = HttpStatus.BAD_REQUEST;
           message = 'Invalid reference to related resource';
@@ -51,7 +46,7 @@ export class DatabaseExceptionFilter implements ExceptionFilter {
             constraint: error.constraint,
           };
           break;
-        
+
         case '23502': // Not null violation
           status = HttpStatus.BAD_REQUEST;
           message = 'Required field is missing';
@@ -60,7 +55,7 @@ export class DatabaseExceptionFilter implements ExceptionFilter {
             column: error.column,
           };
           break;
-        
+
         case '23514': // Check constraint violation
           status = HttpStatus.BAD_REQUEST;
           message = 'Data validation failed';
@@ -69,12 +64,12 @@ export class DatabaseExceptionFilter implements ExceptionFilter {
             constraint: error.constraint,
           };
           break;
-        
+
         default:
           status = HttpStatus.INTERNAL_SERVER_ERROR;
           message = 'Database operation failed';
           errorCode = 'DATABASE_ERROR';
-          
+
           if (process.env.NODE_ENV !== 'production') {
             details = {
               code: error.code,
@@ -126,7 +121,7 @@ export class DatabaseExceptionFilter implements ExceptionFilter {
 
   private extractDuplicateKey(detail: string): string | null {
     if (!detail) return null;
-    
+
     // Extract the duplicate key from PostgreSQL error detail
     // Format: Key (column)=(value) already exists.
     const match = detail.match(/Key \((.+?)\)=\((.+?)\)/);

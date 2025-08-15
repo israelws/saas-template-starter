@@ -25,7 +25,13 @@ export class UsersService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async create(createUserDto: CreateUserDto & { cognitoId?: string; password?: string; isEmailVerified?: boolean }): Promise<User> {
+  async create(
+    createUserDto: CreateUserDto & {
+      cognitoId?: string;
+      password?: string;
+      isEmailVerified?: boolean;
+    },
+  ): Promise<User> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -76,11 +82,11 @@ export class UsersService {
 
   async findAll(params: PaginationParams): Promise<PaginatedResponse<User>> {
     const { page, limit, sortBy = 'createdAt', sortOrder = 'DESC' } = params;
-    
+
     // Ensure page and limit are numbers
     const pageNum = Number(page) || 1;
     const limitNum = Number(limit) || 10;
-    
+
     const [users, total] = await this.userRepository.findAndCount({
       skip: (pageNum - 1) * limitNum,
       take: limitNum,
@@ -156,7 +162,7 @@ export class UsersService {
 
   async remove(id: string): Promise<void> {
     const user = await this.findOne(id);
-    
+
     // Instead of deleting, set status to inactive
     user.status = UserStatus.INACTIVE;
     await this.userRepository.save(user);
@@ -191,10 +197,7 @@ export class UsersService {
     return this.membershipRepository.save(membership);
   }
 
-  async removeOrganizationMembership(
-    userId: string,
-    organizationId: string,
-  ): Promise<void> {
+  async removeOrganizationMembership(userId: string, organizationId: string): Promise<void> {
     const membership = await this.membershipRepository.findOne({
       where: { userId, organizationId },
     });
@@ -237,10 +240,7 @@ export class UsersService {
     return this.membershipRepository.save(membership);
   }
 
-  async setDefaultOrganization(
-    userId: string,
-    organizationId: string,
-  ): Promise<void> {
+  async setDefaultOrganization(userId: string, organizationId: string): Promise<void> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -276,18 +276,15 @@ export class UsersService {
   /**
    * Get all active roles for a user in an organization
    * Returns roles sorted by priority (highest first)
-   * 
+   *
    * @async
    * @param {string} userId - ID of the user
    * @param {string} organizationId - ID of the organization
    * @returns {Promise<UserRole[]>} Array of active user roles
    */
-  async getUserRoles(
-    userId: string,
-    organizationId: string,
-  ): Promise<UserRoleEntity[]> {
+  async getUserRoles(userId: string, organizationId: string): Promise<UserRoleEntity[]> {
     const now = new Date();
-    
+
     return this.userRoleRepository.find({
       where: {
         userId,
@@ -306,7 +303,7 @@ export class UsersService {
   /**
    * Assign a new role to a user in an organization
    * Supports role priorities and validity periods for temporary roles
-   * 
+   *
    * @async
    * @param {string} userId - ID of the user to assign role to
    * @param {string} organizationId - ID of the organization
@@ -341,9 +338,7 @@ export class UsersService {
     });
 
     if (existingRole) {
-      throw new BadRequestException(
-        `User already has the role ${roleName} in this organization`,
-      );
+      throw new BadRequestException(`User already has the role ${roleName} in this organization`);
     }
 
     const userRole = this.userRoleRepository.create({
@@ -363,7 +358,7 @@ export class UsersService {
   /**
    * Remove a role from a user in an organization
    * Soft deletes by setting isActive to false
-   * 
+   *
    * @async
    * @param {string} userId - ID of the user
    * @param {string} organizationId - ID of the organization
@@ -371,11 +366,7 @@ export class UsersService {
    * @returns {Promise<void>}
    * @throws {NotFoundException} If role assignment not found
    */
-  async removeRole(
-    userId: string,
-    organizationId: string,
-    roleName: string,
-  ): Promise<void> {
+  async removeRole(userId: string, organizationId: string, roleName: string): Promise<void> {
     const userRole = await this.userRoleRepository.findOne({
       where: {
         userId,
@@ -391,14 +382,14 @@ export class UsersService {
 
     userRole.isActive = false;
     userRole.validTo = new Date();
-    
+
     await this.userRoleRepository.save(userRole);
   }
 
   /**
    * Update the priority of an existing role assignment
    * Higher priority roles take precedence in permission evaluation
-   * 
+   *
    * @async
    * @param {string} userId - ID of the user
    * @param {string} organizationId - ID of the organization
@@ -427,44 +418,37 @@ export class UsersService {
     }
 
     userRole.priority = priority;
-    
+
     return this.userRoleRepository.save(userRole);
   }
 
   /**
    * Get user role names sorted by priority
    * Convenience method that returns just the role names
-   * 
+   *
    * @async
    * @param {string} userId - ID of the user
    * @param {string} organizationId - ID of the organization
    * @returns {Promise<string[]>} Array of role names in priority order
    */
-  async getUserRolesByPriority(
-    userId: string,
-    organizationId: string,
-  ): Promise<string[]> {
+  async getUserRolesByPriority(userId: string, organizationId: string): Promise<string[]> {
     const roles = await this.getUserRoles(userId, organizationId);
-    return roles.map(role => role.roleName);
+    return roles.map((role) => role.roleName);
   }
 
   /**
    * Check if a user has a specific role in an organization
    * Checks only active roles within their validity period
-   * 
+   *
    * @async
    * @param {string} userId - ID of the user
    * @param {string} organizationId - ID of the organization
    * @param {string} roleName - Name of the role to check
    * @returns {Promise<boolean>} True if user has the active role
    */
-  async hasRole(
-    userId: string,
-    organizationId: string,
-    roleName: string,
-  ): Promise<boolean> {
+  async hasRole(userId: string, organizationId: string, roleName: string): Promise<boolean> {
     const now = new Date();
-    
+
     const count = await this.userRoleRepository.count({
       where: {
         userId,
@@ -479,26 +463,20 @@ export class UsersService {
     return count > 0;
   }
 
-  async getUserHighestPriorityRole(
-    userId: string,
-    organizationId: string,
-  ): Promise<string | null> {
+  async getUserHighestPriorityRole(userId: string, organizationId: string): Promise<string | null> {
     const roles = await this.getUserRoles(userId, organizationId);
     return roles.length > 0 ? roles[0].roleName : null;
   }
 
   /**
    * Check if a user is already a member of an organization
-   * 
+   *
    * @async
    * @param {string} userId - ID of the user
    * @param {string} organizationId - ID of the organization
    * @returns {Promise<boolean>} True if user is a member
    */
-  async isUserInOrganization(
-    userId: string,
-    organizationId: string,
-  ): Promise<boolean> {
+  async isUserInOrganization(userId: string, organizationId: string): Promise<boolean> {
     const membership = await this.membershipRepository.findOne({
       where: {
         userId,
@@ -511,7 +489,7 @@ export class UsersService {
 
   /**
    * Add a user to an organization with a specific role
-   * 
+   *
    * @async
    * @param {string} userId - ID of the user
    * @param {string} organizationId - ID of the organization
@@ -519,11 +497,7 @@ export class UsersService {
    * @returns {Promise<void>}
    * @throws {BadRequestException} If user is already a member
    */
-  async addToOrganization(
-    userId: string,
-    organizationId: string,
-    roleName: string,
-  ): Promise<void> {
+  async addToOrganization(userId: string, organizationId: string, roleName: string): Promise<void> {
     // Check if already a member
     const isMember = await this.isUserInOrganization(userId, organizationId);
     if (isMember) {
@@ -548,17 +522,14 @@ export class UsersService {
   /**
    * Update a user's password (for use during onboarding)
    * Note: In production, this should integrate with Cognito
-   * 
+   *
    * @async
    * @param {string} userId - ID of the user
    * @param {string} password - New password (will be hashed)
    * @returns {Promise<void>}
    * @throws {NotFoundException} If user not found
    */
-  async updatePassword(
-    userId: string,
-    password: string,
-  ): Promise<void> {
+  async updatePassword(userId: string, password: string): Promise<void> {
     const user = await this.findOne(userId);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -568,7 +539,7 @@ export class UsersService {
     // For now, we'll just update a timestamp or flag
     user.emailVerified = true;
     user.updatedAt = new Date();
-    
+
     await this.userRepository.save(user);
   }
 }

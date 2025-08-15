@@ -1,10 +1,6 @@
 import { Entity, Column, Index, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '@/common/entities/base.entity';
-import {
-  TransactionType,
-  TransactionStatus,
-  PaymentMethod,
-} from '@saas-template/shared';
+import { TransactionType, TransactionStatus, PaymentMethod } from '@saas-template/shared';
 import { Order } from '@/modules/orders/entities/order.entity';
 import { Customer } from '@/modules/customers/entities/customer.entity';
 import { Organization } from '@/modules/organizations/entities/organization.entity';

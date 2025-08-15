@@ -34,10 +34,7 @@ export class HealthController {
   @Get('ready')
   @HealthCheck()
   readiness() {
-    return this.health.check([
-      () => this.db.pingCheck('database'),
-      () => this.checkRedis(),
-    ]);
+    return this.health.check([() => this.db.pingCheck('database'), () => this.checkRedis()]);
   }
 
   @Get('live')

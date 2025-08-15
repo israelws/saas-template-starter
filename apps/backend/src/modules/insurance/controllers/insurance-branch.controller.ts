@@ -10,9 +10,9 @@ import {
   ParseUUIDPipe,
   UseGuards,
 } from '@nestjs/common';
-import { 
-  ApiTags, 
-  ApiOperation, 
+import {
+  ApiTags,
+  ApiOperation,
   ApiBearerAuth,
   ApiResponse,
   ApiParam,
@@ -85,10 +85,7 @@ export class InsuranceBranchController {
   @RequirePermission('insurance_branch', 'update')
   @ApiOperation({ summary: 'Update insurance branch' })
   @ApiParam({ name: 'id', type: String })
-  update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateDto: UpdateInsuranceBranchDto,
-  ) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateDto: UpdateInsuranceBranchDto) {
     return this.branchService.update(id, updateDto);
   }
 
@@ -96,10 +93,7 @@ export class InsuranceBranchController {
   @RequirePermission('insurance_branch', 'update')
   @ApiOperation({ summary: 'Assign manager to branch' })
   @ApiParam({ name: 'id', type: String })
-  assignManager(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body('managerId') managerId: string,
-  ) {
+  assignManager(@Param('id', ParseUUIDPipe) id: string, @Body('managerId') managerId: string) {
     return this.branchService.assignManager(id, managerId);
   }
 

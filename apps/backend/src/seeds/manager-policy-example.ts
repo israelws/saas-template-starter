@@ -7,33 +7,33 @@ export const managerPolicyExample = {
   scope: PolicyScope.ORGANIZATION, // Organization-specific policy
   effect: PolicyEffect.ALLOW,
   priority: 25,
-  
+
   // Who this policy applies to
   subjects: {
-    roles: ['manager']
+    roles: ['manager'],
   },
-  
+
   // What resources they can access
   resources: {
     types: ['product', 'customer', 'order'],
     attributes: {
       // This ensures resources must belong to the user's organization
-      organizationId: '${user.organizationId}'
-    }
+      organizationId: '${user.organizationId}',
+    },
   },
-  
+
   // What actions they can perform
   actions: ['create', 'read', 'update', 'list'],
-  
+
   // Additional conditions (optional)
   conditions: {
     customConditions: {
       // Example: Only during business hours
       'env.time': {
-        between: ['09:00', '18:00']
-      }
-    }
-  }
+        between: ['09:00', '18:00'],
+      },
+    },
+  },
 };
 
 // The system automatically ensures:

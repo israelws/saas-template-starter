@@ -10,10 +10,7 @@ import { EmailConfigService } from './email-config.service';
 import { EmailProviderFactory } from './email-provider.factory';
 
 @Module({
-  imports: [
-    ConfigModule,
-    TypeOrmModule.forFeature([EmailServiceConfig]),
-  ],
+  imports: [ConfigModule, TypeOrmModule.forFeature([EmailServiceConfig])],
   controllers: [EmailConfigController, OrganizationEmailConfigController],
   providers: [
     EmailService,

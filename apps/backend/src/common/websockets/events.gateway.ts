@@ -26,9 +26,7 @@ interface AuthenticatedSocket extends Socket {
   },
   namespace: '/events',
 })
-export class EventsGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
@@ -43,11 +41,16 @@ export class EventsGateway
 
   async handleConnection(client: AuthenticatedSocket) {
     try {
-      const token = client.handshake.auth?.token || client.handshake.headers?.authorization?.replace('Bearer ', '');
-      
+      const token =
+        client.handshake.auth?.token ||
+        client.handshake.headers?.authorization?.replace('Bearer ', '');
+
       if (!token) {
-        this.logger.warn({ message: "Client connection rejected: No authentication token", clientId: client.id,
-          ip: client.handshake.address,});
+        this.logger.warn({
+          message: 'Client connection rejected: No authentication token',
+          clientId: client.id,
+          ip: client.handshake.address,
+        });
         client.disconnect();
         return;
       }
@@ -76,59 +79,68 @@ export class EventsGateway
         }
       }
 
-      this.logger.log({ message: "Client connected", clientId: client.id,
+      this.logger.log({
+        message: 'Client connected',
+        clientId: client.id,
         userId: client.userId,
         organizationId: client.organizationId,
-        userOrganizations: client.userOrganizations,});
+        userOrganizations: client.userOrganizations,
+      });
     } catch (error) {
-      this.logger.error({ message: "Client connection authentication failed", error: error, ...{
-        clientId: client.id,
-        ip: client.handshake.address,
-      } });
+      this.logger.error({
+        message: 'Client connection authentication failed',
+        error: error,
+        ...{
+          clientId: client.id,
+          ip: client.handshake.address,
+        },
+      });
       client.disconnect();
     }
   }
 
   handleDisconnect(client: AuthenticatedSocket) {
     this.connectedClients.delete(client.id);
-    this.logger.log({ message: "Client disconnected", clientId: client.id,
-      userId: client.userId,});
+    this.logger.log({ message: 'Client disconnected', clientId: client.id, userId: client.userId });
   }
 
   @SubscribeMessage('join_room')
-  handleJoinRoom(
-    @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() room: string,
-  ) {
+  handleJoinRoom(@ConnectedSocket() client: AuthenticatedSocket, @MessageBody() room: string) {
     // Only allow joining organization rooms that the user has access to
     if (room.startsWith('org:')) {
       const orgId = room.replace('org:', '');
       if (client.userOrganizations?.includes(orgId)) {
         client.join(room);
-        this.logger.debug({ message: "Client joined room", clientId: client.id,
+        this.logger.debug({
+          message: 'Client joined room',
+          clientId: client.id,
           userId: client.userId,
-          room,});
+          room,
+        });
         return { success: true, room };
       } else {
-        this.logger.warn({ message: "Client tried to join unauthorized room", clientId: client.id,
+        this.logger.warn({
+          message: 'Client tried to join unauthorized room',
+          clientId: client.id,
           userId: client.userId,
-          room,});
+          room,
+        });
         return { success: false, error: 'Unauthorized' };
       }
     }
-    
+
     return { success: false, error: 'Invalid room format' };
   }
 
   @SubscribeMessage('leave_room')
-  handleLeaveRoom(
-    @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() room: string,
-  ) {
+  handleLeaveRoom(@ConnectedSocket() client: AuthenticatedSocket, @MessageBody() room: string) {
     client.leave(room);
-    this.logger.debug({ message: "Client left room", clientId: client.id,
+    this.logger.debug({
+      message: 'Client left room',
+      clientId: client.id,
       userId: client.userId,
-      room,});
+      room,
+    });
     return { success: true, room };
   }
 
@@ -145,9 +157,7 @@ export class EventsGateway
       data,
     });
 
-    this.logger.debug({ message: "Broadcasted organization event", organizationId,
-      event,
-      data,});
+    this.logger.debug({ message: 'Broadcasted organization event', organizationId, event, data });
   }
 
   /**
@@ -161,9 +171,7 @@ export class EventsGateway
       data,
     });
 
-    this.logger.debug({ message: "Broadcasted user event", userId,
-      event,
-      data,});
+    this.logger.debug({ message: 'Broadcasted user event', userId, event, data });
   }
 
   /**
@@ -178,9 +186,7 @@ export class EventsGateway
       data,
     });
 
-    this.logger.debug({ message: "Broadcasted policy event", organizationId,
-      event,
-      data,});
+    this.logger.debug({ message: 'Broadcasted policy event', organizationId, event, data });
   }
 
   /**
@@ -206,9 +212,7 @@ export class EventsGateway
       });
     }
 
-    this.logger.debug({ message: "Broadcasted hierarchy event", organizationId,
-      event,
-      data,});
+    this.logger.debug({ message: 'Broadcasted hierarchy event', organizationId, event, data });
   }
 
   /**
@@ -228,10 +232,13 @@ export class EventsGateway
       data,
     });
 
-    this.logger.debug({ message: "Broadcasted business object event", organizationId,
+    this.logger.debug({
+      message: 'Broadcasted business object event',
+      organizationId,
       objectType,
       event,
-      data,});
+      data,
+    });
   }
 
   /**
@@ -245,8 +252,7 @@ export class EventsGateway
       timestamp: new Date().toISOString(),
     });
 
-    this.logger.log({ message: "Broadcasted system notification", level,
-      notification: message,});
+    this.logger.log({ message: 'Broadcasted system notification', level, notification: message });
   }
 
   /**
@@ -260,8 +266,8 @@ export class EventsGateway
    * Get connected clients for an organization
    */
   getOrganizationClientsCount(organizationId: string): number {
-    return Array.from(this.connectedClients.values()).filter(
-      client => client.userOrganizations?.includes(organizationId)
+    return Array.from(this.connectedClients.values()).filter((client) =>
+      client.userOrganizations?.includes(organizationId),
     ).length;
   }
 
@@ -269,9 +275,7 @@ export class EventsGateway
    * Check if a user is online
    */
   isUserOnline(userId: string): boolean {
-    return Array.from(this.connectedClients.values()).some(
-      client => client.userId === userId
-    );
+    return Array.from(this.connectedClients.values()).some((client) => client.userId === userId);
   }
 }
 

@@ -10,9 +10,9 @@ import {
   ParseUUIDPipe,
   UseGuards,
 } from '@nestjs/common';
-import { 
-  ApiTags, 
-  ApiOperation, 
+import {
+  ApiTags,
+  ApiOperation,
   ApiBearerAuth,
   ApiResponse,
   ApiParam,
@@ -86,10 +86,7 @@ export class InsuranceAgentController {
   @RequirePermission('insurance_agent', 'update')
   @ApiOperation({ summary: 'Update insurance agent' })
   @ApiParam({ name: 'id', type: String })
-  update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateDto: UpdateInsuranceAgentDto,
-  ) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateDto: UpdateInsuranceAgentDto) {
     return this.agentService.update(id, updateDto);
   }
 
@@ -108,10 +105,7 @@ export class InsuranceAgentController {
   @RequirePermission('insurance_agent', 'update')
   @ApiOperation({ summary: 'Update agent performance metrics' })
   @ApiParam({ name: 'id', type: String })
-  updatePerformanceMetrics(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() metrics: any,
-  ) {
+  updatePerformanceMetrics(@Param('id', ParseUUIDPipe) id: string, @Body() metrics: any) {
     return this.agentService.updatePerformanceMetrics(id, metrics);
   }
 

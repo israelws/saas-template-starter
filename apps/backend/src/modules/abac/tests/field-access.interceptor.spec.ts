@@ -1,7 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExecutionContext, CallHandler } from '@nestjs/common';
 import { of } from 'rxjs';
-import { FieldAccessInterceptor, FieldFilterService } from '../interceptors/field-access.interceptor';
+import {
+  FieldAccessInterceptor,
+  FieldFilterService,
+} from '../interceptors/field-access.interceptor';
 import { CaslAbilityFactory } from '../factories/casl-ability.factory';
 import { Reflector } from '@nestjs/core';
 
@@ -18,14 +21,20 @@ describe('FieldAccessInterceptor', () => {
   const mockAbility = {
     can: jest.fn(),
     fieldPermissions: new Map([
-      ['Product', {
-        readable: ['id', 'name', 'price'],
-        denied: ['costPrice', 'profitMargin'],
-      }],
-      ['Customer', {
-        readable: ['id', 'name', 'email'],
-        denied: ['ssn', 'creditScore'],
-      }],
+      [
+        'Product',
+        {
+          readable: ['id', 'name', 'price'],
+          denied: ['costPrice', 'profitMargin'],
+        },
+      ],
+      [
+        'Customer',
+        {
+          readable: ['id', 'name', 'email'],
+          denied: ['ssn', 'creditScore'],
+        },
+      ],
     ]),
   };
 
@@ -71,14 +80,11 @@ describe('FieldAccessInterceptor', () => {
   describe('intercept', () => {
     it('should not filter when field permissions not enabled', async () => {
       jest.spyOn(reflector, 'get').mockReturnValue(false);
-      
+
       const testData = { id: 1, name: 'Test', secret: 'hidden' };
       mockCallHandler.handle = () => of(testData);
 
-      const result = await interceptor.intercept(
-        mockExecutionContext,
-        mockCallHandler,
-      ).toPromise();
+      const result = await interceptor.intercept(mockExecutionContext, mockCallHandler).toPromise();
 
       expect(result).toEqual(testData);
       expect(caslAbilityFactory.createForUser).not.toHaveBeenCalled();
@@ -86,36 +92,33 @@ describe('FieldAccessInterceptor', () => {
 
     it('should filter single object based on field permissions', async () => {
       jest.spyOn(reflector, 'get').mockReturnValue('Product');
-      
+
       const product = {
         id: 'prod-1',
         name: 'Test Product',
         price: 99.99,
-        costPrice: 50.00, // Should be filtered
+        costPrice: 50.0, // Should be filtered
         profitMargin: 0.5, // Should be filtered
         description: 'A test product',
       };
-      
+
       mockCallHandler.handle = () => of(product);
 
-      const result = await interceptor.intercept(
-        mockExecutionContext,
-        mockCallHandler,
-      ).toPromise();
+      const result = await interceptor.intercept(mockExecutionContext, mockCallHandler).toPromise();
 
       expect(result).toEqual({
         id: 'prod-1',
         name: 'Test Product',
         price: 99.99,
       });
-      
+
       expect(result).not.toHaveProperty('costPrice');
       expect(result).not.toHaveProperty('profitMargin');
     });
 
     it('should filter array of objects', async () => {
       jest.spyOn(reflector, 'get').mockReturnValue('Customer');
-      
+
       const customers = [
         {
           id: 'cust-1',
@@ -132,13 +135,10 @@ describe('FieldAccessInterceptor', () => {
           creditScore: 800, // Should be filtered
         },
       ];
-      
+
       mockCallHandler.handle = () => of(customers);
 
-      const result = await interceptor.intercept(
-        mockExecutionContext,
-        mockCallHandler,
-      ).toPromise();
+      const result = await interceptor.intercept(mockExecutionContext, mockCallHandler).toPromise();
 
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({
@@ -155,25 +155,22 @@ describe('FieldAccessInterceptor', () => {
 
     it('should handle nested response structures', async () => {
       jest.spyOn(reflector, 'get').mockReturnValue('Product');
-      
+
       const response = {
         data: {
           id: 'prod-1',
           name: 'Test Product',
           price: 99.99,
-          costPrice: 50.00, // Should be filtered
+          costPrice: 50.0, // Should be filtered
         },
         meta: {
           total: 1,
         },
       };
-      
+
       mockCallHandler.handle = () => of(response);
 
-      const result = await interceptor.intercept(
-        mockExecutionContext,
-        mockCallHandler,
-      ).toPromise();
+      const result = await interceptor.intercept(mockExecutionContext, mockCallHandler).toPromise();
 
       // The interceptor filters the data property
       expect(result.data).toEqual({
@@ -186,13 +183,13 @@ describe('FieldAccessInterceptor', () => {
 
     it('should store ability in request for downstream use', async () => {
       jest.spyOn(reflector, 'get').mockReturnValue('Product');
-      
+
       const request = {
         user: mockUser,
         organizationId: 'org-123',
         query: { organizationId: 'org-123' },
       };
-      
+
       const context = {
         switchToHttp: () => ({
           getRequest: () => request,
@@ -220,10 +217,13 @@ describe('FieldFilterService', () => {
   const mockAbility = {
     can: jest.fn(),
     fieldPermissions: new Map([
-      ['Product', {
-        writable: ['name', 'price', 'description'],
-        denied: ['id', 'costPrice'],
-      }],
+      [
+        'Product',
+        {
+          writable: ['name', 'price', 'description'],
+          denied: ['id', 'costPrice'],
+        },
+      ],
     ]),
   };
 
@@ -255,12 +255,7 @@ describe('FieldFilterService', () => {
         extraField: 'value', // Should be filtered (not in writable)
       };
 
-      const result = await service.filterFieldsForWrite(
-        mockUser,
-        'org-123',
-        'Product',
-        data,
-      );
+      const result = await service.filterFieldsForWrite(mockUser, 'org-123', 'Product', data);
 
       expect(result).toEqual({
         name: 'Updated Product',
@@ -273,13 +268,18 @@ describe('FieldFilterService', () => {
       const abilityWithoutWritable = {
         can: jest.fn(),
         fieldPermissions: new Map([
-          ['Customer', {
-            denied: ['ssn', 'creditScore'],
-          }],
+          [
+            'Customer',
+            {
+              denied: ['ssn', 'creditScore'],
+            },
+          ],
         ]),
       };
 
-      jest.spyOn(caslAbilityFactory, 'createForUser').mockResolvedValue(abilityWithoutWritable as any);
+      jest
+        .spyOn(caslAbilityFactory, 'createForUser')
+        .mockResolvedValue(abilityWithoutWritable as any);
 
       const data = {
         name: 'John Doe',
@@ -289,12 +289,7 @@ describe('FieldFilterService', () => {
         creditScore: 750, // Should be filtered
       };
 
-      const result = await service.filterFieldsForWrite(
-        mockUser,
-        'org-123',
-        'Customer',
-        data,
-      );
+      const result = await service.filterFieldsForWrite(mockUser, 'org-123', 'Customer', data);
 
       expect(result).toEqual({
         name: 'John Doe',
@@ -309,22 +304,20 @@ describe('FieldFilterService', () => {
       const readableAbility = {
         can: jest.fn(),
         fieldPermissions: new Map([
-          ['Product', {
-            readable: ['id', 'name', 'price'],
-            denied: ['costPrice'],
-          }],
+          [
+            'Product',
+            {
+              readable: ['id', 'name', 'price'],
+              denied: ['costPrice'],
+            },
+          ],
         ]),
       };
 
       jest.spyOn(caslAbilityFactory, 'createForUser').mockResolvedValue(readableAbility as any);
 
       const fields = ['id', 'name', 'price', 'costPrice', 'description'];
-      const result = await service.canReadFields(
-        mockUser,
-        'org-123',
-        'Product',
-        fields,
-      );
+      const result = await service.canReadFields(mockUser, 'org-123', 'Product', fields);
 
       expect(result).toEqual([
         { field: 'id', allowed: true },
@@ -344,12 +337,7 @@ describe('FieldFilterService', () => {
       jest.spyOn(caslAbilityFactory, 'createForUser').mockResolvedValue(noPermAbility as any);
 
       const fields = ['id', 'name', 'anyField'];
-      const result = await service.canReadFields(
-        mockUser,
-        'org-123',
-        'SomeResource',
-        fields,
-      );
+      const result = await service.canReadFields(mockUser, 'org-123', 'SomeResource', fields);
 
       expect(result).toEqual([
         { field: 'id', allowed: true },

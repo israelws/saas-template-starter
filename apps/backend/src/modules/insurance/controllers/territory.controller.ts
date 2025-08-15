@@ -10,20 +10,16 @@ import {
   ParseUUIDPipe,
   UseGuards,
 } from '@nestjs/common';
-import { 
-  ApiTags, 
-  ApiOperation, 
+import {
+  ApiTags,
+  ApiOperation,
   ApiBearerAuth,
   ApiResponse,
   ApiParam,
   ApiQuery,
 } from '@nestjs/swagger';
 import { TerritoryService } from '../services/territory.service';
-import {
-  CreateTerritoryDto,
-  UpdateTerritoryDto,
-  PaginationParams,
-} from '@saas-template/shared';
+import { CreateTerritoryDto, UpdateTerritoryDto, PaginationParams } from '@saas-template/shared';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CaslAbacGuard } from '../../abac/guards/casl-abac.guard';
 import { RequirePermission } from '../../abac/decorators/require-permission.decorator';
@@ -49,10 +45,10 @@ export class TerritoryController {
   @ApiOperation({ summary: 'Get all territories' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiQuery({ 
-    name: 'type', 
-    required: false, 
-    enum: ['zipcode', 'city', 'county', 'state', 'region'] 
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    enum: ['zipcode', 'city', 'county', 'state', 'region'],
   })
   @ApiQuery({ name: 'parentTerritoryId', required: false, type: String })
   findAll(
@@ -94,10 +90,7 @@ export class TerritoryController {
   @RequirePermission('territory', 'update')
   @ApiOperation({ summary: 'Update territory' })
   @ApiParam({ name: 'id', type: String })
-  update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateDto: UpdateTerritoryDto,
-  ) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateDto: UpdateTerritoryDto) {
     return this.territoryService.update(id, updateDto);
   }
 

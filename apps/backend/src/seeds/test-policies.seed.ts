@@ -22,27 +22,31 @@ export async function seedTestPolicies(dataSource: DataSource) {
       isActive: true,
       actions: ['read', 'list'],
       subjects: {
-        roles: ['user', 'manager', 'admin']
+        roles: ['user', 'manager', 'admin'],
       },
       resources: {
         types: ['product'],
         attributes: {
-          organizationId: '${subject.organizationId}'
-        }
+          organizationId: '${subject.organizationId}',
+        },
       },
       metadata: {
-        resourceRules: [{
-          resource: 'product',
-          actions: ['read', 'list'],
-          attributeConditions: [{
-            id: '1',
-            attribute: 'organizationId',
-            operator: 'equals',
-            value: '${subject.organizationId}',
-            type: 'string'
-          }]
-        }]
-      }
+        resourceRules: [
+          {
+            resource: 'product',
+            actions: ['read', 'list'],
+            attributeConditions: [
+              {
+                id: '1',
+                attribute: 'organizationId',
+                operator: 'equals',
+                value: '${subject.organizationId}',
+                type: 'string',
+              },
+            ],
+          },
+        ],
+      },
     },
 
     // 2. Department-level access control
@@ -57,15 +61,15 @@ export async function seedTestPolicies(dataSource: DataSource) {
       actions: ['read', 'download'],
       subjects: {
         attributes: {
-          departmentId: { $exists: true }
-        }
+          departmentId: { $exists: true },
+        },
       },
       resources: {
         types: ['report'],
         attributes: {
-          departmentId: '${subject.departmentId}'
-        }
-      }
+          departmentId: '${subject.departmentId}',
+        },
+      },
     },
 
     // 3. Personal resource ownership
@@ -79,14 +83,14 @@ export async function seedTestPolicies(dataSource: DataSource) {
       isActive: true,
       actions: ['*'],
       subjects: {
-        users: ['*']
+        users: ['*'],
       },
       resources: {
         types: ['document'],
         attributes: {
-          ownerId: '${subject.id}'
-        }
-      }
+          ownerId: '${subject.id}',
+        },
+      },
     },
 
     // 4. Manager access to team resources
@@ -102,15 +106,15 @@ export async function seedTestPolicies(dataSource: DataSource) {
       subjects: {
         roles: ['manager'],
         attributes: {
-          teamMemberIds: { $exists: true }
-        }
+          teamMemberIds: { $exists: true },
+        },
       },
       resources: {
         types: ['order', 'transaction'],
         attributes: {
-          ownerId: { $in: '${subject.teamMemberIds}' }
-        }
-      }
+          ownerId: { $in: '${subject.teamMemberIds}' },
+        },
+      },
     },
 
     // 5. Cross-organization deny policy
@@ -124,14 +128,14 @@ export async function seedTestPolicies(dataSource: DataSource) {
       isActive: true,
       actions: ['*'],
       subjects: {
-        users: ['*']
+        users: ['*'],
       },
       resources: {
         types: ['*'],
         attributes: {
-          organizationId: { $ne: '${subject.organizationId}' }
-        }
-      }
+          organizationId: { $ne: '${subject.organizationId}' },
+        },
+      },
     },
 
     // 6. Healthcare-specific: Therapist patient access
@@ -147,28 +151,32 @@ export async function seedTestPolicies(dataSource: DataSource) {
       subjects: {
         roles: ['therapist'],
         attributes: {
-          patientIds: { $exists: true }
-        }
+          patientIds: { $exists: true },
+        },
       },
       resources: {
         types: ['patient', 'treatment', 'medical_record'],
         attributes: {
-          patientId: { $in: '${subject.patientIds}' }
-        }
+          patientId: { $in: '${subject.patientIds}' },
+        },
       },
       metadata: {
-        resourceRules: [{
-          resource: 'patient',
-          actions: ['read', 'update', 'create'],
-          attributeConditions: [{
-            id: '2',
-            attribute: 'patientId',
-            operator: 'in',
-            value: '${subject.patientIds}',
-            type: 'array'
-          }]
-        }]
-      }
+        resourceRules: [
+          {
+            resource: 'patient',
+            actions: ['read', 'update', 'create'],
+            attributeConditions: [
+              {
+                id: '2',
+                attribute: 'patientId',
+                operator: 'in',
+                value: '${subject.patientIds}',
+                type: 'array',
+              },
+            ],
+          },
+        ],
+      },
     },
 
     // 7. Time-based restriction
@@ -182,19 +190,19 @@ export async function seedTestPolicies(dataSource: DataSource) {
       isActive: true,
       actions: ['delete', 'export', 'bulk_update'],
       subjects: {
-        roles: ['user', 'manager']
+        roles: ['user', 'manager'],
       },
       resources: {
-        types: ['customer', 'order', 'transaction']
+        types: ['customer', 'order', 'transaction'],
       },
       conditions: {
         timeWindow: {
           start: '17:00',
           end: '09:00',
           timezone: 'UTC',
-          daysOfWeek: [1, 2, 3, 4, 5] // Monday to Friday
-        }
-      }
+          daysOfWeek: [1, 2, 3, 4, 5], // Monday to Friday
+        },
+      },
     },
 
     // 8. Field-level permissions example
@@ -208,22 +216,22 @@ export async function seedTestPolicies(dataSource: DataSource) {
       isActive: true,
       actions: ['read'],
       subjects: {
-        roles: ['user']
+        roles: ['user'],
       },
       resources: {
         types: ['customer'],
         attributes: {
-          organizationId: '${subject.organizationId}'
-        }
+          organizationId: '${subject.organizationId}',
+        },
       },
       metadata: {
         fieldPermissions: {
           customer: {
             readable: ['id', 'firstName', 'lastName', 'email', 'status'],
-            denied: ['ssn', 'creditScore', 'income', 'dateOfBirth']
-          }
-        }
-      }
+            denied: ['ssn', 'creditScore', 'income', 'dateOfBirth'],
+          },
+        },
+      },
     },
 
     // 9. Hierarchical organization access
@@ -239,15 +247,15 @@ export async function seedTestPolicies(dataSource: DataSource) {
       subjects: {
         roles: ['admin'],
         attributes: {
-          childOrganizationIds: { $exists: true }
-        }
+          childOrganizationIds: { $exists: true },
+        },
       },
       resources: {
         types: ['*'],
         attributes: {
-          organizationId: { $in: '${subject.childOrganizationIds}' }
-        }
-      }
+          organizationId: { $in: '${subject.childOrganizationIds}' },
+        },
+      },
     },
 
     // 10. Status-based access control
@@ -261,15 +269,15 @@ export async function seedTestPolicies(dataSource: DataSource) {
       isActive: true,
       actions: ['read', 'update'],
       subjects: {
-        roles: ['user']
+        roles: ['user'],
       },
       resources: {
         types: ['product', 'customer'],
         attributes: {
           status: 'active',
-          organizationId: '${subject.organizationId}'
-        }
-      }
+          organizationId: '${subject.organizationId}',
+        },
+      },
     },
 
     // 11. IP-based restriction
@@ -283,14 +291,14 @@ export async function seedTestPolicies(dataSource: DataSource) {
       isActive: true,
       actions: ['delete', 'bulk_update', 'export'],
       subjects: {
-        roles: ['admin']
+        roles: ['admin'],
       },
       resources: {
-        types: ['*']
+        types: ['*'],
       },
       conditions: {
-        ipAddresses: ['!192.168.1.0/24', '!10.0.0.0/8']
-      }
+        ipAddresses: ['!192.168.1.0/24', '!10.0.0.0/8'],
+      },
     },
 
     // 12. Audit log access
@@ -304,14 +312,14 @@ export async function seedTestPolicies(dataSource: DataSource) {
       isActive: true,
       actions: ['read', 'list', 'export'],
       subjects: {
-        roles: ['auditor', 'admin', 'super_admin']
+        roles: ['auditor', 'admin', 'super_admin'],
       },
       resources: {
         types: ['audit_log'],
         attributes: {
-          organizationId: '${subject.organizationId}'
-        }
-      }
+          organizationId: '${subject.organizationId}',
+        },
+      },
     },
 
     // 13. Temporary elevated privileges
@@ -327,15 +335,15 @@ export async function seedTestPolicies(dataSource: DataSource) {
       subjects: {
         users: ['temp-admin-user-id'],
         attributes: {
-          tempAdminUntil: { $gt: '${environment.timestamp}' }
-        }
+          tempAdminUntil: { $gt: '${environment.timestamp}' },
+        },
       },
       resources: {
         types: ['*'],
         attributes: {
-          organizationId: '${subject.organizationId}'
-        }
-      }
+          organizationId: '${subject.organizationId}',
+        },
+      },
     },
 
     // 14. Multi-condition policy
@@ -352,17 +360,17 @@ export async function seedTestPolicies(dataSource: DataSource) {
         roles: ['manager'],
         attributes: {
           departmentId: { $exists: true },
-          approvalLimit: { $exists: true }
-        }
+          approvalLimit: { $exists: true },
+        },
       },
       resources: {
         types: ['order', 'expense'],
         attributes: {
           departmentId: '${subject.departmentId}',
           amount: { $lte: '${subject.approvalLimit}' },
-          status: 'pending'
-        }
-      }
+          status: 'pending',
+        },
+      },
     },
 
     // 15. Default deny-all policy
@@ -376,12 +384,12 @@ export async function seedTestPolicies(dataSource: DataSource) {
       isActive: true,
       actions: ['*'],
       subjects: {
-        users: ['*']
+        users: ['*'],
       },
       resources: {
-        types: ['*']
-      }
-    }
+        types: ['*'],
+      },
+    },
   ];
 
   // Save all test policies
@@ -408,5 +416,5 @@ export const TEST_POLICIES = {
   AUDIT_ACCESS: 'Audit Log Access',
   TEMP_ADMIN: 'Temporary Admin Access',
   MULTI_CONDITION: 'Complex Multi-Condition Policy',
-  DEFAULT_DENY: 'Default Deny All'
+  DEFAULT_DENY: 'Default Deny All',
 };

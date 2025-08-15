@@ -1,9 +1,4 @@
-import {
-  PipeTransform,
-  Injectable,
-  ArgumentMetadata,
-  BadRequestException,
-} from '@nestjs/common';
+import { PipeTransform, Injectable, ArgumentMetadata, BadRequestException } from '@nestjs/common';
 import { validate } from 'class-validator';
 import { plainToClass } from 'class-transformer';
 import { LoggerService } from '../logger/logger.service';
@@ -26,15 +21,18 @@ export class CustomValidationPipe implements PipeTransform<any> {
     });
 
     if (errors.length > 0) {
-      const formattedErrors = errors.map(error => ({
+      const formattedErrors = errors.map((error) => ({
         property: error.property,
         value: error.value,
         constraints: error.constraints,
         children: error.children?.length > 0 ? this.formatChildErrors(error.children) : undefined,
       }));
 
-      this.logger.warn({ message: "Validation failed", errors: formattedErrors,
-        originalValue: this.sanitizeValue(value),});
+      this.logger.warn({
+        message: 'Validation failed',
+        errors: formattedErrors,
+        originalValue: this.sanitizeValue(value),
+      });
 
       throw new BadRequestException({
         message: 'Validation failed',
@@ -52,7 +50,7 @@ export class CustomValidationPipe implements PipeTransform<any> {
   }
 
   private formatChildErrors(children: any[]): any[] {
-    return children.map(child => ({
+    return children.map((child) => ({
       property: child.property,
       value: child.value,
       constraints: child.constraints,
@@ -69,10 +67,10 @@ export class CustomValidationPipe implements PipeTransform<any> {
     const sanitized = Array.isArray(value) ? [...value] : { ...value };
 
     if (Array.isArray(sanitized)) {
-      return sanitized.map(item => this.sanitizeValue(item));
+      return sanitized.map((item) => this.sanitizeValue(item));
     }
 
-    sensitiveFields.forEach(field => {
+    sensitiveFields.forEach((field) => {
       if (sanitized[field]) {
         sanitized[field] = '[REDACTED]';
       }

@@ -131,10 +131,13 @@ describe('UsersService - Multi-Role Support', () => {
     it('should assign a new role to user', async () => {
       jest.spyOn(userRoleRepository, 'findOne').mockResolvedValue(null);
       jest.spyOn(userRoleRepository, 'create').mockImplementation((data) => data as UserRole);
-      jest.spyOn(userRoleRepository, 'save').mockImplementation(async (role) => ({
-        ...role,
-        id: 'new-role-id',
-      } as UserRole));
+      jest.spyOn(userRoleRepository, 'save').mockImplementation(
+        async (role) =>
+          ({
+            ...role,
+            id: 'new-role-id',
+          }) as UserRole,
+      );
 
       const result = await service.assignRole(
         mockUserId,
@@ -222,12 +225,7 @@ describe('UsersService - Multi-Role Support', () => {
       jest.spyOn(userRoleRepository, 'findOne').mockResolvedValue(mockRole as UserRole);
       jest.spyOn(userRoleRepository, 'save').mockImplementation(async (role) => role as UserRole);
 
-      const result = await service.updateRolePriority(
-        mockUserId,
-        mockOrganizationId,
-        'agent',
-        300,
-      );
+      const result = await service.updateRolePriority(mockUserId, mockOrganizationId, 'agent', 300);
 
       expect(result.priority).toBe(300);
       expect(userRoleRepository.save).toHaveBeenCalledWith(

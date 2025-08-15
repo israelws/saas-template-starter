@@ -85,20 +85,16 @@ export class CacheService {
   /**
    * Get or set a value in cache with a function to compute the value
    */
-  async getOrSet<T>(
-    key: string,
-    factory: () => Promise<T>,
-    ttl?: number,
-  ): Promise<T> {
+  async getOrSet<T>(key: string, factory: () => Promise<T>, ttl?: number): Promise<T> {
     try {
       let value = await this.get<T>(key);
-      
+
       if (value === undefined) {
         value = await factory();
         await this.set(key, value, ttl);
         this.logger.debug({ message: 'Cache factory execution', key });
       }
-      
+
       return value;
     } catch (error) {
       this.logger.error({ message: 'Cache getOrSet error', error: error.message, key });
@@ -110,11 +106,7 @@ export class CacheService {
   /**
    * Wrap a function with caching
    */
-  wrap<T>(
-    key: string,
-    factory: () => Promise<T>,
-    ttl?: number,
-  ): Promise<T> {
+  wrap<T>(key: string, factory: () => Promise<T>, ttl?: number): Promise<T> {
     return this.getOrSet(key, factory, ttl);
   }
 
@@ -169,7 +161,7 @@ export class CacheService {
       this.del(this.generatePoliciesKey(organizationId)),
       this.del(this.generateAttributeDefinitionsKey(organizationId)),
     ]);
-    
+
     this.logger.log({ message: 'Organization cache invalidated', organizationId });
   }
 
@@ -187,7 +179,7 @@ export class CacheService {
       await this.delPattern(`policy:*:${userId}:*`);
       await this.delPattern(`user_attrs:*:${userId}`);
     }
-    
+
     this.logger.log({ message: 'User cache invalidated', userId, organizationId });
   }
 
@@ -199,7 +191,7 @@ export class CacheService {
       this.delPattern(`policy:${organizationId}:*`),
       this.del(this.generatePoliciesKey(organizationId)),
     ]);
-    
+
     this.logger.log({ message: 'Policy cache invalidated', organizationId });
   }
 
@@ -226,14 +218,14 @@ export class CacheService {
   private parseRedisInfo(info: string): Record<string, any> {
     const stats: Record<string, any> = {};
     const lines = info.split('\r\n');
-    
+
     for (const line of lines) {
       if (line.includes(':')) {
         const [key, value] = line.split(':');
         stats[key] = isNaN(Number(value)) ? value : Number(value);
       }
     }
-    
+
     return stats;
   }
 }

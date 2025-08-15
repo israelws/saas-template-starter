@@ -8,9 +8,9 @@ export class AddInsuranceAttributes1752900000000 implements MigrationInterface {
       WHERE type = 'insurance_agency'
       LIMIT 1
     `);
-    
+
     const agencyId = insuranceAgencies[0]?.id;
-    
+
     if (!agencyId) {
       console.log('No insurance agency found. Skipping insurance-specific attributes.');
       return;
@@ -27,7 +27,16 @@ export class AddInsuranceAttributes1752900000000 implements MigrationInterface {
         description: 'Types of insurance licenses held by the agent',
         isRequired: false,
         isSystem: false,
-        allowedValues: JSON.stringify(['life', 'health', 'property', 'casualty', 'auto', 'disability', 'long_term_care', 'business']),
+        allowedValues: JSON.stringify([
+          'life',
+          'health',
+          'property',
+          'casualty',
+          'auto',
+          'disability',
+          'long_term_care',
+          'business',
+        ]),
         organizationId: agencyId,
       },
       {
@@ -81,7 +90,13 @@ export class AddInsuranceAttributes1752900000000 implements MigrationInterface {
         description: 'Areas of insurance specialization',
         isRequired: false,
         isSystem: false,
-        allowedValues: JSON.stringify(['personal_lines', 'commercial_lines', 'life_health', 'employee_benefits', 'senior_market']),
+        allowedValues: JSON.stringify([
+          'personal_lines',
+          'commercial_lines',
+          'life_health',
+          'employee_benefits',
+          'senior_market',
+        ]),
         organizationId: agencyId,
       },
 
@@ -128,7 +143,16 @@ export class AddInsuranceAttributes1752900000000 implements MigrationInterface {
         description: 'Types of insurance services offered at the branch',
         isRequired: false,
         isSystem: false,
-        allowedValues: JSON.stringify(['life', 'health', 'property', 'casualty', 'auto', 'disability', 'long_term_care', 'business']),
+        allowedValues: JSON.stringify([
+          'life',
+          'health',
+          'property',
+          'casualty',
+          'auto',
+          'disability',
+          'long_term_care',
+          'business',
+        ]),
         organizationId: agencyId,
       },
 
@@ -151,7 +175,16 @@ export class AddInsuranceAttributes1752900000000 implements MigrationInterface {
         description: 'Type of insurance policy',
         isRequired: false,
         isSystem: false,
-        allowedValues: JSON.stringify(['life', 'health', 'property', 'casualty', 'auto', 'disability', 'long_term_care', 'business']),
+        allowedValues: JSON.stringify([
+          'life',
+          'health',
+          'property',
+          'casualty',
+          'auto',
+          'disability',
+          'long_term_care',
+          'business',
+        ]),
         organizationId: agencyId,
       },
       {
@@ -230,7 +263,8 @@ export class AddInsuranceAttributes1752900000000 implements MigrationInterface {
 
     // Insert all attributes
     for (const attr of attributes) {
-      await queryRunner.query(`
+      await queryRunner.query(
+        `
         INSERT INTO attribute_definitions (
           key, name, category, "dataType", description, 
           "isRequired", "isSystem", "allowedValues", "defaultValue", 
@@ -238,18 +272,20 @@ export class AddInsuranceAttributes1752900000000 implements MigrationInterface {
         ) VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW()
         )
-      `, [
-        attr.key,
-        attr.name,
-        attr.category,
-        attr.dataType,
-        attr.description,
-        attr.isRequired,
-        attr.isSystem,
-        attr.allowedValues,
-        attr.defaultValue,
-        attr.organizationId,
-      ]);
+      `,
+        [
+          attr.key,
+          attr.name,
+          attr.category,
+          attr.dataType,
+          attr.description,
+          attr.isRequired,
+          attr.isSystem,
+          attr.allowedValues,
+          attr.defaultValue,
+          attr.organizationId,
+        ],
+      );
     }
 
     console.log(`Created ${attributes.length} insurance-specific attribute definitions`);
@@ -278,9 +314,12 @@ export class AddInsuranceAttributes1752900000000 implements MigrationInterface {
       'environment.claim_season',
     ];
 
-    await queryRunner.query(`
+    await queryRunner.query(
+      `
       DELETE FROM attribute_definitions 
       WHERE key IN (${insuranceAttributeKeys.map((_, i) => `$${i + 1}`).join(', ')})
-    `, insuranceAttributeKeys);
+    `,
+      insuranceAttributeKeys,
+    );
   }
 }

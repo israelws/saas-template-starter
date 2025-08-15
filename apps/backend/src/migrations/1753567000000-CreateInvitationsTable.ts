@@ -76,9 +76,13 @@ export class CreateInvitationsTable1753567000000 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Drop foreign key constraints
-    await queryRunner.query(`ALTER TABLE "invitations" DROP CONSTRAINT "FK_invitation_accepted_user"`);
+    await queryRunner.query(
+      `ALTER TABLE "invitations" DROP CONSTRAINT "FK_invitation_accepted_user"`,
+    );
     await queryRunner.query(`ALTER TABLE "invitations" DROP CONSTRAINT "FK_invitation_invited_by"`);
-    await queryRunner.query(`ALTER TABLE "invitations" DROP CONSTRAINT "FK_invitation_organization"`);
+    await queryRunner.query(
+      `ALTER TABLE "invitations" DROP CONSTRAINT "FK_invitation_organization"`,
+    );
 
     // Drop indexes
     await queryRunner.query(`DROP INDEX "public"."IDX_invitation_status"`);

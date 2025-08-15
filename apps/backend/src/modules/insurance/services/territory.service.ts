@@ -2,11 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Territory } from '../entities/territory.entity';
-import { 
-  CreateTerritoryDto, 
-  UpdateTerritoryDto,
-  PaginationParams,
-} from '@saas-template/shared';
+import { CreateTerritoryDto, UpdateTerritoryDto, PaginationParams } from '@saas-template/shared';
 
 /**
  * Service for managing territories
@@ -30,7 +26,7 @@ export class TerritoryService {
     const existing = await this.territoryRepository.findOne({
       where: { code: createDto.code },
     });
-    
+
     if (existing) {
       throw new BadRequestException('Territory code already exists');
     }
@@ -40,7 +36,7 @@ export class TerritoryService {
       const parent = await this.territoryRepository.findOne({
         where: { id: createDto.parentTerritoryId },
       });
-      
+
       if (!parent) {
         throw new BadRequestException('Parent territory not found');
       }
@@ -63,7 +59,8 @@ export class TerritoryService {
       parentTerritoryId?: string;
     },
   ) {
-    const query = this.territoryRepository.createQueryBuilder('territory')
+    const query = this.territoryRepository
+      .createQueryBuilder('territory')
       .leftJoinAndSelect('territory.parentTerritory', 'parent');
 
     if (filters?.type) {
@@ -74,8 +71,8 @@ export class TerritoryService {
       if (filters.parentTerritoryId === null) {
         query.andWhere('territory.parentTerritoryId IS NULL');
       } else {
-        query.andWhere('territory.parentTerritoryId = :parentId', { 
-          parentId: filters.parentTerritoryId 
+        query.andWhere('territory.parentTerritoryId = :parentId', {
+          parentId: filters.parentTerritoryId,
         });
       }
     }
@@ -144,21 +141,24 @@ export class TerritoryService {
       const existing = await this.territoryRepository.findOne({
         where: { code: updateDto.code },
       });
-      
+
       if (existing) {
         throw new BadRequestException('Territory code already exists');
       }
     }
 
     // Validate parent territory if provided
-    if (updateDto.parentTerritoryId !== undefined && updateDto.parentTerritoryId !== territory.parentTerritoryId) {
+    if (
+      updateDto.parentTerritoryId !== undefined &&
+      updateDto.parentTerritoryId !== territory.parentTerritoryId
+    ) {
       if (updateDto.parentTerritoryId === null) {
         territory.parentTerritoryId = null;
       } else {
         const parent = await this.territoryRepository.findOne({
           where: { id: updateDto.parentTerritoryId },
         });
-        
+
         if (!parent) {
           throw new BadRequestException('Parent territory not found');
         }
@@ -182,12 +182,12 @@ export class TerritoryService {
    */
   async remove(id: string): Promise<void> {
     const territory = await this.findOne(id);
-    
+
     // Check if territory has children
     const hasChildren = await this.territoryRepository.count({
       where: { parentTerritoryId: id },
     });
-    
+
     if (hasChildren > 0) {
       throw new BadRequestException('Cannot delete territory with child territories');
     }
@@ -202,7 +202,7 @@ export class TerritoryService {
    */
   async getHierarchy(rootId?: string) {
     const query = this.territoryRepository.createQueryBuilder('territory');
-    
+
     if (rootId) {
       query.where('territory.id = :rootId OR territory.parentTerritoryId = :rootId', { rootId });
     } else {
@@ -210,23 +210,27 @@ export class TerritoryService {
     }
 
     const territories = await query.getMany();
-    
+
     // Build hierarchy tree
     const buildTree = async (parentId: string | null) => {
       const children = await this.territoryRepository.find({
         where: { parentTerritoryId: parentId },
       });
-      
-      return Promise.all(children.map(async child => ({
-        ...child,
-        children: await buildTree(child.id),
-      })));
+
+      return Promise.all(
+        children.map(async (child) => ({
+          ...child,
+          children: await buildTree(child.id),
+        })),
+      );
     };
 
-    return Promise.all(territories.map(async territory => ({
-      ...territory,
-      children: await buildTree(territory.id),
-    })));
+    return Promise.all(
+      territories.map(async (territory) => ({
+        ...territory,
+        children: await buildTree(territory.id),
+      })),
+    );
   }
 
   /**

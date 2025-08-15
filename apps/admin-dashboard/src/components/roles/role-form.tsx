@@ -79,6 +79,13 @@ export const RoleForm: React.FC<RoleFormProps> = ({
     }
   };
 
+  // Load policies when component mounts if editing a role with existing policies
+  useEffect(() => {
+    if (initialRole.policyIds && initialRole.policyIds.length > 0) {
+      loadPolicies();
+    }
+  }, []);
+
   const filteredPolicies = policies.filter(policy => {
     const searchLower = policySearch.toLowerCase();
     return (
@@ -276,7 +283,7 @@ export const RoleForm: React.FC<RoleFormProps> = ({
 
       {/* Policy Selection Modal */}
       <Dialog open={showPolicyModal} onOpenChange={setShowPolicyModal}>
-        <DialogContent className="max-w-3xl max-h-[80vh]">
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Select Policies</DialogTitle>
             <DialogDescription>
@@ -284,7 +291,7 @@ export const RoleForm: React.FC<RoleFormProps> = ({
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4">
+          <div className="grid gap-4 py-4">
             <div className="space-y-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -318,9 +325,7 @@ export const RoleForm: React.FC<RoleFormProps> = ({
               </div>
             </div>
 
-            <div className="space-y-2">{/* Removed duplicate space-y-4 wrapper */}
-              
-              <ScrollArea className="h-[400px] pr-4">
+            <ScrollArea className="h-[400px] rounded-md border p-4">
                 {policiesLoading ? (
                   <div className="space-y-3">
                     {[...Array(5)].map((_, i) => (
@@ -383,9 +388,8 @@ export const RoleForm: React.FC<RoleFormProps> = ({
                 </div>
               )}
             </ScrollArea>
-            </div>
 
-            <div className="flex items-center justify-between pt-4 border-t">
+            <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
                 {tempSelectedPolicyIds.length} {tempSelectedPolicyIds.length === 1 ? 'policy' : 'policies'} selected
               </p>

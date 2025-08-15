@@ -4,7 +4,7 @@ import { Reflector } from '@nestjs/core';
 @Injectable()
 export class AdminOrSuperAdminGuard implements CanActivate {
   private readonly logger = new Logger(AdminOrSuperAdminGuard.name);
-  
+
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
@@ -28,16 +28,17 @@ export class AdminOrSuperAdminGuard implements CanActivate {
 
     // For non-super admins, always require organization context
     // Get organization ID from various sources
-    const organizationId = request.params.organizationId || 
-                          request.headers['x-organization-id'] ||
-                          request.query.organizationId;
-    
+    const organizationId =
+      request.params.organizationId ||
+      request.headers['x-organization-id'] ||
+      request.query.organizationId;
+
     // For organization-specific endpoints, check if user is org admin
     if (organizationId && user.memberships) {
       const membership = user.memberships.find(
-        (m: any) => m.organizationId === organizationId || m.organization?.id === organizationId
+        (m: any) => m.organizationId === organizationId || m.organization?.id === organizationId,
       );
-      
+
       // Check if user is admin or owner of the organization
       if (membership && (membership.role === 'admin' || membership.role === 'owner')) {
         return true;
@@ -48,7 +49,7 @@ export class AdminOrSuperAdminGuard implements CanActivate {
     // allow org admins if they have at least one admin membership
     if (!organizationId && request.path.includes('/email-config')) {
       const hasAdminRole = user.memberships?.some(
-        (m: any) => m.role === 'admin' || m.role === 'owner'
+        (m: any) => m.role === 'admin' || m.role === 'owner',
       );
       return hasAdminRole || false;
     }

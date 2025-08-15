@@ -19,9 +19,7 @@ import { OrganizationHierarchyService } from '../services/organization-hierarchy
 @UseGuards(JwtAuthGuard, AbacGuard)
 @ApiBearerAuth()
 export class OrganizationHierarchyController {
-  constructor(
-    private readonly hierarchyService: OrganizationHierarchyService,
-  ) {}
+  constructor(private readonly hierarchyService: OrganizationHierarchyService) {}
 
   @Post('refresh')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -81,7 +79,7 @@ export class OrganizationHierarchyController {
   @ApiQuery({ name: 'ids', required: true, description: 'Comma-separated organization IDs' })
   @ApiResponse({ status: 200, description: 'Organization statistics' })
   async getBulkStats(@Query('ids') ids: string) {
-    const organizationIds = ids.split(',').filter(id => id.trim());
+    const organizationIds = ids.split(',').filter((id) => id.trim());
     return this.hierarchyService.getBulkOrganizationStats(organizationIds);
   }
 
