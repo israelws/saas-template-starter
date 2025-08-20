@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store';
 import { setCurrentOrganization } from '@/store/slices/organizationSlice';
@@ -10,8 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { tasksApi, TaskType, TaskLifecycleEvent } from '@/lib/api/tasks';
-import { TaskTypeDialog } from '../components/task-type-dialog';
-import { LifecycleEventsDialog } from '../components/lifecycle-events-dialog';
 import {
   Plus,
   Settings,
@@ -45,15 +44,13 @@ import {
 
 export default function TaskTypesPage() {
   const { toast } = useToast();
+  const router = useRouter();
   const dispatch = useDispatch();
   const currentOrganization = useSelector((state: RootState) => state.organization.currentOrganization);
   const user = useSelector((state: RootState) => state.auth.user);
 
   const [taskTypes, setTaskTypes] = useState<TaskType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTaskType, setSelectedTaskType] = useState<TaskType | null>(null);
-  const [isTaskTypeDialogOpen, setIsTaskTypeDialogOpen] = useState(false);
-  const [isLifecycleDialogOpen, setIsLifecycleDialogOpen] = useState(false);
   const [taskTypeToDelete, setTaskTypeToDelete] = useState<TaskType | null>(null);
 
   const isSuperAdmin = user?.role === 'super_admin';
@@ -89,18 +86,11 @@ export default function TaskTypesPage() {
   };
 
   const handleCreateTaskType = () => {
-    setSelectedTaskType(null);
-    setIsTaskTypeDialogOpen(true);
+    router.push('/dashboard/tasks/types/new');
   };
 
   const handleEditTaskType = (taskType: TaskType) => {
-    setSelectedTaskType(taskType);
-    setIsTaskTypeDialogOpen(true);
-  };
-
-  const handleConfigureLifecycle = (taskType: TaskType) => {
-    setSelectedTaskType(taskType);
-    setIsLifecycleDialogOpen(true);
+    router.push(`/dashboard/tasks/types/${taskType.id}`);
   };
 
   const handleDuplicateTaskType = async (taskType: TaskType) => {
@@ -145,17 +135,6 @@ export default function TaskTypesPage() {
     }
   };
 
-  const handleTaskTypeSaved = () => {
-    loadTaskTypes();
-    setIsTaskTypeDialogOpen(false);
-    setSelectedTaskType(null);
-  };
-
-  const handleLifecycleSaved = () => {
-    loadTaskTypes();
-    setIsLifecycleDialogOpen(false);
-    setSelectedTaskType(null);
-  };
 
   const systemTaskTypes = taskTypes.filter(t => t.scope === 'system');
   const organizationTaskTypes = taskTypes.filter(t => t.scope === 'organization');
@@ -237,15 +216,11 @@ export default function TaskTypesPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleConfigureLifecycle(taskType)}>
-                          <Workflow className="mr-2 h-4 w-4" />
-                          Configure Lifecycle
-                        </DropdownMenuItem>
                         {isSuperAdmin && (
                           <>
                             <DropdownMenuItem onClick={() => handleEditTaskType(taskType)}>
                               <Edit className="mr-2 h-4 w-4" />
-                              Edit
+                              Edit & Configure
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 
@@ -353,13 +328,9 @@ export default function TaskTypesPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleConfigureLifecycle(taskType)}>
-                          <Workflow className="mr-2 h-4 w-4" />
-                          Configure Lifecycle
-                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleEditTaskType(taskType)}>
                           <Edit className="mr-2 h-4 w-4" />
-                          Edit
+                          Edit & Configure
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleDuplicateTaskType(taskType)}>
                           <Copy className="mr-2 h-4 w-4" />
@@ -407,26 +378,6 @@ export default function TaskTypesPage() {
           </div>
         )}
       </div>
-
-      {/* Dialogs */}
-      {isTaskTypeDialogOpen && (
-        <TaskTypeDialog
-          taskType={selectedTaskType}
-          open={isTaskTypeDialogOpen}
-          onClose={() => setIsTaskTypeDialogOpen(false)}
-          onSave={handleTaskTypeSaved}
-          isSuperAdmin={isSuperAdmin}
-        />
-      )}
-
-      {isLifecycleDialogOpen && selectedTaskType && (
-        <LifecycleEventsDialog
-          taskType={selectedTaskType}
-          open={isLifecycleDialogOpen}
-          onClose={() => setIsLifecycleDialogOpen(false)}
-          onSave={handleLifecycleSaved}
-        />
-      )}
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!taskTypeToDelete} onOpenChange={() => setTaskTypeToDelete(null)}>
