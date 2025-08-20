@@ -20,7 +20,8 @@ const MOCK_ROLES: Record<string, any> = {
     isActive: true,
     isSystem: true,
     policyIds: [
-      'f684c5a2-341d-4263-9ec7-62d0dbc482b0', // Super Admin Full Access
+      'f43ee3b8-36f6-41ae-82d0-0e6ac0f0522c', // Admin Full Access
+      '0091034d-363d-4203-b73d-49fce556608d', // System Viewer
     ],
   },
   '2': {
@@ -31,8 +32,7 @@ const MOCK_ROLES: Record<string, any> = {
     isActive: true,
     isSystem: true,
     policyIds: [
-      '0564f32c-4f06-413a-8040-4bacace22d81', // Admin Organization Access
-      '82c00bb7-362d-4bdf-b8cd-c281b2d67b54', // User Self Management
+      'f43ee3b8-36f6-41ae-82d0-0e6ac0f0522c', // Admin Full Access
     ],
   },
   '3': {
@@ -43,8 +43,8 @@ const MOCK_ROLES: Record<string, any> = {
     isActive: true,
     isSystem: true,
     policyIds: [
-      'f8b18f1b-da09-4882-9960-1b5720c03f3e', // Manager Team Access
-      '82c00bb7-362d-4bdf-b8cd-c281b2d67b54', // User Self Management
+      'da88a796-849e-4e91-adbe-9b0203337326', // Manager Access
+      '5e831205-1615-46d3-95de-2be14c53809e', // Product Management
     ],
   },
   '4': {
@@ -55,7 +55,7 @@ const MOCK_ROLES: Record<string, any> = {
     isActive: true,
     isSystem: true,
     policyIds: [
-      '82c00bb7-362d-4bdf-b8cd-c281b2d67b54', // User Self Management
+      'e69532ba-2468-4a00-965f-3ad85dbb8e61', // Employee Read Access
     ],
   },
   '5': {
@@ -66,7 +66,7 @@ const MOCK_ROLES: Record<string, any> = {
     isActive: true,
     isSystem: true,
     policyIds: [
-      '9b235856-61a3-4c0c-9532-28f8cfdf371b', // Guest Read Only
+      '0091034d-363d-4203-b73d-49fce556608d', // System Viewer
     ],
   },
   '6': {
@@ -77,8 +77,8 @@ const MOCK_ROLES: Record<string, any> = {
     isActive: true,
     isSystem: false,
     policyIds: [
-      'f8b18f1b-da09-4882-9960-1b5720c03f3e', // Manager Team Access
-      '82c00bb7-362d-4bdf-b8cd-c281b2d67b54', // User Self Management
+      'da88a796-849e-4e91-adbe-9b0203337326', // Manager Access
+      '5e831205-1615-46d3-95de-2be14c53809e', // Product Management
     ],
   },
   '7': {
@@ -88,7 +88,9 @@ const MOCK_ROLES: Record<string, any> = {
     description: 'Read-only access to all resources for audit purposes',
     isActive: true,
     isSystem: false,
-    policyIds: [], // Auditors typically have custom read-only policies
+    policyIds: [
+      '0091034d-363d-4203-b73d-49fce556608d', // System Viewer
+    ],
   },
   '8': {
     id: '8',
@@ -98,8 +100,7 @@ const MOCK_ROLES: Record<string, any> = {
     isActive: true,
     isSystem: false,
     policyIds: [
-      'f8869a4a-a1f5-4bfe-8935-2d85f77da4dd', // Sales Customer Access
-      '82c00bb7-362d-4bdf-b8cd-c281b2d67b54', // User Self Management
+      'd0a785aa-81a2-46e5-a7d7-c2f782e6c745', // Customer Service Access
     ],
   },
 };

@@ -177,7 +177,7 @@ export default function TaskTypesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Task Types</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Tasks Manager</h1>
           <p className="text-muted-foreground">
             Configure task types and their lifecycle workflows
           </p>

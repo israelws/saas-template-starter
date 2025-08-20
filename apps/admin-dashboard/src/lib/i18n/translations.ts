@@ -51,7 +51,7 @@ export const translations = {
       invitations: 'Invitations',
       myTasks: 'My Tasks',
       allTasks: 'All Tasks',
-      taskTypes: 'Task Types',
+      taskTypes: 'Tasks Manager',
       groups: {
         personalAssistant: 'Personal Assistant',
         userAdmin: 'Users & Auth',
@@ -161,7 +161,7 @@ export const translations = {
       invitations: 'הזמנות',
       myTasks: 'המשימות שלי',
       allTasks: 'כל המשימות',
-      taskTypes: 'סוגי משימות',
+      taskTypes: 'מנהל משימות',
       groups: {
         personalAssistant: 'עוזר אישי',
         userAdmin: 'משתמשים והרשאות',
@@ -271,7 +271,7 @@ export const translations = {
       invitations: 'الدعوات',
       myTasks: 'مهامي',
       allTasks: 'جميع المهام',
-      taskTypes: 'أنواع المهام',
+      taskTypes: 'مدير المهام',
       groups: {
         personalAssistant: 'المساعد الشخصي',
         userAdmin: 'المستخدمين',

@@ -81,7 +81,7 @@ services:
       - backend
     environment:
       NODE_ENV: development
-      NEXT_PUBLIC_API_URL: http://localhost:3000
+      NEXT_PUBLIC_API_URL: http://localhost:3002/api
       NEXT_PUBLIC_AWS_REGION: us-east-1
       NEXT_PUBLIC_AWS_USER_POOL_ID: ${COGNITO_USER_POOL_ID:-your-cognito-user-pool-id}
       NEXT_PUBLIC_AWS_CLIENT_ID: ${COGNITO_CLIENT_ID:-your-cognito-client-id}

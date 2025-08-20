@@ -64,9 +64,10 @@ export const RoleForm: React.FC<RoleFormProps> = ({
       const response = await policyAPI.getAll();
       console.log('Policy API response:', response.data); // Debug log
       // The backend returns data in response.data.data, not response.data.items
-      const policiesData = response.data.data || response.data.items || [];
+      const policiesData = response.data.data || response.data.items || response.data || [];
       setPolicies(policiesData);
-      console.log('Loaded policies:', policiesData.length); // Debug log
+      console.log('Loaded policies:', policiesData); // Debug log with full data
+      console.log('Selected policy IDs:', selectedPolicyIds); // Debug selected IDs
     } catch (error) {
       console.error('Failed to load policies:', error);
       toast({
@@ -79,11 +80,9 @@ export const RoleForm: React.FC<RoleFormProps> = ({
     }
   };
 
-  // Load policies when component mounts if editing a role with existing policies
+  // Load policies when component mounts to ensure we can display policy names
   useEffect(() => {
-    if (initialRole.policyIds && initialRole.policyIds.length > 0) {
-      loadPolicies();
-    }
+    loadPolicies();
   }, []);
 
   const filteredPolicies = policies.filter(policy => {
@@ -241,13 +240,29 @@ export const RoleForm: React.FC<RoleFormProps> = ({
                 <div className="flex flex-wrap gap-2">
                   {selectedPolicyIds.map((policyId) => {
                     const policy = policies.find(p => p.id === policyId);
+                    
+                    // Show loading state if policies haven't been loaded yet
+                    if (policiesLoading && policies.length === 0) {
+                      return (
+                        <Skeleton key={policyId} className="h-6 w-32" />
+                      );
+                    }
+                    
+                    // Show policy name if found, otherwise show ID with retry option
                     return policy ? (
                       <Badge key={policyId} variant="secondary">
+                        <Shield className="mr-1 h-3 w-3" />
                         {policy.name}
                       </Badge>
                     ) : (
-                      <Badge key={policyId} variant="outline">
-                        Policy ID: {policyId}
+                      <Badge 
+                        key={policyId} 
+                        variant="outline" 
+                        className="text-xs cursor-pointer hover:bg-muted"
+                        onClick={() => loadPolicies()}
+                        title="Click to reload policies"
+                      >
+                        {policyId.slice(0, 8)}... (click to reload)
                       </Badge>
                     );
                   })}

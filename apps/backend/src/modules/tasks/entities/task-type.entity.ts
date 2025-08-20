@@ -29,8 +29,7 @@ export class TaskType {
   description: string;
 
   @Column({
-    type: 'enum',
-    enum: TaskTypeScope,
+    type: 'varchar',
     default: TaskTypeScope.ORGANIZATION,
   })
   scope: TaskTypeScope;
