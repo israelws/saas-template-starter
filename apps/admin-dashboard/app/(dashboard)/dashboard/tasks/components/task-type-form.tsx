@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { WebhookDialog } from './webhook-dialog';
 import {
   Select,
   SelectContent,
@@ -84,6 +85,7 @@ import {
   Workflow,
   GripVertical,
   Palette,
+  Webhook,
 } from 'lucide-react';
 import {
   DndContext,
@@ -183,7 +185,7 @@ const LIFECYCLE_ICONS = [
   { icon: RotateCcw, name: 'Reopen' },
 ];
 
-function SortableEventItem({ event, onEdit, onDelete }: any) {
+function SortableEventItem({ event, onEdit, onDelete, onWebhooks, webhookCount }: any) {
   const {
     attributes,
     listeners,
@@ -240,6 +242,20 @@ function SortableEventItem({ event, onEdit, onDelete }: any) {
             </div>
             
             <div className="flex items-center gap-1 ml-4">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 hover:bg-accent relative"
+                onClick={() => onWebhooks(event)}
+                title="Manage webhooks"
+              >
+                <Webhook className="h-4 w-4" />
+                {webhookCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-4 h-4 text-xs flex items-center justify-center">
+                    {webhookCount}
+                  </span>
+                )}
+              </Button>
               <Button
                 size="icon"
                 variant="ghost"
@@ -301,6 +317,8 @@ export const TaskTypeForm: React.FC<TaskTypeFormProps> = ({
     allowedTransitions: [],
   });
   const [deleteConfirmEvent, setDeleteConfirmEvent] = useState<TaskLifecycleEvent | null>(null);
+  const [webhookDialogEvent, setWebhookDialogEvent] = useState<TaskLifecycleEvent | null>(null);
+  const [eventWebhookCounts, setEventWebhookCounts] = useState<Record<string, number>>({});
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -331,6 +349,18 @@ export const TaskTypeForm: React.FC<TaskTypeFormProps> = ({
     try {
       const data = await tasksApi.getLifecycleEvents(initialTaskType.id);
       setEvents(data);
+      
+      // Load webhook counts for each event
+      const counts: Record<string, number> = {};
+      for (const event of data) {
+        try {
+          const webhooks = await tasksApi.getWebhooks(event.id);
+          counts[event.id] = webhooks.filter((w: any) => w.isActive).length;
+        } catch (error) {
+          counts[event.id] = 0;
+        }
+      }
+      setEventWebhookCounts(counts);
     } catch (error) {
       console.error('Failed to load lifecycle events:', error);
     }
@@ -743,6 +773,8 @@ export const TaskTypeForm: React.FC<TaskTypeFormProps> = ({
                               event={event}
                               onEdit={handleEditEvent}
                               onDelete={handleDeleteEvent}
+                              onWebhooks={setWebhookDialogEvent}
+                              webhookCount={eventWebhookCounts[event.id] || 0}
                             />
                           ))}
                         </div>
@@ -947,6 +979,17 @@ export const TaskTypeForm: React.FC<TaskTypeFormProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {webhookDialogEvent && (
+        <WebhookDialog
+          lifecycleEvent={webhookDialogEvent}
+          open={!!webhookDialogEvent}
+          onClose={() => {
+            setWebhookDialogEvent(null);
+            loadEvents(); // Reload to update webhook counts
+          }}
+        />
+      )}
     </div>
   );
 };
