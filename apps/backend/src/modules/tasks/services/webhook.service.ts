@@ -100,7 +100,7 @@ export class WebhookService {
         const headers = this.buildHeaders(webhook);
 
         const response = await firstValueFrom(
-          this.httpService.request({
+          this.httpService.request<any>({
             method: webhook.method,
             url: webhook.url,
             headers,
@@ -274,7 +274,7 @@ export class WebhookService {
       };
 
       const response = await firstValueFrom(
-        this.httpService.request({
+        this.httpService.request<any>({
           method: webhook.method,
           url: webhook.url,
           headers,
