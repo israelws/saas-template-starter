@@ -36,8 +36,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  tasksAPI as tasksApi, 
+import { tasksApi } from '@/lib/api/tasks';
+import type { 
   TaskLifecycleEvent, 
   LifecycleWebhook, 
   CreateWebhookDto,
