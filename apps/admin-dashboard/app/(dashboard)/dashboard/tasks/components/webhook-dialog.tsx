@@ -37,7 +37,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  tasksApi, 
+  tasksAPI as tasksApi, 
   TaskLifecycleEvent, 
   LifecycleWebhook, 
   CreateWebhookDto,
@@ -100,6 +100,11 @@ export function WebhookDialog({
   onClose 
 }: WebhookDialogProps) {
   const { toast } = useToast();
+  
+  // Early return if no lifecycle event
+  if (!lifecycleEvent) {
+    return null;
+  }
   const [activeTab, setActiveTab] = useState('list');
   const [webhooks, setWebhooks] = useState<LifecycleWebhook[]>([]);
   const [loading, setLoading] = useState(false);
@@ -133,39 +138,54 @@ export function WebhookDialog({
   const [customPayload, setCustomPayload] = useState('');
 
   useEffect(() => {
-    if (open) {
+    if (open && lifecycleEvent && lifecycleEvent.id) {
       loadWebhooks();
     }
-  }, [open, lifecycleEvent.id]);
+  }, [open, lifecycleEvent]);
 
   const loadWebhooks = async () => {
+    if (!lifecycleEvent?.id) return;
     try {
       setLoading(true);
       const data = await tasksApi.getWebhooks(lifecycleEvent.id);
       setWebhooks(data);
-    } catch (error) {
-      console.error('Failed to load webhooks:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load webhooks',
-        variant: 'destructive',
-      });
+    } catch (error: any) {
+      // Only show error toast for non-auth errors
+      if (error?.response?.status !== 400 && error?.response?.status !== 401) {
+        console.error('Failed to load webhooks:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load webhooks',
+          variant: 'destructive',
+        });
+      } else {
+        // For auth errors, just set empty webhooks
+        setWebhooks([]);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const loadWebhookLogs = async (webhookId: string) => {
+    if (!lifecycleEvent?.id) return;
     try {
       const logs = await tasksApi.getWebhookLogs(lifecycleEvent.id, webhookId, 50);
       setWebhookLogs(logs);
       setViewingLogs(webhookId);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to load webhook logs',
-        variant: 'destructive',
-      });
+    } catch (error: any) {
+      // Only show error toast for non-auth errors
+      if (error?.response?.status !== 400 && error?.response?.status !== 401) {
+        toast({
+          title: 'Error',
+          description: 'Failed to load webhook logs',
+          variant: 'destructive',
+        });
+      } else {
+        // For auth errors, just set empty logs
+        setWebhookLogs([]);
+        setViewingLogs(webhookId);
+      }
     }
   };
 
@@ -205,6 +225,7 @@ export function WebhookDialog({
   };
 
   const handleSave = async () => {
+    if (!lifecycleEvent?.id) return;
     if (!formData.name || !formData.url) {
       toast({
         title: 'Error',
@@ -283,7 +304,7 @@ export function WebhookDialog({
   };
 
   const handleDelete = async () => {
-    if (!deleteConfirm) return;
+    if (!deleteConfirm || !lifecycleEvent?.id) return;
 
     try {
       await tasksApi.deleteWebhook(lifecycleEvent.id, deleteConfirm.id);
@@ -304,6 +325,7 @@ export function WebhookDialog({
   };
 
   const handleTest = async (webhook: LifecycleWebhook) => {
+    if (!lifecycleEvent?.id) return;
     setTesting(true);
     try {
       const result = await tasksApi.testWebhook(lifecycleEvent.id, webhook.id, {

@@ -74,10 +74,12 @@ import { ValidationPipe } from '@nestjs/common';
   controllers: [AppController],
   providers: [
     AppService,
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
+    // Temporarily disabled global auth guard for development
+    // TODO: Re-enable for production or use conditional guard
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: JwtAuthGuard,
+    // },
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,

@@ -15,6 +15,7 @@ import { TaskTypeController } from './controllers/task-type.controller';
 import { WebhookController } from './controllers/webhook.controller';
 import { UsersModule } from '../users/users.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { OrganizationsModule } from '../organizations/organizations.module';
     HttpModule,
     UsersModule,
     OrganizationsModule,
+    AuthModule,
   ],
   controllers: [TaskController, TaskTypeController, WebhookController],
   providers: [TaskService, TaskTypeService, WebhookService],

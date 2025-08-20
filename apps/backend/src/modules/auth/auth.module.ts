@@ -7,6 +7,7 @@ import { AuthController } from './auth.controller';
 import { CognitoService } from './cognito.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersModule } from '../users/users.module';
+import { OptionalJwtAuthGuard } from './guards/optional-jwt-auth.guard';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { UsersModule } from '../users/users.module';
     UsersModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, CognitoService, JwtStrategy],
-  exports: [AuthService, CognitoService],
+  providers: [AuthService, CognitoService, JwtStrategy, OptionalJwtAuthGuard],
+  exports: [AuthService, CognitoService, OptionalJwtAuthGuard],
 })
 export class AuthModule {}

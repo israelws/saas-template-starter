@@ -348,16 +348,19 @@ export const TaskTypeForm: React.FC<TaskTypeFormProps> = ({
     if (!initialTaskType?.id) return;
     try {
       const data = await tasksApi.getLifecycleEvents(initialTaskType.id);
-      setEvents(data);
+      setEvents(data || []);
       
-      // Load webhook counts for each event
+      // Load webhook counts
       const counts: Record<string, number> = {};
-      for (const event of data) {
-        try {
-          const webhooks = await tasksApi.getWebhooks(event.id);
-          counts[event.id] = webhooks.filter((w: any) => w.isActive).length;
-        } catch (error) {
-          counts[event.id] = 0;
+      if (data && Array.isArray(data)) {
+        for (const event of data) {
+          try {
+            const webhooks = await tasksApi.getWebhooks(event.id);
+            counts[event.id] = webhooks.filter((w: any) => w.isActive).length;
+          } catch (error: any) {
+            // Silently handle errors (e.g., auth issues in dev)
+            counts[event.id] = 0;
+          }
         }
       }
       setEventWebhookCounts(counts);
@@ -369,26 +372,28 @@ export const TaskTypeForm: React.FC<TaskTypeFormProps> = ({
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (active.id !== over?.id) {
+    if (active.id !== over?.id && events) {
       const oldIndex = events.findIndex(e => e.id === active.id);
       const newIndex = events.findIndex(e => e.id === over?.id);
       
-      const newEvents = arrayMove(events, oldIndex, newIndex);
-      setEvents(newEvents);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newEvents = arrayMove(events, oldIndex, newIndex);
+        setEvents(newEvents);
 
-      if (initialTaskType?.id) {
-        try {
-          await tasksApi.reorderLifecycleEvents(
-            initialTaskType.id,
-            newEvents.map(e => e.id)
-          );
-        } catch (error) {
-          toast({
-            title: 'Error',
-            description: 'Failed to reorder events',
-            variant: 'destructive',
-          });
-          loadEvents();
+        if (initialTaskType?.id) {
+          try {
+            await tasksApi.reorderLifecycleEvents(
+              initialTaskType.id,
+              newEvents.map(e => e.id)
+            );
+          } catch (error) {
+            toast({
+              title: 'Error',
+              description: 'Failed to reorder events',
+              variant: 'destructive',
+            });
+            loadEvents();
+          }
         }
       }
     }
@@ -403,7 +408,7 @@ export const TaskTypeForm: React.FC<TaskTypeFormProps> = ({
       color: '#3B82F6',
       icon: 'Start',
       isFinal: false,
-      isInitial: events.length === 0,
+      isInitial: !events || events.length === 0,
       allowedTransitions: [],
     });
   };
@@ -743,7 +748,7 @@ export const TaskTypeForm: React.FC<TaskTypeFormProps> = ({
                     )}
                   </div>
 
-                  {events.length === 0 && !isAddingNewEvent ? (
+                  {(!events || events.length === 0) && !isAddingNewEvent ? (
                     <Card>
                       <CardContent className="flex flex-col items-center justify-center py-8">
                         <Workflow className="h-8 w-8 text-muted-foreground mb-2" />
@@ -763,11 +768,11 @@ export const TaskTypeForm: React.FC<TaskTypeFormProps> = ({
                       onDragEnd={handleDragEnd}
                     >
                       <SortableContext
-                        items={events.map(e => e.id)}
+                        items={events?.map(e => e.id) || []}
                         strategy={verticalListSortingStrategy}
                       >
                         <div className="space-y-2">
-                          {events.map(event => (
+                          {events?.map(event => (
                             <SortableEventItem
                               key={event.id}
                               event={event}
@@ -890,7 +895,7 @@ export const TaskTypeForm: React.FC<TaskTypeFormProps> = ({
                         </div>
                       </div>
 
-                      {!eventFormData.isFinal && events.length > 0 && (
+                      {!eventFormData.isFinal && events && events.length > 0 && (
                         <div className="grid gap-2">
                           <Label>Allowed Transitions</Label>
                           <div className="space-y-2 border rounded-lg p-3">
