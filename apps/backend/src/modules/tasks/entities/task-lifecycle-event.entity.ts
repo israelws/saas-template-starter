@@ -3,11 +3,13 @@ import {
   Column,
   PrimaryGeneratedColumn,
   ManyToOne,
+  OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
 } from 'typeorm';
 import { TaskType } from './task-type.entity';
+import { LifecycleWebhook } from './lifecycle-webhook.entity';
 
 @Entity('task_lifecycle_events')
 export class TaskLifecycleEvent {
@@ -49,6 +51,9 @@ export class TaskLifecycleEvent {
 
   @Column({ type: 'jsonb', nullable: true })
   metadata: Record<string, any>;
+
+  @OneToMany(() => LifecycleWebhook, (webhook) => webhook.lifecycleEvent)
+  webhooks: LifecycleWebhook[];
 
   @CreateDateColumn()
   createdAt: Date;

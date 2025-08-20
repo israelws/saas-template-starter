@@ -27,8 +27,65 @@ export interface TaskLifecycleEvent {
   isInitial: boolean;
   allowedTransitions?: string[];
   metadata?: Record<string, any>;
+  webhooks?: LifecycleWebhook[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface LifecycleWebhook {
+  id: string;
+  lifecycleEventId: string;
+  name: string;
+  url: string;
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  headers?: Record<string, string>;
+  authType?: 'bearer' | 'basic' | 'api-key' | 'custom';
+  authConfig?: WebhookAuthConfig;
+  retryConfig?: WebhookRetryConfig;
+  isActive: boolean;
+  includeContext: boolean;
+  includeAuth: boolean;
+  customPayload?: Record<string, any>;
+  lastTriggeredAt?: string;
+  lastStatus?: string;
+  lastError?: string;
+  metadata?: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WebhookAuthConfig {
+  token?: string;
+  username?: string;
+  password?: string;
+  apiKey?: string;
+  apiKeyHeader?: string;
+  customHeaders?: Record<string, string>;
+}
+
+export interface WebhookRetryConfig {
+  maxRetries: number;
+  retryDelay: number;
+  backoffMultiplier: number;
+}
+
+export interface WebhookLog {
+  id: string;
+  webhookId: string;
+  taskId?: string;
+  eventType: string;
+  url: string;
+  method: string;
+  requestHeaders?: Record<string, any>;
+  requestBody?: Record<string, any>;
+  responseStatus?: number;
+  responseHeaders?: Record<string, any>;
+  responseBody?: Record<string, any>;
+  error?: string;
+  duration?: number;
+  retryCount: number;
+  success: boolean;
+  createdAt: string;
 }
 
 export interface Task {
@@ -112,6 +169,23 @@ export interface CreateLifecycleEventDto {
   allowedTransitions?: string[];
   metadata?: Record<string, any>;
 }
+
+export interface CreateWebhookDto {
+  name: string;
+  url: string;
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  headers?: Record<string, string>;
+  authType?: 'bearer' | 'basic' | 'api-key' | 'custom';
+  authConfig?: WebhookAuthConfig;
+  retryConfig?: WebhookRetryConfig;
+  isActive?: boolean;
+  includeContext?: boolean;
+  includeAuth?: boolean;
+  customPayload?: Record<string, any>;
+  metadata?: Record<string, any>;
+}
+
+export interface UpdateWebhookDto extends Partial<CreateWebhookDto> {}
 
 export interface TaskStats {
   total: number;
@@ -244,6 +318,43 @@ export const tasksApi = {
     const response = await api.post(`/task-types/${taskTypeId}/lifecycle-events/reorder`, {
       eventIds,
     });
+    return response.data;
+  },
+
+  // Webhook endpoints
+  getWebhooks: async (lifecycleEventId: string) => {
+    const response = await api.get(`/task-lifecycle-events/${lifecycleEventId}/webhooks`);
+    return response.data;
+  },
+
+  getWebhook: async (lifecycleEventId: string, webhookId: string) => {
+    const response = await api.get(`/task-lifecycle-events/${lifecycleEventId}/webhooks/${webhookId}`);
+    return response.data;
+  },
+
+  createWebhook: async (lifecycleEventId: string, data: CreateWebhookDto) => {
+    const response = await api.post(`/task-lifecycle-events/${lifecycleEventId}/webhooks`, data);
+    return response.data;
+  },
+
+  updateWebhook: async (lifecycleEventId: string, webhookId: string, data: UpdateWebhookDto) => {
+    const response = await api.patch(`/task-lifecycle-events/${lifecycleEventId}/webhooks/${webhookId}`, data);
+    return response.data;
+  },
+
+  deleteWebhook: async (lifecycleEventId: string, webhookId: string) => {
+    const response = await api.delete(`/task-lifecycle-events/${lifecycleEventId}/webhooks/${webhookId}`);
+    return response.data;
+  },
+
+  getWebhookLogs: async (lifecycleEventId: string, webhookId: string, limit?: number) => {
+    const params = limit ? `?limit=${limit}` : '';
+    const response = await api.get(`/task-lifecycle-events/${lifecycleEventId}/webhooks/${webhookId}/logs${params}`);
+    return response.data;
+  },
+
+  testWebhook: async (lifecycleEventId: string, webhookId: string, testPayload?: Record<string, any>) => {
+    const response = await api.post(`/task-lifecycle-events/${lifecycleEventId}/webhooks/${webhookId}/test`, testPayload || {});
     return response.data;
   },
 };
