@@ -25,27 +25,9 @@ const processQueue = (error: any, token: string | null = null) => {
 };
 
 export const setupAuthInterceptor = () => {
-  // Request interceptor to add auth token
-  api.interceptors.request.use(
-    (config) => {
-      const state = store.getState();
-      const token = state.auth.token || localStorage.getItem('authToken');
-
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-
-      // Add organization context if available
-      const currentOrg = state.organization.currentOrganization;
-      if (currentOrg && config.headers) {
-        config.headers['X-Organization-Id'] = currentOrg.id;
-      }
-
-      return config;
-    },
-    (error) => Promise.reject(error),
-  );
-
+  // Note: Request interceptor is already set up in api.ts to avoid timing issues
+  // This function now only sets up the response interceptor for token refresh
+  
   // Response interceptor to handle token refresh
   api.interceptors.response.use(
     (response) => response,
@@ -53,14 +35,21 @@ export const setupAuthInterceptor = () => {
       const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
       if (error.response?.status === 401 && !originalRequest._retry) {
-        console.log('401 error detected for URL:', originalRequest.url);
-        console.log(
-          'Current token in localStorage:',
-          localStorage.getItem('authToken')?.substring(0, 20) + '...',
-        );
+        console.log('[Auth Interceptor] 401 error detected:', {
+          url: originalRequest.url,
+          method: originalRequest.method,
+          hasAuthToken: !!localStorage.getItem('authToken'),
+          hasRefreshToken: !!localStorage.getItem('refreshToken'),
+          errorData: error.response?.data,
+        });
 
         // Skip refresh for certain endpoints
-        if (originalRequest.url?.includes('/auth/refresh')) {
+        if (
+          originalRequest.url?.includes('/auth/refresh') ||
+          originalRequest.url?.includes('/auth/login') ||
+          originalRequest.url?.includes('/auth/logout') ||
+          originalRequest.url?.includes('/auth/me')
+        ) {
           return Promise.reject(error);
         }
 
@@ -89,8 +78,14 @@ export const setupAuthInterceptor = () => {
         const refreshToken = localStorage.getItem('refreshToken');
 
         if (!refreshToken) {
-          console.log('No refresh token available');
-          // Don't logout immediately - let the user try to login again
+          console.log('[Auth Interceptor] No refresh token available');
+          // Don't logout immediately - the token might just be expired
+          // Let's check if we have an auth token
+          const authToken = localStorage.getItem('authToken');
+          if (!authToken) {
+            console.log('[Auth Interceptor] No auth token either, redirecting to login');
+            window.location.href = '/login';
+          }
           return Promise.reject(error);
         }
 
@@ -154,13 +149,14 @@ export const setupAuthInterceptor = () => {
           // Add a catch to handle if the refreshed token still doesn't work
           return retryPromise.catch((retryError) => {
             if (retryError?.response?.status === 401) {
-              console.error('Refreshed token still rejected by backend. Forcing logout...');
-              store.dispatch(logout());
-              localStorage.removeItem('authToken');
-              localStorage.removeItem('refreshToken');
-              localStorage.removeItem('userData');
-              document.cookie = 'authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-              window.location.href = '/login';
+              console.error('[Auth Interceptor] Refreshed token still rejected by backend - LOGOUT DISABLED for debugging');
+              // TEMPORARILY DISABLED FOR DEBUGGING
+              // store.dispatch(logout());
+              // localStorage.removeItem('authToken');
+              // localStorage.removeItem('refreshToken');
+              // localStorage.removeItem('userData');
+              // document.cookie = 'authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+              // window.location.href = '/login';
             }
             throw retryError;
           });
@@ -176,16 +172,14 @@ export const setupAuthInterceptor = () => {
           // Only logout if refresh token is truly invalid (401/403)
           const status = (refreshError as any)?.response?.status;
           if (status === 401 || status === 403) {
-            console.log('Refresh token expired, forcing logout...');
-            store.dispatch(logout());
-            // Clear all auth data
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('refreshToken');
-            localStorage.removeItem('userData');
-            document.cookie = 'authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-
-            // Force redirect to login
-            window.location.href = '/login';
+            console.log('[Auth Interceptor] Refresh token expired, would normally logout but DISABLED for debugging');
+            // TEMPORARILY DISABLED FOR DEBUGGING
+            // store.dispatch(logout());
+            // localStorage.removeItem('authToken');
+            // localStorage.removeItem('refreshToken');
+            // localStorage.removeItem('userData');
+            // document.cookie = 'authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            // window.location.href = '/login';
           }
 
           // Let the auth provider handle navigation

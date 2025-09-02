@@ -7,11 +7,20 @@ export const setCookie = (name: string, value: string, days: number = 7) => {
   date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
   const expires = date.toUTCString();
 
-  // Build cookie string with proper format
-  const cookieParts = [`${name}=${value}`, `expires=${expires}`, 'path=/', 'SameSite=Lax'];
+  // Build cookie string with proper format for CORS
+  // Use SameSite=None for cross-origin requests (requires Secure)
+  const isProduction = window.location.protocol === 'https:';
+  const sameSite = isProduction ? 'None' : 'Lax';
+  
+  const cookieParts = [
+    `${name}=${value}`,
+    `expires=${expires}`,
+    'path=/',
+    `SameSite=${sameSite}`
+  ];
 
-  // Only add Secure for HTTPS
-  if (window.location.protocol === 'https:') {
+  // Must use Secure with SameSite=None
+  if (isProduction) {
     cookieParts.push('Secure');
   }
 

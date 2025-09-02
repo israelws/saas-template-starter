@@ -25,6 +25,10 @@ const organizationSlice = createSlice({
     },
     setCurrentOrganization: (state, action: PayloadAction<Organization>) => {
       state.currentOrganization = action.payload;
+      // Save to localStorage for API access
+      if (typeof window !== 'undefined' && action.payload) {
+        localStorage.setItem('currentOrganizationId', action.payload.id);
+      }
     },
     addOrganization: (state, action: PayloadAction<Organization>) => {
       state.organizations.push(action.payload);
@@ -42,6 +46,10 @@ const organizationSlice = createSlice({
       state.organizations = state.organizations.filter((org) => org.id !== action.payload);
       if (state.currentOrganization?.id === action.payload) {
         state.currentOrganization = null;
+        // Clear from localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('currentOrganizationId');
+        }
       }
     },
     setLoading: (state, action: PayloadAction<boolean>) => {

@@ -28,15 +28,27 @@ export default function EditPolicyPage() {
 
   const fetchPolicy = useCallback(async () => {
     try {
+      console.log('[Policy Edit] Fetching policy:', params.id);
       const response = await policyAPI.getById(params.id as string);
+      console.log('[Policy Edit] Policy fetched successfully');
       setPolicy(response.data);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch policy details',
-        variant: 'destructive',
+    } catch (error: any) {
+      console.error('[Policy Edit] Error fetching policy:', error);
+      console.error('[Policy Edit] Error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
       });
-      router.push('/dashboard/policies');
+      
+      // Only show toast if it's not an auth error - let interceptor handle 401
+      if (error.response?.status !== 401) {
+        toast({
+          title: 'Error',
+          description: error.response?.data?.message || 'Failed to fetch policy details',
+          variant: 'destructive',
+        });
+        router.push('/dashboard/policies');
+      }
     } finally {
       setIsFetching(false);
     }

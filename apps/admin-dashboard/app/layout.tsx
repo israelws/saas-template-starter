@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { ReduxProvider } from '@/components/providers/redux-provider';
 import { AuthProvider } from '@/components/providers/auth-provider';
+import { CookieSyncProvider } from '@/components/providers/cookie-sync-provider';
 import { SimpleI18nProvider } from '@/components/providers/simple-i18n-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
@@ -21,10 +22,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider defaultTheme="system" storageKey="saas-theme">
           <SimpleI18nProvider>
             <ReduxProvider>
-              <AuthProvider>
-                {children}
-                <Toaster />
-              </AuthProvider>
+              <CookieSyncProvider>
+                <AuthProvider>
+                  {children}
+                  <Toaster />
+                </AuthProvider>
+              </CookieSyncProvider>
             </ReduxProvider>
           </SimpleI18nProvider>
         </ThemeProvider>

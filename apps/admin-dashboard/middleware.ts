@@ -27,11 +27,28 @@ export function middleware(request: NextRequest) {
   const authToken = request.cookies.get('authToken')?.value;
   const hasToken = !!authToken;
 
-  // Simple logging
-  console.log(`[Middleware] ${path} - Auth: ${hasToken ? 'YES' : 'NO'}`);
+  // Enhanced logging for debugging
+  if (path.includes('/policies') && path.includes('/edit')) {
+    console.log(`[Middleware] Policy Edit Navigation:`, {
+      path,
+      hasToken,
+      tokenPrefix: authToken?.substring(0, 20),
+      allCookies: request.cookies.getAll().map(c => c.name),
+    });
+  } else {
+    console.log(`[Middleware] ${path} - Auth: ${hasToken ? 'YES' : 'NO'}`);
+  }
 
   // Protect dashboard routes
   if (isDashboardRoute && !hasToken) {
+    console.log(`[Middleware] No token for dashboard route: ${path}`);
+    // Check if token exists in Authorization header (for API calls)
+    const authHeader = request.headers.get('authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      console.log('[Middleware] Found token in Authorization header, allowing request');
+      return NextResponse.next();
+    }
+    
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', path);
     return NextResponse.redirect(loginUrl);

@@ -1,16 +1,68 @@
 import axios from 'axios';
-import { store } from '@/store/index';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
+// Backend is running on port 3002
+const API_BASE_URL = 'http://localhost:3002/api';
+
+// Debug log the API URL being used
+console.log('[API Configuration] Using API URL:', API_BASE_URL);
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // CRITICAL: Include cookies in cross-origin requests
 });
 
-// Interceptors are handled in auth-interceptor.ts
+// Helper function to safely get organization ID without accessing store directly
+const getOrganizationId = (): string | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  const orgId = localStorage.getItem('currentOrganizationId');
+  if (!orgId) {
+    console.warn('[API] No organization ID found in localStorage');
+  }
+  return orgId;
+};
+
+// Setup request interceptor to add auth token
+api.interceptors.request.use(
+  (config) => {
+    // Get token from localStorage
+    const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+    
+    // CRITICAL: Ensure cookie is synced before EVERY API call
+    if (token && typeof window !== 'undefined') {
+      // Set cookie immediately before request
+      const expires = new Date();
+      expires.setTime(expires.getTime() + 7 * 24 * 60 * 60 * 1000);
+      document.cookie = `authToken=${token}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+      
+      // Debug logging for all API calls
+      console.log('[API Request]', {
+        url: config.url,
+        hasToken: true,
+        cookieSet: document.cookie.includes('authToken'),
+      });
+    }
+    
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // Add organization context if available
+    const orgId = getOrganizationId();
+    if (orgId && config.headers) {
+      config.headers['X-Organization-Id'] = orgId;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
+
+// Note: Response interceptor for token refresh is set up in auth-interceptor.ts by AuthProvider
 
 // API endpoints
 export const authAPI = {
@@ -109,16 +161,13 @@ export const userAPI = {
 
 export const policyAPI = {
   getAll: (params?: any) => {
-    const state = store.getState();
-    const organizationId = state.organization.currentOrganization?.id;
-    // Include organizationId for ABAC context
+    const organizationId = getOrganizationId();
     return api.get('/abac/policies', { 
       params: { ...params, organizationId } 
     });
   },
   getById: (id: string) => {
-    const state = store.getState();
-    const organizationId = state.organization.currentOrganization?.id;
+    const organizationId = getOrganizationId();
     return api.get(`/abac/policies/${id}`, { 
       params: { organizationId } 
     });
@@ -128,15 +177,13 @@ export const policyAPI = {
     return api.post('/abac/policies', data);
   },
   update: (id: string, data: any) => {
-    const state = store.getState();
-    const organizationId = state.organization.currentOrganization?.id;
+    const organizationId = getOrganizationId();
     return api.patch(`/abac/policies/${id}`, data, { 
       params: { organizationId } 
     });
   },
   delete: (id: string) => {
-    const state = store.getState();
-    const organizationId = state.organization.currentOrganization?.id;
+    const organizationId = getOrganizationId();
     return api.delete(`/abac/policies/${id}`, { 
       params: { organizationId } 
     });
@@ -147,16 +194,14 @@ export const policyAPI = {
 
 export const attributeAPI = {
   getAll: () => {
-    const state = store.getState();
-    const organizationId = state.organization.currentOrganization?.id;
+    const organizationId = getOrganizationId();
     return api.get('/abac/attributes', {
       params: { organizationId },
     });
   },
   getById: (id: string) => api.get(`/abac/attributes/${id}`),
   create: (data: any) => {
-    const state = store.getState();
-    const organizationId = state.organization.currentOrganization?.id;
+    const organizationId = getOrganizationId();
     return api.post('/abac/attributes', { ...data, organizationId });
   },
   update: (id: string, data: any) => api.put(`/abac/attributes/${id}`, data),
@@ -165,8 +210,7 @@ export const attributeAPI = {
 
 export const productAPI = {
   getAll: (params?: any) => {
-    const state = store.getState();
-    const organizationId = state.organization.currentOrganization?.id;
+    const organizationId = getOrganizationId();
     return api.get('/products', {
       params: {
         ...params,
@@ -176,20 +220,17 @@ export const productAPI = {
   },
   getById: (id: string) => api.get(`/products/${id}`),
   create: (data: any) => {
-    const state = store.getState();
-    const organizationId = state.organization.currentOrganization?.id;
+    const organizationId = getOrganizationId();
     return api.post('/products', { ...data, organizationId });
   },
   update: (id: string, data: any) => api.patch(`/products/${id}`, data),
   delete: (id: string) => api.delete(`/products/${id}`),
   getLowStock: (organizationId?: string) => {
-    const state = store.getState();
-    const orgId = organizationId || state.organization.currentOrganization?.id;
+    const orgId = organizationId || getOrganizationId();
     return api.get('/products/low-stock', { params: { organizationId: orgId } });
   },
   getBySku: (sku: string, organizationId?: string) => {
-    const state = store.getState();
-    const orgId = organizationId || state.organization.currentOrganization?.id;
+    const orgId = organizationId || getOrganizationId();
     return api.get(`/products/sku/${sku}`, { params: { organizationId: orgId } });
   },
   updateInventory: (id: string, quantity: number, operation?: 'set' | 'add' | 'subtract') =>
@@ -199,16 +240,14 @@ export const productAPI = {
   releaseInventory: (id: string, quantity: number) =>
     api.post(`/products/${id}/inventory/release`, { quantity }),
   bulkUpdateStatus: (ids: string[], status: string) => {
-    const state = store.getState();
-    const organizationId = state.organization.currentOrganization?.id;
+    const organizationId = getOrganizationId();
     return api.post('/products/bulk-status', { ids, status, organizationId });
   },
 };
 
 export const customerAPI = {
   getAll: (params?: any) => {
-    const state = store.getState();
-    const organizationId = state.organization.currentOrganization?.id;
+    const organizationId = getOrganizationId();
     return api.get('/customers', {
       params: {
         ...params,
@@ -218,15 +257,13 @@ export const customerAPI = {
   },
   getById: (id: string) => api.get(`/customers/${id}`),
   create: (data: any) => {
-    const state = store.getState();
-    const organizationId = state.organization.currentOrganization?.id;
+    const organizationId = getOrganizationId();
     return api.post('/customers', { ...data, organizationId });
   },
   update: (id: string, data: any) => api.patch(`/customers/${id}`, data),
   delete: (id: string) => api.delete(`/customers/${id}`),
   getByEmail: (email: string) => {
-    const state = store.getState();
-    const organizationId = state.organization.currentOrganization?.id;
+    const organizationId = getOrganizationId();
     return api.get('/customers/by-email', { params: { email, organizationId } });
   },
   getTransactions: (customerId: string, params?: any) =>
@@ -237,8 +274,7 @@ export const customerAPI = {
 
 export const orderAPI = {
   getAll: (params?: any) => {
-    const state = store.getState();
-    const organizationId = state.organization.currentOrganization?.id;
+    const organizationId = getOrganizationId();
     return api.get('/orders', {
       params: {
         ...params,
@@ -248,8 +284,7 @@ export const orderAPI = {
   },
   getById: (id: string) => api.get(`/orders/${id}`),
   create: (data: any) => {
-    const state = store.getState();
-    const organizationId = state.organization.currentOrganization?.id;
+    const organizationId = getOrganizationId();
     return api.post('/orders', { ...data, organizationId });
   },
   update: (id: string, data: any) => api.patch(`/orders/${id}`, data),
@@ -264,8 +299,7 @@ export const orderAPI = {
 
 export const transactionAPI = {
   getAll: (params?: any) => {
-    const state = store.getState();
-    const organizationId = state.organization.currentOrganization?.id;
+    const organizationId = getOrganizationId();
     return api.get('/transactions', {
       params: {
         ...params,
@@ -275,8 +309,7 @@ export const transactionAPI = {
   },
   getById: (id: string) => api.get(`/transactions/${id}`),
   create: (data: any) => {
-    const state = store.getState();
-    const organizationId = state.organization.currentOrganization?.id;
+    const organizationId = getOrganizationId();
     return api.post('/transactions', { ...data, organizationId });
   },
   getByReference: (reference: string) => api.get(`/transactions/reference/${reference}`),

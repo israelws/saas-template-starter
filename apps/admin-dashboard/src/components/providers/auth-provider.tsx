@@ -50,7 +50,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 const defaultMembership =
                   userData.memberships.find((m: any) => m.isDefault) || userData.memberships[0];
                 if (defaultMembership && defaultMembership.organization) {
+                  console.log('[AuthProvider] Setting organization from stored data:', defaultMembership.organization);
                   dispatch(setCurrentOrganization(defaultMembership.organization));
+                  // Ensure it's also in localStorage
+                  localStorage.setItem('currentOrganizationId', defaultMembership.organization.id);
                 }
               }
             } catch (e) {
@@ -74,7 +77,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               const defaultMembership =
                 userData.memberships.find((m: any) => m.isDefault) || userData.memberships[0];
               if (defaultMembership && defaultMembership.organization) {
+                console.log('[AuthProvider] Setting organization from /auth/me:', defaultMembership.organization);
                 dispatch(setCurrentOrganization(defaultMembership.organization));
+                // Ensure it's also in localStorage
+                localStorage.setItem('currentOrganizationId', defaultMembership.organization.id);
               }
             }
 

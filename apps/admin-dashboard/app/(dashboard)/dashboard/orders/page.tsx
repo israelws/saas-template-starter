@@ -27,15 +27,27 @@ export default function OrdersPage() {
 
   const fetchOrders = useCallback(async () => {
     try {
+      console.log('[Orders] Fetching orders...');
       const response = await orderAPI.getAll();
+      console.log('[Orders] Response received:', response);
       const ordersData = response.data?.data || response.data || [];
       setOrders(Array.isArray(ordersData) ? ordersData : []);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch orders',
-        variant: 'destructive',
+    } catch (error: any) {
+      console.error('[Orders] Error fetching orders:', error);
+      console.error('[Orders] Error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
       });
+      
+      // Don't show toast if it's an auth error - let the auth interceptor handle it
+      if (error.response?.status !== 401) {
+        toast({
+          title: 'Error',
+          description: error.response?.data?.message || 'Failed to fetch orders',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsLoading(false);
     }

@@ -12,6 +12,7 @@ import { Icons } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
 import { authAPI } from '@/lib/api';
 import { loginStart, loginSuccess, loginFailure } from '@/store/slices/authSlice';
+import { setCurrentOrganization } from '@/store/slices/organizationSlice';
 import { setCookie } from '@/lib/cookies';
 
 interface LoginFormProps extends React.HTMLAttributes<HTMLDivElement> {}
@@ -47,32 +48,70 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
 
       // Update Redux store
       dispatch(loginSuccess({ user, token: accessToken }));
+      
+      // Set default organization if user has memberships
+      if (user.memberships && user.memberships.length > 0) {
+        const defaultMembership = 
+          user.memberships.find((m: any) => m.isDefault) || user.memberships[0];
+        if (defaultMembership && defaultMembership.organization) {
+          console.log('[Login] Setting default organization:', defaultMembership.organization);
+          dispatch(setCurrentOrganization(defaultMembership.organization));
+          // Also save to localStorage for persistence
+          localStorage.setItem('currentOrganizationId', defaultMembership.organization.id);
+        } else {
+          console.warn('[Login] No organization found in membership:', defaultMembership);
+        }
+      } else {
+        console.warn('[Login] User has no memberships:', user);
+      }
 
       // Set cookie for SSR - ensure it's set before navigation
       setCookie('authToken', accessToken, 7);
 
-      // Also set cookie from server for better reliability
+      // Also set cookie from server for better reliability - WAIT for this
       try {
         await fetch('/api/auth/set-cookie', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token: accessToken }),
         });
+        console.log('[Login] Server cookie set successfully');
       } catch (error) {
         console.error('Failed to set server cookie:', error);
       }
+
+      // Verify cookie is actually set
+      const cookieCheck = document.cookie.includes('authToken');
+      console.log('[Login] Cookie verification:', {
+        cookieSet: cookieCheck,
+        allCookies: document.cookie,
+      });
 
       toast({
         title: 'Welcome back!',
         description: 'You have successfully signed in.',
       });
 
-      // Add a small delay to ensure auth is properly set up
-      setTimeout(() => {
-        // Redirect to dashboard or original destination
-        const redirect = new URLSearchParams(window.location.search).get('redirect');
-        router.push(redirect || '/dashboard');
-      }, 100);
+      // Add debug logging
+      console.log('[Login] Auth setup complete:', {
+        hasToken: !!accessToken,
+        hasUser: !!user,
+        cookieSet: document.cookie.includes('authToken'),
+        localStorage: {
+          authToken: !!localStorage.getItem('authToken'),
+          refreshToken: !!localStorage.getItem('refreshToken'),
+          userData: !!localStorage.getItem('userData'),
+          orgId: localStorage.getItem('currentOrganizationId'),
+        }
+      });
+
+      // Redirect to dashboard or original destination
+      const redirect = new URLSearchParams(window.location.search).get('redirect');
+      const targetPath = redirect || '/dashboard';
+      console.log('[Login] Redirecting to:', targetPath);
+      
+      // Use replace to prevent back button issues
+      router.replace(targetPath);
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || error.message || 'Invalid email or password';

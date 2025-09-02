@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { cn } from '@/lib/utils';
+import { useAuthSync } from '@/hooks/use-auth-sync';
 import { Button } from '@/components/ui/button';
 import { logout } from '@/store/slices/authSlice';
 import { useToast } from '@/hooks/use-toast';
@@ -44,6 +45,9 @@ import {
   CheckSquare,
   Workflow,
   ListTodo,
+  Sparkles,
+  Zap,
+  BrainCircuit,
 } from 'lucide-react';
 
 type NavigationItem = {
@@ -66,6 +70,15 @@ const navigationGroups: NavigationGroup[] = [
       { key: 'navigation.myTasks', href: '/dashboard/tasks/my-tasks', icon: CheckSquare },
       { key: 'navigation.allTasks', href: '/dashboard/tasks', icon: ListTodo },
       { key: 'navigation.taskTypes', href: '/dashboard/tasks/types', icon: Workflow },
+    ],
+  },
+  {
+    key: 'navigation.groups.aiAgents',
+    icon: BrainCircuit,
+    items: [
+      { key: 'navigation.workflows', href: '/dashboard/workflows', icon: Zap },
+      { key: 'navigation.aiModels', href: '/dashboard/ai-models', icon: Sparkles },
+      { key: 'navigation.workflowExecutions', href: '/dashboard/workflow-executions', icon: Workflow },
     ],
   },
   {
@@ -109,6 +122,9 @@ const navigationItems = [
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  // Keep auth token synced between localStorage and cookies
+  useAuthSync();
+  
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {

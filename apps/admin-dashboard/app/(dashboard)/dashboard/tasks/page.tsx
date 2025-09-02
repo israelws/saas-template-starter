@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { tasksApi, Task, TaskType } from '@/lib/api/tasks';
 import { TaskDialog } from './components/task-dialog';
+import { useAuth } from '@/hooks/use-auth';
 import { TaskCard } from './components/task-card';
 import {
   Plus,
@@ -47,6 +48,7 @@ import { format } from 'date-fns';
 export default function AllTasksPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { user, isAuthenticated } = useAuth();
   const currentOrganization = useSelector((state: RootState) => state.organization.currentOrganization);
   const users = useSelector((state: RootState) => state.user.users);
 
@@ -66,11 +68,16 @@ export default function AllTasksPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+    
     if (currentOrganization?.id) {
       loadTasks();
       loadTaskTypes();
     }
-  }, [currentOrganization?.id]);
+  }, [currentOrganization?.id, isAuthenticated, router]);
 
   const loadTasks = async () => {
     try {
@@ -85,12 +92,17 @@ export default function AllTasksPage() {
       
       const data = await tasksApi.getTasks(filters);
       setTasks(data);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to load tasks',
-        variant: 'destructive',
-      });
+    } catch (error: any) {
+      console.error('Error loading tasks:', error);
+      if (error?.response?.status === 401) {
+        router.push('/login');
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to load tasks',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -100,8 +112,17 @@ export default function AllTasksPage() {
     try {
       const data = await tasksApi.getTaskTypes(currentOrganization?.id);
       setTaskTypes(data);
-    } catch (error) {
-      console.error('Failed to load task types:', error);
+    } catch (error: any) {
+      console.error('Error loading task types:', error);
+      if (error?.response?.status === 401) {
+        router.push('/login');
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to load task types',
+          variant: 'destructive',
+        });
+      }
     }
   };
 

@@ -10,13 +10,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Token is required' }, { status: 400 });
     }
 
-    // Set the auth token cookie from the server
+    // Set the auth token cookie from the server with CORS-compatible settings
+    const isProduction = process.env.NODE_ENV === 'production';
     cookies().set({
       name: 'authToken',
       value: token,
       httpOnly: false, // Allow client-side access
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax', // 'none' for cross-origin in production
       path: '/',
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
