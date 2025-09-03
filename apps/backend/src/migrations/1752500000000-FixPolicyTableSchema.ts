@@ -60,8 +60,8 @@ export class FixPolicyTableSchema1752500000000 implements MigrationInterface {
 
     // Add missing indexes
     await queryRunner.query(`
-      CREATE INDEX IF NOT EXISTS "idx_policies_org_active" 
-      ON "policies" ("organizationId", "isActive")
+      CREATE INDEX IF NOT EXISTS "idx_policies_org" 
+      ON "policies" ("organizationId")
     `);
 
     await queryRunner.query(`

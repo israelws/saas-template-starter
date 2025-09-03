@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Backend is running on port 3002
-const API_BASE_URL = 'http://localhost:3002/api';
+// Use environment variable for API URL, fallback to localhost:3000
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 // Debug log the API URL being used
 console.log('[API Configuration] Using API URL:', API_BASE_URL);
@@ -72,7 +72,7 @@ export const authAPI = {
   refreshToken: (refreshToken: string) => api.post('/auth/refresh', { refreshToken }),
   validateToken: () => api.get('/auth/me'),
   forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
-  resetPassword: (data: { token: string; password: string }) =>
+  resetPassword: (data: { email: string; code: string; newPassword: string }) =>
     api.post('/auth/reset-password', data),
 };
 

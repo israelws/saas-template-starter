@@ -217,7 +217,7 @@ export default function OnboardingPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <Image
-            src="/logo_main.png"
+            src="/images/logo_main.png"
             alt="Logo"
             width={150}
             height={40}

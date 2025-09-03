@@ -112,27 +112,99 @@ export class CreateTaskTables1760000000000 implements MigrationInterface {
         `);
 
         // Add foreign keys
-        await queryRunner.query(`ALTER TABLE "task_types" ADD CONSTRAINT "FK_task_types_organization" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "task_lifecycle_events" ADD CONSTRAINT "FK_task_lifecycle_events_task_type" FOREIGN KEY ("taskTypeId") REFERENCES "task_types"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "tasks" ADD CONSTRAINT "FK_tasks_task_type" FOREIGN KEY ("taskTypeId") REFERENCES "task_types"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "tasks" ADD CONSTRAINT "FK_tasks_assignee" FOREIGN KEY ("assigneeId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "tasks" ADD CONSTRAINT "FK_tasks_created_by" FOREIGN KEY ("createdById") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "tasks" ADD CONSTRAINT "FK_tasks_organization" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "tasks" ADD CONSTRAINT "FK_tasks_parent" FOREIGN KEY ("parentTaskId") REFERENCES "tasks"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "task_history" ADD CONSTRAINT "FK_task_history_task" FOREIGN KEY ("taskId") REFERENCES "tasks"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "task_history" ADD CONSTRAINT "FK_task_history_user" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        // Check if constraint exists before adding
+        const constraintExists = await queryRunner.query(`
+            SELECT COUNT(*) as count 
+            FROM pg_constraint 
+            WHERE conname = 'FK_task_types_organization'
+        `);
+        if (!constraintExists[0] || constraintExists[0].count === '0') {
+            await queryRunner.query(`ALTER TABLE "task_types" ADD CONSTRAINT "FK_task_types_organization" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        }
+        // Check and add FK_task_lifecycle_events_task_type
+        const lifecycleConstraintExists = await queryRunner.query(`
+            SELECT COUNT(*) as count 
+            FROM pg_constraint 
+            WHERE conname = 'FK_task_lifecycle_events_task_type'
+        `);
+        if (!lifecycleConstraintExists[0] || lifecycleConstraintExists[0].count === '0') {
+            await queryRunner.query(`ALTER TABLE "task_lifecycle_events" ADD CONSTRAINT "FK_task_lifecycle_events_task_type" FOREIGN KEY ("taskTypeId") REFERENCES "task_types"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        }
+        // Check and add FK_tasks_task_type
+        const tasksTypeConstraintExists = await queryRunner.query(`
+            SELECT COUNT(*) as count 
+            FROM pg_constraint 
+            WHERE conname = 'FK_tasks_task_type'
+        `);
+        if (!tasksTypeConstraintExists[0] || tasksTypeConstraintExists[0].count === '0') {
+            await queryRunner.query(`ALTER TABLE "tasks" ADD CONSTRAINT "FK_tasks_task_type" FOREIGN KEY ("taskTypeId") REFERENCES "task_types"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        }
+        // Check and add FK_tasks_assignee
+        const tasksAssigneeConstraintExists = await queryRunner.query(`
+            SELECT COUNT(*) as count 
+            FROM pg_constraint 
+            WHERE conname = 'FK_tasks_assignee'
+        `);
+        if (!tasksAssigneeConstraintExists[0] || tasksAssigneeConstraintExists[0].count === '0') {
+            await queryRunner.query(`ALTER TABLE "tasks" ADD CONSTRAINT "FK_tasks_assignee" FOREIGN KEY ("assigneeId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION`);
+        }
+        // Check and add FK_tasks_created_by
+        const tasksCreatedByConstraintExists = await queryRunner.query(`
+            SELECT COUNT(*) as count 
+            FROM pg_constraint 
+            WHERE conname = 'FK_tasks_created_by'
+        `);
+        if (!tasksCreatedByConstraintExists[0] || tasksCreatedByConstraintExists[0].count === '0') {
+            await queryRunner.query(`ALTER TABLE "tasks" ADD CONSTRAINT "FK_tasks_created_by" FOREIGN KEY ("createdById") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        }
+        // Check and add FK_tasks_organization
+        const tasksOrgConstraintExists = await queryRunner.query(`
+            SELECT COUNT(*) as count 
+            FROM pg_constraint 
+            WHERE conname = 'FK_tasks_organization'
+        `);
+        if (!tasksOrgConstraintExists[0] || tasksOrgConstraintExists[0].count === '0') {
+            await queryRunner.query(`ALTER TABLE "tasks" ADD CONSTRAINT "FK_tasks_organization" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        }
+        // Check and add FK_tasks_parent
+        const tasksParentConstraintExists = await queryRunner.query(`
+            SELECT COUNT(*) as count 
+            FROM pg_constraint 
+            WHERE conname = 'FK_tasks_parent'
+        `);
+        if (!tasksParentConstraintExists[0] || tasksParentConstraintExists[0].count === '0') {
+            await queryRunner.query(`ALTER TABLE "tasks" ADD CONSTRAINT "FK_tasks_parent" FOREIGN KEY ("parentTaskId") REFERENCES "tasks"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        }
+        // Check and add FK_task_history_task
+        const historyTaskConstraintExists = await queryRunner.query(`
+            SELECT COUNT(*) as count 
+            FROM pg_constraint 
+            WHERE conname = 'FK_task_history_task'
+        `);
+        if (!historyTaskConstraintExists[0] || historyTaskConstraintExists[0].count === '0') {
+            await queryRunner.query(`ALTER TABLE "task_history" ADD CONSTRAINT "FK_task_history_task" FOREIGN KEY ("taskId") REFERENCES "tasks"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        }
+        // Check and add FK_task_history_user
+        const historyUserConstraintExists = await queryRunner.query(`
+            SELECT COUNT(*) as count 
+            FROM pg_constraint 
+            WHERE conname = 'FK_task_history_user'
+        `);
+        if (!historyUserConstraintExists[0] || historyUserConstraintExists[0].count === '0') {
+            await queryRunner.query(`ALTER TABLE "task_history" ADD CONSTRAINT "FK_task_history_user" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        }
 
         // Create indexes
-        await queryRunner.query(`CREATE INDEX "IDX_task_types_organization" ON "task_types" ("organizationId")`);
-        await queryRunner.query(`CREATE INDEX "IDX_task_types_scope" ON "task_types" ("scope")`);
-        await queryRunner.query(`CREATE INDEX "IDX_task_lifecycle_events_task_type" ON "task_lifecycle_events" ("taskTypeId")`);
-        await queryRunner.query(`CREATE INDEX "IDX_tasks_organization" ON "tasks" ("organizationId")`);
-        await queryRunner.query(`CREATE INDEX "IDX_tasks_assignee" ON "tasks" ("assigneeId")`);
-        await queryRunner.query(`CREATE INDEX "IDX_tasks_status" ON "tasks" ("status")`);
-        await queryRunner.query(`CREATE INDEX "IDX_tasks_priority" ON "tasks" ("priority")`);
-        await queryRunner.query(`CREATE INDEX "IDX_tasks_due_date" ON "tasks" ("dueDate")`);
-        await queryRunner.query(`CREATE INDEX "IDX_task_history_task" ON "task_history" ("taskId")`);
-        await queryRunner.query(`CREATE INDEX "IDX_task_history_user" ON "task_history" ("userId")`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_task_types_organization" ON "task_types" ("organizationId")`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_task_types_scope" ON "task_types" ("scope")`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_task_lifecycle_events_task_type" ON "task_lifecycle_events" ("taskTypeId")`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_tasks_organization" ON "tasks" ("organizationId")`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_tasks_assignee" ON "tasks" ("assigneeId")`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_tasks_status" ON "tasks" ("status")`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_tasks_priority" ON "tasks" ("priority")`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_tasks_due_date" ON "tasks" ("dueDate")`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_task_history_task" ON "task_history" ("taskId")`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_task_history_user" ON "task_history" ("userId")`);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {

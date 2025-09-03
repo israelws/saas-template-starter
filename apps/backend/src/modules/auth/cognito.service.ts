@@ -11,6 +11,7 @@ import {
   ChangePasswordCommand,
   GetUserCommand,
   AdminGetUserCommand,
+  AdminUpdateUserAttributesCommand,
   AuthFlowType,
 } from '@aws-sdk/client-cognito-identity-provider';
 import * as crypto from 'crypto';
@@ -76,6 +77,33 @@ export class CognitoService {
       const cognitoId = response.AuthenticationResult.AccessToken
         ? this.extractCognitoIdFromToken(response.AuthenticationResult.AccessToken)
         : '';
+
+      // Auto-verify email for existing users who can successfully authenticate
+      // This fixes users who were created before email verification was properly set up
+      try {
+        const userResponse = await this.cognitoClient.send(new AdminGetUserCommand({
+          UserPoolId: this.userPoolId,
+          Username: email,
+        }));
+        
+        const emailVerified = userResponse.UserAttributes?.find(
+          attr => attr.Name === 'email_verified'
+        )?.Value;
+        
+        if (emailVerified === 'false') {
+          console.log(`Auto-verifying email for authenticated user: ${email}`);
+          await this.cognitoClient.send(new AdminUpdateUserAttributesCommand({
+            UserPoolId: this.userPoolId,
+            Username: email,
+            UserAttributes: [
+              { Name: 'email_verified', Value: 'true' }
+            ]
+          }));
+        }
+      } catch (verifyError) {
+        console.error('Failed to auto-verify email:', verifyError);
+        // Don't fail authentication if email verification update fails
+      }
 
       return {
         cognitoId,
@@ -160,6 +188,19 @@ export class CognitoService {
       const command = new ConfirmSignUpCommand(params);
       await this.cognitoClient.send(command);
 
+      // After confirming signup, ensure email_verified is set to true
+      try {
+        await this.cognitoClient.send(new AdminUpdateUserAttributesCommand({
+          UserPoolId: this.userPoolId,
+          Username: email,
+          UserAttributes: [
+            { Name: 'email_verified', Value: 'true' }
+          ]
+        }));
+      } catch (updateError) {
+        console.error('Failed to update email_verified attribute:', updateError);
+      }
+
       return { confirmed: true };
     } catch (error) {
       throw new BadRequestException('Invalid confirmation code');
@@ -225,10 +266,24 @@ export class CognitoService {
       }
 
       const command = new ForgotPasswordCommand(params);
-      await this.cognitoClient.send(command);
+      const response = await this.cognitoClient.send(command);
+
+      // Development helper: Log where the code was sent
+      if (process.env.NODE_ENV === 'development') {
+        console.log('=================================================');
+        console.log('🔐 PASSWORD RESET CODE SENT');
+        console.log(`📧 Email: ${email}`);
+        console.log(`📍 Destination: ${response.CodeDeliveryDetails?.Destination}`);
+        console.log(`📬 Delivery Method: ${response.CodeDeliveryDetails?.DeliveryMedium}`);
+        console.log('');
+        console.log('⚠️  IMPORTANT: Check your email inbox AND spam folder!');
+        console.log('📧 Sender: no-reply@verificationemail.com');
+        console.log('=================================================');
+      }
 
       return { codeSent: true };
     } catch (error) {
+      console.error('Forgot password error:', error);
       // Don't reveal if user exists
       return { codeSent: true };
     }

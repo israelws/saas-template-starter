@@ -27,14 +27,31 @@ export interface FlowDefinition {
     type: string;
     position: { x: number; y: number };
     data: any;
+    state?: any; // Runtime state for the node
   }>;
   edges: Array<{
     id: string;
     source: string;
+    sourceHandle?: string;
     target: string;
-    type?: string;
+    targetHandle?: string;
+    type?: string; // 'default' | 'conditional' | 'loop'
     data?: any;
   }>;
+}
+
+export interface ChatbotConfig {
+  enabled: boolean;
+  welcomeMessage?: string;
+  placeholder?: string;
+  theme?: 'light' | 'dark' | 'auto';
+  allowFileUpload?: boolean;
+  maxFileSize?: number;
+  allowedFileTypes?: string[];
+  streamingEnabled?: boolean;
+  showTypingIndicator?: boolean;
+  persistConversation?: boolean;
+  maxConversationLength?: number;
 }
 
 @Entity('ai_workflows')
@@ -93,6 +110,21 @@ export class Workflow {
 
   @Column({ type: 'jsonb', nullable: true })
   metadata: Record<string, any>;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  category: string;
+
+  @Column('text', { array: true, nullable: true, default: '{}' })
+  tags: string[];
+
+  @Column({ type: 'jsonb', nullable: true })
+  flowState: Record<string, any>;
+
+  @Column({ type: 'jsonb', nullable: true })
+  variables: Record<string, any>;
+
+  @Column({ type: 'jsonb', nullable: true })
+  chatbotConfig: ChatbotConfig;
 
   @OneToMany(() => WorkflowExecution, (execution) => execution.workflow)
   executions: WorkflowExecution[];

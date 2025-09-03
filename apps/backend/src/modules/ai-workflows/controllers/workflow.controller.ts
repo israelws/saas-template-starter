@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { DevJwtAuthGuard } from '../../auth/guards/dev-jwt-auth.guard';
 import { OrganizationContextGuard } from '@/common/guards/organization-context.guard';
 import { WorkflowService } from '../services/workflow.service';
 import { WorkflowExecutionService } from '../services/workflow-execution.service';
@@ -22,7 +23,12 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator';
 @ApiTags('AI Workflows')
 @ApiBearerAuth()
 @Controller('workflows')
-@UseGuards(JwtAuthGuard, OrganizationContextGuard)
+@UseGuards(
+  process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'dev' || !process.env.NODE_ENV
+    ? DevJwtAuthGuard 
+    : JwtAuthGuard, 
+  OrganizationContextGuard
+)
 export class WorkflowController {
   constructor(
     private readonly workflowService: WorkflowService,

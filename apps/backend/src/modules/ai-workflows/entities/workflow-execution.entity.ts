@@ -14,6 +14,7 @@ export enum WorkflowExecutionStatus {
   COMPLETED = 'completed',
   FAILED = 'failed',
   CANCELLED = 'cancelled',
+  PAUSED = 'paused',
 }
 
 @Entity('workflow_executions')
@@ -68,6 +69,21 @@ export class WorkflowExecution {
 
   @Column({ type: 'timestamp', nullable: true })
   completedAt: Date;
+
+  @Column()
+  organizationId: string;
+
+  @Column({ type: 'jsonb', nullable: true })
+  input: Record<string, any>;
+
+  @Column({ type: 'jsonb', nullable: true })
+  output: Record<string, any>;
+
+  @Column({ type: 'text', nullable: true })
+  error: string;
+
+  @Column({ type: 'jsonb', nullable: true })
+  metadata: Record<string, any>;
 
   @CreateDateColumn()
   createdAt: Date;

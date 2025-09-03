@@ -9,10 +9,20 @@ import { WorkflowExecution } from './entities/workflow-execution.entity';
 import { WorkflowBinding } from './entities/workflow-binding.entity';
 import { AIModel } from './entities/ai-model.entity';
 import { WorkflowDocument } from './entities/workflow-document.entity';
+import { WorkflowTemplate } from './entities/workflow-template.entity';
+import { WorkflowCredential } from './entities/workflow-credential.entity';
+import { VectorEmbedding } from './entities/vector-embedding.entity';
+import { ConversationHistory } from './entities/conversation-history.entity';
+import { WorkflowMemory } from './entities/workflow-memory.entity';
 
 // Services
 import { WorkflowService } from './services/workflow.service';
 import { WorkflowExecutionService } from './services/workflow-execution.service';
+import { LangGraphService } from './services/langgraph.service';
+import { ExecutionEngineService } from './services/execution-engine.service';
+import { NodeExecutorService } from './services/node-executor.service';
+import { StreamingService } from './services/streaming.service';
+import { StateManagerService } from './services/state-manager.service';
 
 // Controllers
 import { WorkflowController } from './controllers/workflow.controller';
@@ -29,6 +39,11 @@ import { WorkflowProcessor } from './processors/workflow.processor';
       WorkflowBinding,
       AIModel,
       WorkflowDocument,
+      WorkflowTemplate,
+      WorkflowCredential,
+      VectorEmbedding,
+      ConversationHistory,
+      WorkflowMemory,
     ]),
     BullModule.registerQueue({
       name: 'workflow-execution',
@@ -48,10 +63,17 @@ import { WorkflowProcessor } from './processors/workflow.processor';
     WorkflowService,
     WorkflowExecutionService,
     WorkflowProcessor,
+    LangGraphService,
+    ExecutionEngineService,
+    NodeExecutorService,
+    StreamingService,
+    StateManagerService,
   ],
   exports: [
     WorkflowService,
     WorkflowExecutionService,
+    ExecutionEngineService,
+    LangGraphService,
   ],
 })
 export class AIWorkflowsModule {}

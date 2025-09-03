@@ -33,10 +33,11 @@ export default function ForgotPasswordPage() {
 
       toast({
         title: 'Check your email',
-        description: 'We sent you a password reset link',
+        description: 'We sent you a verification code to reset your password',
       });
 
-      router.push('/login');
+      // Redirect to reset password page with email pre-filled
+      router.push(`/reset-password?email=${encodeURIComponent(email)}`);
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Failed to send reset email';
 
@@ -56,7 +57,7 @@ export default function ForgotPasswordPage() {
         <div className="absolute inset-0 bg-zinc-900" />
         <div className="relative z-20 flex items-center">
           <Image
-            src="/logo_main.png"
+            src="/images/logo_main.png"
             alt="Logo"
             width={200}
             height={60}
@@ -80,7 +81,7 @@ export default function ForgotPasswordPage() {
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl">Forgot password</CardTitle>
               <CardDescription>
-                Enter your email address and we&apos;ll send you a reset link
+                Enter your email address and we&apos;ll send you a verification code
               </CardDescription>
             </CardHeader>
             <form onSubmit={handleSubmit}>
@@ -100,7 +101,7 @@ export default function ForgotPasswordPage() {
               </CardContent>
               <CardFooter className="flex flex-col space-y-4">
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Sending...' : 'Send reset link'}
+                  {isLoading ? 'Sending...' : 'Send verification code'}
                 </Button>
                 <div className="text-sm text-center text-muted-foreground">
                   Remember your password?{' '}

@@ -75,6 +75,19 @@ export class OrganizationHierarchyService implements OnModuleInit {
     const startTime = Date.now();
 
     try {
+      // Check if the materialized view exists first
+      const viewExists = await this.dataSource.query(`
+        SELECT EXISTS (
+          SELECT 1 FROM pg_matviews 
+          WHERE matviewname = 'organization_hierarchy_view'
+        ) as exists
+      `);
+      
+      if (!viewExists[0]?.exists) {
+        this.logger.warn('Materialized view organization_hierarchy_view does not exist yet, skipping refresh');
+        return;
+      }
+
       await this.dataSource.query(
         'REFRESH MATERIALIZED VIEW CONCURRENTLY organization_hierarchy_view',
       );
@@ -82,7 +95,7 @@ export class OrganizationHierarchyService implements OnModuleInit {
       this.logger.log(`Organization hierarchy view refreshed in ${duration}ms`);
     } catch (error) {
       this.logger.error({ message: 'Failed to refresh organization hierarchy view', error: error });
-      throw error;
+      // Don't throw the error, just log it to prevent crashing the app
     } finally {
       this.isRefreshing = false;
     }
@@ -100,14 +113,19 @@ export class OrganizationHierarchyService implements OnModuleInit {
    * Get the complete hierarchy for an organization
    */
   async getOrganizationHierarchy(organizationId: string): Promise<OrganizationHierarchyNode[]> {
-    const query = `
-      SELECT * FROM organization_hierarchy_view
-      WHERE $1::uuid = ANY(path)
-      ORDER BY depth, name
-    `;
+    try {
+      const query = `
+        SELECT * FROM organization_hierarchy_view
+        WHERE $1::uuid = ANY(path)
+        ORDER BY depth, name
+      `;
 
-    const result = await this.dataSource.query(query, [organizationId]);
-    return this.mapHierarchyResults(result);
+      const result = await this.dataSource.query(query, [organizationId]);
+      return this.mapHierarchyResults(result);
+    } catch (error) {
+      this.logger.warn('Failed to get organization hierarchy, view may not exist yet');
+      return [];
+    }
   }
 
   /**

@@ -59,6 +59,7 @@ services:
       AWS_REGION: us-east-1
       COGNITO_USER_POOL_ID: ${COGNITO_USER_POOL_ID:-your-cognito-user-pool-id}
       COGNITO_CLIENT_ID: ${COGNITO_CLIENT_ID:-your-cognito-client-id}
+      COGNITO_CLIENT_SECRET: ${COGNITO_CLIENT_SECRET:-}
       CORS_ORIGIN: http://localhost:3001
     volumes:
       - ./apps/backend:/app/apps/backend
