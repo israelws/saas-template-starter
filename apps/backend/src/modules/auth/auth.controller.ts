@@ -11,6 +11,7 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { DevJwtAuthGuard } from './guards/dev-jwt-auth.guard';
 import { Public } from './decorators/public.decorator';
 import {
   LoginDto,
@@ -85,7 +86,11 @@ export class AuthController {
     return this.authService.resetPassword(resetPasswordDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(
+    process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'dev' || !process.env.NODE_ENV
+      ? DevJwtAuthGuard 
+      : JwtAuthGuard
+  )
   @Post('change-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Change user password' })
@@ -94,7 +99,11 @@ export class AuthController {
     return this.authService.changePassword(req.user.id, changePasswordDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(
+    process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'dev' || !process.env.NODE_ENV
+      ? DevJwtAuthGuard 
+      : JwtAuthGuard
+  )
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'User logout' })
@@ -103,7 +112,11 @@ export class AuthController {
     return this.authService.logout(req.user.id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(
+    process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'dev' || !process.env.NODE_ENV
+      ? DevJwtAuthGuard 
+      : JwtAuthGuard
+  )
   @Get('me')
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiBearerAuth()

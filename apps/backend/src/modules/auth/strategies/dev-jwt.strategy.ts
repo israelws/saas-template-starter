@@ -41,10 +41,14 @@ export class DevJwtStrategy extends PassportStrategy(Strategy, 'dev-jwt') {
         memberships: [
           {
             id: '22222222-2222-2222-2222-222222222222',
-            organizationId: '4c072108-f9d0-4ed8-8cfd-1a65630b0b44', // TechCorp Global
+            organizationId: '9eee012e-6860-4c2b-a5e0-431373031703', // TechCorp Global ID
             userId: '11c8f518-4356-42d7-a3ce-8061b2bf3338', // test@example.com
             role: 'admin',
             isDefault: true,
+            organization: {
+              id: '9eee012e-6860-4c2b-a5e0-431373031703',
+              name: 'TechCorp Global',
+            },
           },
         ],
       };

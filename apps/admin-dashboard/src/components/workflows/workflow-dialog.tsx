@@ -73,10 +73,27 @@ export function WorkflowDialog({
         flowDefinition: workflow?.flowDefinition || {
           nodes: [
             {
-              id: 'start',
-              type: 'start',
-              position: { x: 100, y: 100 },
-              data: { label: 'Start' },
+              id: `node-${Date.now()}`,
+              type: 'custom',
+              position: { x: 250, y: 200 },
+              draggable: true,
+              selectable: true,
+              data: {
+                label: 'Manual Trigger',
+                type: 'trigger',
+                category: 'triggers',
+                nodeId: 'manual-trigger',
+                icon: '🚀',
+                description: 'Manually start a workflow',
+                outputAnchors: [
+                  {
+                    id: 'output',
+                    label: 'Output',
+                    name: 'output',
+                    type: 'any',
+                  },
+                ],
+              },
             },
           ],
           edges: [],

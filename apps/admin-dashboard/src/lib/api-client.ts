@@ -14,16 +14,22 @@ class ApiClient {
       'Content-Type': 'application/json',
     };
 
-    // Get auth token from cookies
-    const token = getCookie('authToken');
+    // Get auth token from localStorage (fallback to cookies for SSR)
+    let token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+    if (!token) {
+      token = getCookie('authToken') as string;
+    }
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    // Get organization context
-    const orgId = getCookie('organizationId');
+    // Get organization context from localStorage (fallback to cookies)
+    let orgId = typeof window !== 'undefined' ? localStorage.getItem('currentOrganizationId') : null;
+    if (!orgId) {
+      orgId = getCookie('organizationId') as string;
+    }
     if (orgId) {
-      headers['X-Organization-Id'] = orgId as string;
+      headers['X-Organization-Id'] = orgId;
     }
 
     return headers;

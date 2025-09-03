@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Patch,
   Delete,
   Body,
   Param,
@@ -103,8 +104,50 @@ export class WorkflowController {
     @Param('id') id: string,
     @Body() updateData: Partial<CreateWorkflowDto>,
     @Request() req: any,
+    @CurrentUser() user: any,
   ) {
-    return await this.workflowService.update(id, req.organizationId, updateData);
+    // Try to get organizationId from multiple sources
+    let organizationId = req.organizationId || 
+                        req.headers['x-organization-id'];
+    
+    // If still no organizationId, use the user's first membership
+    if (!organizationId && user.memberships && user.memberships.length > 0) {
+      // Use default organization or first available
+      const defaultMembership = user.memberships.find((m: any) => m.isDefault) || user.memberships[0];
+      organizationId = defaultMembership.organizationId;
+    }
+    
+    if (!organizationId) {
+      throw new Error('No organization context available');
+    }
+    
+    return await this.workflowService.update(id, organizationId, updateData);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Partially update workflow' })
+  async patch(
+    @Param('id') id: string,
+    @Body() updateData: Partial<CreateWorkflowDto>,
+    @Request() req: any,
+    @CurrentUser() user: any,
+  ) {
+    // Try to get organizationId from multiple sources
+    let organizationId = req.organizationId || 
+                        req.headers['x-organization-id'];
+    
+    // If still no organizationId, use the user's first membership
+    if (!organizationId && user.memberships && user.memberships.length > 0) {
+      // Use default organization or first available
+      const defaultMembership = user.memberships.find((m: any) => m.isDefault) || user.memberships[0];
+      organizationId = defaultMembership.organizationId;
+    }
+    
+    if (!organizationId) {
+      throw new Error('No organization context available');
+    }
+    
+    return await this.workflowService.update(id, organizationId, updateData);
   }
 
   @Delete(':id')
@@ -116,8 +159,42 @@ export class WorkflowController {
 
   @Post(':id/toggle-active')
   @ApiOperation({ summary: 'Toggle workflow active status' })
-  async toggleActive(@Param('id') id: string, @Request() req: any) {
-    return await this.workflowService.toggleActive(id, req.organizationId);
+  async toggleActive(@Param('id') id: string, @Request() req: any, @CurrentUser() user: any) {
+    // Try to get organizationId from multiple sources
+    let organizationId = req.organizationId || 
+                        req.headers['x-organization-id'];
+    
+    // If still no organizationId, use the user's first membership
+    if (!organizationId && user.memberships && user.memberships.length > 0) {
+      // Use default organization or first available
+      const defaultMembership = user.memberships.find((m: any) => m.isDefault) || user.memberships[0];
+      organizationId = defaultMembership.organizationId;
+    }
+    
+    return await this.workflowService.toggleActive(id, organizationId);
+  }
+
+  @Patch(':id/active')
+  @ApiOperation({ summary: 'Update workflow active status' })
+  async updateActive(
+    @Param('id') id: string, 
+    @Body() body: { isActive: boolean },
+    @Request() req: any,
+    @CurrentUser() user: any
+  ) {
+    // Try to get organizationId from multiple sources
+    let organizationId = req.organizationId || 
+                        req.headers['x-organization-id'];
+    
+    // If still no organizationId, use the user's first membership
+    if (!organizationId && user.memberships && user.memberships.length > 0) {
+      // Use default organization or first available
+      const defaultMembership = user.memberships.find((m: any) => m.isDefault) || user.memberships[0];
+      organizationId = defaultMembership.organizationId;
+    }
+    
+    // Update the workflow's isActive status
+    return await this.workflowService.update(id, organizationId, { isActive: body.isActive });
   }
 
   @Post(':id/execute')

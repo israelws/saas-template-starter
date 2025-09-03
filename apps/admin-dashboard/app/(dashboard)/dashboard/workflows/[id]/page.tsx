@@ -20,6 +20,7 @@ import ReactFlow, {
   MarkerType,
 } from 'reactflow';
 import './workflow-editor.css';
+import './workflow-animations.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -140,12 +141,12 @@ function WorkflowEditor() {
         draggable: true,
         selectable: true,
         data: {
-          label: 'Workflow Start',
+          label: 'Manual Trigger',
           type: 'trigger',
           category: 'triggers',
           nodeId: 'manual-trigger',
           icon: '🚀',
-          description: 'Click here to begin',
+          description: 'Manually start a workflow',
           outputAnchors: [
             {
               id: 'output',
@@ -184,6 +185,18 @@ function WorkflowEditor() {
         case 'duplicate':
           const nodeToDuplicate = nodes.find(n => n.id === nodeId);
           if (nodeToDuplicate) {
+            // Check if it's a trigger node - don't allow duplication
+            if (nodeToDuplicate.data.category === 'triggers' || 
+                nodeToDuplicate.data.type === 'trigger' ||
+                nodeToDuplicate.data.nodeId?.includes('trigger')) {
+              toast({
+                title: 'Cannot Duplicate Start Node',
+                description: 'Workflows can only have one trigger/start node',
+                variant: 'destructive',
+              });
+              return;
+            }
+            
             const newNode = {
               ...nodeToDuplicate,
               id: `node-${Date.now()}`,
@@ -198,6 +211,21 @@ function WorkflowEditor() {
           }
           break;
         case 'delete':
+          // Check if it's a trigger node - don't allow deletion
+          const nodeToDelete = nodes.find(n => n.id === nodeId);
+          if (nodeToDelete && (
+            nodeToDelete.data.category === 'triggers' || 
+            nodeToDelete.data.type === 'trigger' ||
+            nodeToDelete.data.nodeId?.includes('trigger')
+          )) {
+            toast({
+              title: 'Cannot Delete Start Node',
+              description: 'Every workflow must have a trigger/start node',
+              variant: 'destructive',
+            });
+            return;
+          }
+          
           setNodes((nds) => nds.filter(n => n.id !== nodeId));
           setEdges((eds) => eds.filter(e => e.source !== nodeId && e.target !== nodeId));
           if (selectedNode?.id === nodeId) {
@@ -210,7 +238,7 @@ function WorkflowEditor() {
 
     window.addEventListener('nodeAction', handleNodeAction as any);
     return () => window.removeEventListener('nodeAction', handleNodeAction as any);
-  }, [nodes, selectedNode]);
+  }, [nodes, selectedNode, toast]);
 
   const loadWorkflow = async () => {
     try {
@@ -220,12 +248,41 @@ function WorkflowEditor() {
       
       // Load nodes and edges from workflow definition
       if (data.flowDefinition) {
-        // Ensure all nodes have draggable flag
-        const loadedNodes = (data.flowDefinition.nodes || []).map((node: any) => ({
-          ...node,
-          draggable: true,
-          selectable: true,
-        }));
+        // Ensure all nodes have draggable flag and convert old 'start' type to 'custom'
+        const loadedNodes = (data.flowDefinition.nodes || []).map((node: any) => {
+          // Convert old 'start' type nodes to proper trigger nodes
+          if (node.type === 'start') {
+            return {
+              ...node,
+              type: 'custom',
+              draggable: true,
+              selectable: true,
+              data: {
+                label: 'Manual Trigger',
+                type: 'trigger',
+                category: 'triggers',
+                nodeId: 'manual-trigger',
+                icon: '🚀',
+                description: 'Manually start a workflow',
+                outputAnchors: node.data?.outputAnchors || [
+                  {
+                    id: 'output',
+                    label: 'Output',
+                    name: 'output',
+                    type: 'any',
+                  },
+                ],
+              },
+            };
+          }
+          
+          return {
+            ...node,
+            type: node.type === 'custom' ? 'custom' : 'custom', // Ensure all nodes use 'custom' type
+            draggable: true,
+            selectable: true,
+          };
+        });
         setNodes(loadedNodes);
         setEdges(data.flowDefinition.edges || []);
       }
@@ -324,10 +381,27 @@ function WorkflowEditor() {
         params.sourceHandle || '',
         params.targetHandle || ''
       )) {
+        // Check if source is a start node
+        const isFromStartNode = sourceNode.data.nodeId === 'manual-trigger' || 
+                               sourceNode.data.type === 'trigger' || 
+                               sourceNode.data.label?.toLowerCase().includes('start') ||
+                               sourceNode.data.label?.toLowerCase().includes('trigger');
+        
         const edge = {
           ...params,
           ...defaultEdgeOptions,
           id: `edge-${params.source}-${params.sourceHandle || 'out'}-${params.target}-${params.targetHandle || 'in'}`,
+          animated: false, // No animation for any edges
+          style: {
+            ...defaultEdgeOptions.style,
+            strokeWidth: isFromStartNode ? 3.5 : 2.5,
+            stroke: isFromStartNode ? '#22c55e' : '#3b82f6',
+          },
+          markerEnd: {
+            ...defaultEdgeOptions.markerEnd,
+            color: isFromStartNode ? '#22c55e' : '#3b82f6',
+          },
+          className: isFromStartNode ? 'from-start-node' : '',
         };
         setEdges((eds) => addEdge(edge, eds));
       } else {
@@ -362,6 +436,42 @@ function WorkflowEditor() {
       try {
         const { nodeType, nodeData } = JSON.parse(data);
         
+        // Check if this is a trigger node
+        const isTriggerNode = nodeData.category === 'triggers' || 
+                             nodeData.type === 'trigger' ||
+                             nodeData.id?.includes('trigger');
+        
+        // If it's a trigger node, check if one already exists
+        if (isTriggerNode) {
+          const existingTrigger = nodes.find(n => 
+            n.data.category === 'triggers' || 
+            n.data.type === 'trigger' ||
+            n.data.nodeId?.includes('trigger')
+          );
+          
+          if (existingTrigger) {
+            // Replace the existing trigger node instead of adding a new one
+            setNodes((nds) => nds.map(n => {
+              if (n.id === existingTrigger.id) {
+                return {
+                  ...n,
+                  data: {
+                    ...nodeData,
+                    nodeId: nodeData.id,
+                  },
+                };
+              }
+              return n;
+            }));
+            
+            toast({
+              title: 'Trigger Updated',
+              description: `Workflow trigger changed to ${nodeData.label}`,
+            });
+            return;
+          }
+        }
+        
         // Calculate position
         const position = reactFlowInstance.project({
           x: event.clientX - reactFlowBounds.left,
@@ -391,12 +501,54 @@ function WorkflowEditor() {
         console.error('Error parsing drop data:', error);
       }
     },
-    [reactFlowInstance, setNodes, toast]
+    [reactFlowInstance, setNodes, toast, nodes]
   );
 
   // Handle node selection from palette
   const handleNodeSelectFromPalette = useCallback((nodeData: INodeData) => {
     if (!reactFlowInstance) return;
+    
+    // Check if this is a trigger node
+    const isTriggerNode = nodeData.category === 'triggers' || 
+                         nodeData.type === 'trigger' ||
+                         nodeData.id?.includes('trigger');
+    
+    // If it's a trigger node, check if one already exists
+    if (isTriggerNode) {
+      const existingTrigger = nodes.find(n => 
+        n.data.category === 'triggers' || 
+        n.data.type === 'trigger' ||
+        n.data.nodeId?.includes('trigger')
+      );
+      
+      if (existingTrigger) {
+        // Replace the existing trigger node
+        setNodes((nds) => nds.map(n => {
+          if (n.id === existingTrigger.id) {
+            return {
+              ...n,
+              data: {
+                ...nodeData,
+                nodeId: nodeData.id,
+              },
+            };
+          }
+          return n;
+        }));
+        
+        // Select the updated node
+        setTimeout(() => {
+          setSelectedNode({...existingTrigger, data: {...nodeData, nodeId: nodeData.id}});
+          setSelectedNodeData(nodeData);
+        }, 50);
+        
+        toast({
+          title: 'Trigger Updated',
+          description: `Workflow trigger changed to ${nodeData.label}`,
+        });
+        return;
+      }
+    }
     
     // Get center of viewport
     const { x, y, zoom } = reactFlowInstance.getViewport();
@@ -423,7 +575,7 @@ function WorkflowEditor() {
       setSelectedNode(newNode);
       setSelectedNodeData(nodeData);
     }, 50);
-  }, [reactFlowInstance, setNodes]);
+  }, [reactFlowInstance, setNodes, nodes, toast]);
 
   // Handle node update from properties panel
   const handleNodeUpdate = useCallback((nodeId: string, data: any) => {

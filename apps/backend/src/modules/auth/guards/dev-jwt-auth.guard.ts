@@ -5,7 +5,7 @@ import { AuthGuard } from '@nestjs/passport';
  * Development JWT Auth Guard that bypasses authentication in development mode
  */
 @Injectable()
-export class DevJwtAuthGuard extends AuthGuard(['jwt', 'dev-jwt']) {
+export class DevJwtAuthGuard extends AuthGuard('dev-jwt') {
   canActivate(context: ExecutionContext) {
     const isDevelopment = 
       process.env.NODE_ENV === 'development' || 
@@ -37,10 +37,14 @@ export class DevJwtAuthGuard extends AuthGuard(['jwt', 'dev-jwt']) {
           memberships: [
             {
               id: '22222222-2222-2222-2222-222222222222',
-              organizationId: '4c072108-f9d0-4ed8-8cfd-1a65630b0b44', // TechCorp Global
+              organizationId: '9eee012e-6860-4c2b-a5e0-431373031703', // TechCorp Global ID
               userId: '11c8f518-4356-42d7-a3ce-8061b2bf3338', // test@example.com
               role: 'admin',
               isDefault: true,
+              organization: {
+                id: '9eee012e-6860-4c2b-a5e0-431373031703',
+                name: 'TechCorp Global',
+              },
             },
           ],
         };
@@ -62,13 +66,13 @@ export class DevJwtAuthGuard extends AuthGuard(['jwt', 'dev-jwt']) {
     if (isDevelopment && !user) {
       // Return mock user in development
       return {
-        id: '11111111-1111-1111-1111-111111111111',
+        id: '11c8f518-4356-42d7-a3ce-8061b2bf3338', // test@example.com
         cognitoId: 'dev-cognito-id',
         email: 'dev@example.com',
         firstName: 'Dev',
         lastName: 'User',
         status: 'active',
-        sub: '11111111-1111-1111-1111-111111111111',
+        sub: '11c8f518-4356-42d7-a3ce-8061b2bf3338', // test@example.com
         metadata: {
           isSuperAdmin: true,
         },
@@ -76,10 +80,14 @@ export class DevJwtAuthGuard extends AuthGuard(['jwt', 'dev-jwt']) {
         memberships: [
           {
             id: '22222222-2222-2222-2222-222222222222',
-            organizationId: '4c072108-f9d0-4ed8-8cfd-1a65630b0b44', // TechCorp Global
-            userId: '11111111-1111-1111-1111-111111111111',
+            organizationId: 'e91acfb1-50b7-48a0-9357-2654a252b41e', // Use the actual TechCorp Global ID
+            userId: '11c8f518-4356-42d7-a3ce-8061b2bf3338', // test@example.com
             role: 'admin',
             isDefault: true,
+            organization: {
+              id: 'e91acfb1-50b7-48a0-9357-2654a252b41e',
+              name: 'TechCorp Global',
+            },
           },
         ],
       };

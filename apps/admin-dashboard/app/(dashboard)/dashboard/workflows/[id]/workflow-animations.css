@@ -1,0 +1,291 @@
+/* Workflow Animation Styles */
+
+/* Start Node Pulse Animation */
+@keyframes pulse-start {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 
+      0 0 0 0 rgba(34, 197, 94, 0.7),
+      0 10px 25px -5px rgba(34, 197, 94, 0.25);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 
+      0 0 0 10px rgba(34, 197, 94, 0),
+      0 10px 30px -5px rgba(34, 197, 94, 0.35);
+  }
+}
+
+/* Gradient Border Animation */
+@keyframes gradient-border {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Handle Glow Animation */
+@keyframes glow-handle {
+  0%, 100% {
+    box-shadow: 
+      0 0 5px rgba(34, 197, 94, 0.5),
+      0 0 10px rgba(34, 197, 94, 0.3);
+  }
+  50% {
+    box-shadow: 
+      0 0 10px rgba(34, 197, 94, 0.8),
+      0 0 20px rgba(34, 197, 94, 0.5);
+  }
+}
+
+/* Data Flow Animation */
+@keyframes flow-data {
+  0% {
+    stroke-dashoffset: 24;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Connection Pulse Animation */
+@keyframes connection-pulse {
+  0%, 100% {
+    stroke-width: 2.5;
+    opacity: 1;
+  }
+  50% {
+    stroke-width: 4;
+    opacity: 0.8;
+  }
+}
+
+/* Start Badge Glow */
+@keyframes badge-glow {
+  0%, 100% {
+    box-shadow: 
+      0 0 5px rgba(34, 197, 94, 0.5),
+      inset 0 0 5px rgba(34, 197, 94, 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 0 15px rgba(34, 197, 94, 0.8),
+      inset 0 0 10px rgba(34, 197, 94, 0.3);
+  }
+}
+
+/* Rotate on Hover */
+@keyframes subtle-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Animated Dots on Edges */
+@keyframes dot-flow {
+  0% {
+    offset-distance: 0%;
+  }
+  100% {
+    offset-distance: 100%;
+  }
+}
+
+/* Start Node Classes */
+.start-node-pulse {
+  /* animation: pulse-start 2s ease-in-out infinite; */
+  /* Animation disabled - keeping static styling only */
+}
+
+.start-node-gradient-border {
+  background: linear-gradient(
+    270deg,
+    #22c55e,
+    #10b981,
+    #059669,
+    #22c55e
+  );
+  background-size: 300% 300%;
+  animation: gradient-border 3s ease infinite;
+}
+
+.start-handle-glow {
+  animation: glow-handle 1.5s ease-in-out infinite;
+}
+
+.flow-edge-animated {
+  stroke-dasharray: 6 6;
+  animation: flow-data 1s linear infinite;
+}
+
+.connection-pulse {
+  animation: connection-pulse 1.5s ease-in-out infinite;
+}
+
+.start-badge {
+  /* animation: badge-glow 2s ease-in-out infinite; */
+  background: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
+  color: white;
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);
+}
+
+/* Enhanced Handle Styles */
+.handle-enhanced {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.handle-enhanced::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(59, 130, 246, 0.3) 0%,
+    transparent 70%
+  );
+  /* animation: pulse-start 2s ease-in-out infinite; */
+  pointer-events: none;
+}
+
+.handle-start-output {
+  background: linear-gradient(135deg, #22c55e 0%, #10b981 100%) !important;
+  border: 3px solid white !important;
+  width: 16px !important;
+  height: 16px !important;
+  /* animation: glow-handle 1.5s ease-in-out infinite; */
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.4);
+}
+
+.handle-start-output:hover {
+  transform: scale(1.3);
+  box-shadow: 
+    0 0 15px rgba(34, 197, 94, 0.8),
+    0 0 30px rgba(34, 197, 94, 0.4);
+}
+
+/* Animated Edge Path */
+.animated-edge-path {
+  stroke: url(#edge-gradient);
+  stroke-width: 3;
+  filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.4));
+}
+
+.animated-edge-path.from-start {
+  stroke-width: 4;
+  stroke: url(#start-edge-gradient);
+  filter: drop-shadow(0 0 5px rgba(34, 197, 94, 0.6));
+}
+
+/* Flowing Dots Effect */
+.flow-dots {
+  fill: #3b82f6;
+  opacity: 0.8;
+  filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.8));
+}
+
+.flow-dots.from-start {
+  fill: #22c55e;
+  filter: drop-shadow(0 0 3px rgba(34, 197, 94, 0.8));
+}
+
+/* Connection Preview */
+.connection-preview {
+  stroke: #f59e0b;
+  stroke-width: 2;
+  stroke-dasharray: 5 5;
+  opacity: 0.6;
+  animation: flow-data 0.5s linear infinite;
+}
+
+/* Node Hover Effects */
+.workflow-node:hover {
+  transform: translateY(-2px);
+  transition: all 0.2s ease;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+}
+
+/* Status Indicators */
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  position: absolute;
+  top: -4px;
+  right: -4px;
+}
+
+.status-indicator.active {
+  background: #22c55e;
+  /* animation: pulse-start 1s ease-in-out infinite; */
+  box-shadow: 0 0 4px rgba(34, 197, 94, 0.6);
+}
+
+.status-indicator.paused {
+  background: #f59e0b;
+}
+
+.status-indicator.error {
+  background: #ef4444;
+  animation: pulse-start 0.5s ease-in-out infinite;
+}
+
+/* Execution Preview Path */
+.execution-preview-path {
+  stroke: #10b981;
+  stroke-width: 4;
+  stroke-dasharray: 10 5;
+  opacity: 0.3;
+  animation: flow-data 2s linear infinite;
+}
+
+/* Special Effects for Start Node */
+.start-node-container {
+  position: relative;
+}
+
+.start-node-container::before {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(
+    circle,
+    rgba(34, 197, 94, 0.1) 0%,
+    transparent 70%
+  );
+  /* animation: pulse-start 3s ease-in-out infinite; */
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Icon Rotation Animation */
+.start-icon-rotate {
+  animation: subtle-rotate 10s linear infinite;
+}
+
+.start-icon-rotate:hover {
+  animation-duration: 2s;
+}
+
+/* Gradient Definitions for SVG */
+.workflow-gradients {
+  position: absolute;
+  width: 0;
+  height: 0;
+  visibility: hidden;
+}

@@ -358,3 +358,16 @@ export const territoryAPI = {
   getHierarchy: (rootId?: string) => api.get('/territories/hierarchy', { params: { rootId } }),
   getByIds: (ids: string[]) => api.post('/territories/bulk', { ids }),
 };
+
+export const workflowAPI = {
+  getAll: (params?: any) => api.get('/workflows', { params }),
+  getById: (id: string) => api.get(`/workflows/${id}`),
+  create: (data: any) => api.post('/workflows', data),
+  update: (id: string, data: any) => api.patch(`/workflows/${id}`, data),
+  delete: (id: string) => api.delete(`/workflows/${id}`),
+  execute: (id: string, input: any) => api.post(`/workflows/${id}/execute`, input),
+  getExecutions: (workflowId: string) => api.get(`/workflows/${workflowId}/executions`),
+  getTemplates: () => api.get('/workflows/templates'),
+  duplicate: (id: string, name: string) => api.post(`/workflows/${id}/duplicate`, { name }),
+  toggleActive: (id: string, isActive: boolean) => api.patch(`/workflows/${id}/active`, { isActive }),
+};

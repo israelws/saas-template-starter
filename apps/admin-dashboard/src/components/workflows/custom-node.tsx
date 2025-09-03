@@ -2,7 +2,7 @@ import React, { memo, useState } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings, Copy, Trash2, Info } from 'lucide-react';
+import { Settings, Copy, Trash2, Info, Play, Zap, Clock, Globe } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -62,6 +62,17 @@ const CustomNode = memo(({ data, selected, id }: NodeProps<CustomNodeData>) => {
   const [isHovered, setIsHovered] = useState(false);
   const color = data.color || getCategoryColor(data.category);
   const isStart = isStartNode(data);
+  
+  // Get trigger type icon for start node
+  const getTriggerIcon = () => {
+    if (!isStart) return null;
+    switch (data.nodeId) {
+      case 'webhook-trigger': return <Globe className="w-4 h-4 text-white" />;
+      case 'schedule-trigger': return <Clock className="w-4 h-4 text-white" />;
+      case 'event-trigger': return <Zap className="w-4 h-4 text-white" />;
+      default: return <Play className="w-4 h-4 text-white" />;
+    }
+  };
 
   const handleNodeAction = (action: string, event: React.MouseEvent) => {
     event.stopPropagation();
@@ -74,14 +85,29 @@ const CustomNode = memo(({ data, selected, id }: NodeProps<CustomNodeData>) => {
 
   return (
     <TooltipProvider>
-      <Card
-        className={cn(
-          'min-w-[200px] max-w-[300px] transition-all relative',
-          selected && 'ring-2 ring-primary ring-offset-2',
-          isHovered && 'shadow-lg',
-          data.error && 'border-red-500',
-          isStart && 'shadow-xl ring-2 ring-green-500/30 ring-offset-2'
+      <div className={cn(
+        "relative",
+        isStart && "start-node-container"
+      )}>
+        {/* Start Node Badge */}
+        {isStart && (
+          <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+            <div className="start-badge flex items-center gap-1 px-2 py-1">
+              {getTriggerIcon()}
+              <span className="text-xs font-bold">START</span>
+            </div>
+          </div>
         )}
+        
+        
+        <Card
+          className={cn(
+            'min-w-[200px] max-w-[300px] transition-all relative workflow-node',
+            selected && 'ring-2 ring-primary ring-offset-2',
+            isHovered && 'shadow-lg',
+            data.error && 'border-red-500',
+            isStart && 'shadow-xl ring-2 ring-green-500/30 ring-offset-2'
+          )}
         style={{
           borderColor: selected ? undefined : isStart ? '#22c55e' : color,
           borderWidth: isStart ? '4px' : '2px',
@@ -92,13 +118,13 @@ const CustomNode = memo(({ data, selected, id }: NodeProps<CustomNodeData>) => {
           boxShadow: isStart 
             ? '0 10px 25px -5px rgba(34, 197, 94, 0.25), 0 8px 10px -6px rgba(34, 197, 94, 0.1)'
             : undefined,
-          transform: isStart && !selected ? 'scale(1.05)' : 'scale(1)',
+          transform: isStart && !selected ? 'scale(1.1)' : 'scale(1)',
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Input Handles */}
-        {data.inputAnchors?.map((input, index) => (
+        {/* Input Handles - Not for Start Nodes */}
+        {!isStart && data.inputAnchors?.map((input, index) => (
           <Handle
             key={input.id}
             type="target"
@@ -107,12 +133,12 @@ const CustomNode = memo(({ data, selected, id }: NodeProps<CustomNodeData>) => {
             style={{
               top: `${((index + 1) * 100) / (data.inputAnchors!.length + 1)}%`,
               background: input.optional ? '#94a3b8' : '#1e293b',
-              width: '12px',
-              height: '12px',
-              border: '2px solid white',
-              left: '-7px',
+              width: '14px',
+              height: '14px',
+              border: '3px solid white',
+              left: '-8px',
             }}
-            className="!cursor-crosshair"
+            className="handle-enhanced !cursor-crosshair"
           >
             <Tooltip>
               <TooltipTrigger asChild>
@@ -135,14 +161,19 @@ const CustomNode = memo(({ data, selected, id }: NodeProps<CustomNodeData>) => {
           {/* Header */}
           <div className="flex items-start justify-between mb-2">
             <div className="flex items-center gap-2 flex-1">
-              {data.icon && (
+              {(data.icon || isStart) && (
                 <div className="flex items-center justify-center">
-                  <span className={cn(
-                    "text-lg",
-                    isStart && "text-2xl filter drop-shadow-md"
-                  )}>
-                    {isStart ? '🚀' : data.icon}
-                  </span>
+                  {isStart ? (
+                    <div className={cn(
+                      "text-3xl filter drop-shadow-lg"
+                    )}>
+                      🚀
+                    </div>
+                  ) : (
+                    <span className="text-lg">
+                      {data.icon}
+                    </span>
+                  )}
                 </div>
               )}
               <div className="flex-1">
@@ -153,9 +184,17 @@ const CustomNode = memo(({ data, selected, id }: NodeProps<CustomNodeData>) => {
                   {data.label}
                 </h3>
                 {data.description && (
-                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                  <p className={cn(
+                    "text-xs text-muted-foreground mt-1 line-clamp-2",
+                    isStart && "text-sm text-green-600"
+                  )}>
                     {data.description}
                   </p>
+                )}
+                {isStart && (
+                  <div className="text-xs text-green-500 mt-1 font-medium">
+                    Ready to execute
+                  </div>
                 )}
               </div>
             </div>
@@ -176,33 +215,37 @@ const CustomNode = memo(({ data, selected, id }: NodeProps<CustomNodeData>) => {
                 <TooltipContent>Configure</TooltipContent>
               </Tooltip>
               
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 w-6 p-0"
-                    onClick={(e) => handleNodeAction('duplicate', e)}
-                  >
-                    <Copy className="h-3 w-3" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Duplicate</TooltipContent>
-              </Tooltip>
+              {!isStart && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-6 p-0"
+                      onClick={(e) => handleNodeAction('duplicate', e)}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Duplicate</TooltipContent>
+                </Tooltip>
+              )}
               
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                    onClick={(e) => handleNodeAction('delete', e)}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Delete</TooltipContent>
-              </Tooltip>
+              {!isStart && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                      onClick={(e) => handleNodeAction('delete', e)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Delete</TooltipContent>
+                </Tooltip>
+              )}
             </div>
           </div>
 
@@ -247,13 +290,16 @@ const CustomNode = memo(({ data, selected, id }: NodeProps<CustomNodeData>) => {
             id={output.id}
             style={{
               top: `${((index + 1) * 100) / (data.outputAnchors!.length + 1)}%`,
-              background: '#1e293b',
-              width: '12px',
-              height: '12px',
-              border: '2px solid white',
-              right: '-7px',
+              background: isStart ? 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)' : '#1e293b',
+              width: isStart ? '16px' : '14px',
+              height: isStart ? '16px' : '14px',
+              border: '3px solid white',
+              right: isStart ? '-9px' : '-8px',
             }}
-            className="!cursor-crosshair"
+            className={cn(
+              "!cursor-crosshair",
+              isStart ? "handle-start-output" : "handle-enhanced"
+            )}
           >
             <Tooltip>
               <TooltipTrigger asChild>
@@ -270,6 +316,7 @@ const CustomNode = memo(({ data, selected, id }: NodeProps<CustomNodeData>) => {
           </Handle>
         ))}
       </Card>
+      </div>
     </TooltipProvider>
   );
 });
