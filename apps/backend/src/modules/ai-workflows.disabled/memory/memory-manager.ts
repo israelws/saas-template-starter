@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { WorkflowMemory } from '../entities/workflow-memory.entity';
 
 export interface IMemory {
   type: string;
@@ -379,8 +380,8 @@ export class MemoryManager {
   private memoryInstances: Map<string, IMemory> = new Map();
 
   constructor(
-    @InjectRepository('WorkflowMemory')
-    private memoryRepo: Repository<any>,
+    @InjectRepository(WorkflowMemory)
+    private memoryRepo: Repository<WorkflowMemory>,
   ) {}
 
   /**

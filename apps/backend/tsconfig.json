@@ -22,5 +22,10 @@
       "@saas-template/shared": ["../../packages/shared/src"],
       "@saas-template/shared/*": ["../../packages/shared/src/*"]
     }
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/modules/ai-workflows/**/*"
+  ]
 }

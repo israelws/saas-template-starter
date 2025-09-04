@@ -30,8 +30,9 @@ export class UniversalLLMAdapter {
 
   constructor(
     private configService: ConfigService,
-    @InjectRepository('LLMCredentials')
-    private credentialsRepo: Repository<any>,
+    // TODO: Fix entity import when WorkflowCredential is properly set up
+    // @InjectRepository(WorkflowCredential)
+    // private credentialsRepo: Repository<WorkflowCredential>,
   ) {
     this.initializeProviders();
   }
@@ -171,6 +172,7 @@ export class UniversalLLMAdapter {
         apiKey: 'GOOGLE_API_KEY',
       },
       ollama: {
+        apiKey: '', // Ollama doesn't require an API key
         apiUrl: 'OLLAMA_API_URL',
       },
     };

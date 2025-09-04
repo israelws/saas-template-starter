@@ -11,6 +11,11 @@ import { translations } from '@/lib/i18n/translations';
 // Initialize i18next once
 if (!i18n.isInitialized) {
   console.log('Initializing i18next with translations...');
+  
+  // Check if user has a saved language preference, otherwise default to English
+  const savedLanguage = typeof window !== 'undefined' ? localStorage.getItem('i18nextLng') : null;
+  const defaultLanguage = savedLanguage || 'en';
+  
   i18n
     .use(LanguageDetector)
     .use(initReactI18next)
@@ -23,8 +28,9 @@ if (!i18n.isInitialized) {
         fr: { translation: translations.fr },
         de: { translation: translations.de },
       },
+      lng: defaultLanguage, // Set default language
       fallbackLng: 'en',
-      debug: true,
+      debug: false,
       interpolation: {
         escapeValue: false,
       },
@@ -33,7 +39,7 @@ if (!i18n.isInitialized) {
         caches: ['localStorage'],
       },
     });
-  console.log('i18next initialized with languages:', Object.keys(translations));
+  console.log('i18next initialized with language:', defaultLanguage);
 }
 
 export function SimpleI18nProvider({ children }: { children: React.ReactNode }) {

@@ -39,6 +39,9 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
+# Ensure no log files in root or any subdirectory
+/**/*.log
+/**/logs/
 
 # Runtime data
 pids/

@@ -18,7 +18,7 @@ import { InsuranceModule } from './modules/insurance/insurance.module';
 import { InvitationsModule } from './modules/invitations/invitations.module';
 import { EmailModule } from './modules/email/email.module';
 import { TasksModule } from './modules/tasks/tasks.module';
-import { AIWorkflowsModule } from './modules/ai-workflows/ai-workflows.module';
+// import { AIWorkflowsModule } from './modules/ai-workflows/ai-workflows.module'; // Temporarily disabled due to compilation errors
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { LoggerModule } from './common/logger/logger.module';
 import { CacheModule } from './common/cache/cache.module';
@@ -84,7 +84,7 @@ import { ValidationPipe } from '@nestjs/common';
     TransactionsModule,
     InsuranceModule,
     TasksModule,
-    AIWorkflowsModule,
+    // AIWorkflowsModule, // Temporarily disabled due to compilation errors
   ],
   controllers: [AppController],
   providers: [

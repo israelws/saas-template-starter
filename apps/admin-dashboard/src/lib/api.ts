@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Use environment variable for API URL, fallback to localhost:3000
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+// Use environment variable for API URL, fallback to localhost:3002 (backend port)
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
 
 // Debug log the API URL being used
 console.log('[API Configuration] Using API URL:', API_BASE_URL);

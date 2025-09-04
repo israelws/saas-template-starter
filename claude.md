@@ -24,8 +24,22 @@ saas-template-starter/
 ├── packages/
 │   ├── shared/              # Shared types and utilities
 │   └── ui/                  # Shared UI components
+├── architecture-and-analysis/  # Architecture docs & analysis
+│   ├── product.md           # Product requirements document
+│   ├── agents_workflow_architecture_and_plan.md
+│   ├── FLOWISE_ARCHITECTURE_ANALYSIS.md
+│   └── FLOWISE_INTEGRATIONS_RESEARCH.md
+├── documentation/           # All project documentation
+│   ├── setup/              # Setup and configuration guides
+│   ├── development/        # Development guides and API docs
+│   └── reference/          # Reference documentation
+├── config/                  # Configuration files
+│   ├── ecosystem.config.js # PM2 configuration
+│   └── .env.example        # Environment variables template
 ├── infrastructure/          # Terraform IaC files
+├── logs/                   # All application log files (git-ignored)
 ├── resources/              # Graphics, logos, images
+├── scripts/                # Build, deployment and utility scripts
 ├── tasks/                  # Task management
 │   └── TODO.md            # AI task management
 ├── style/                  # Style guides and documentation
@@ -34,8 +48,8 @@ saas-template-starter/
 │   └── UI_CHANGE_LOG.md
 ├── docker-compose.yml      # Local development
 ├── package.json           # Root package.json for monorepo
-├── CLAUDE.md             # This file
-└── DEVELOPER_GUIDE.md    # Step-by-step development guide
+├── README.md              # Main project readme
+└── CLAUDE.md             # This file (AI instructions)
 ```
 
 ## Key Features
@@ -137,7 +151,10 @@ Uses ABAC (Attribute-Based Access Control) with:
 - Hierarchical policy inheritance
 
 ## External Resources Reference
-- Project Requirements Document: `/product.md`
+- Project Requirements Document: `/architecture-and-analysis/product.md`
+- Architecture Documentation: `/architecture-and-analysis/`
+- Setup Guides: `/documentation/setup/`
+- Development Guides: `/documentation/development/`
 - shadcn/ui Documentation: https://ui.shadcn.com/
 - shadcn/ui Blocks: https://ui.shadcn.com/blocks
 - Dashboard Layout: Use dashboard-01 from shadcn blocks
@@ -178,7 +195,11 @@ Uses ABAC (Attribute-Based Access Control) with:
 - Application performance monitoring
 - Error tracking and alerting
 - Business metrics dashboards
+- **Log Files Location**: All log files are stored in the `/logs/` directory
+- **Log Configuration**: Winston logger configured in `apps/backend/src/common/logger/winston.config.ts`
+- **Log Rotation**: Daily rotation with 30-day retention
+- **Log Levels**: error, warn, info, http, verbose, debug, silly
 
 This document should be referenced throughout development to ensure consistency and adherence to project requirements.
 
-## DONT CHANGE ABAC IF NOT PART OF THE TASK ##
+## DONT CHANGE ABAC IF NOT PART OF THE TASK EXCEPT IF EXPLICITLY ASKED##
