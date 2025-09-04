@@ -55,7 +55,14 @@ export interface WorkflowExecution {
 
 class WorkflowService {
   async getAll(): Promise<Workflow[]> {
-    const response = await workflowAPI.getAll();
+    // Get organizationId from localStorage
+    const organizationId = localStorage.getItem('currentOrganizationId');
+    if (!organizationId) {
+      console.warn('No organization selected, returning empty workflow list');
+      return [];
+    }
+    
+    const response = await workflowAPI.getAll({ organizationId });
     return response.data || [];
   }
 
@@ -65,7 +72,19 @@ class WorkflowService {
   }
 
   async create(data: CreateWorkflowDto): Promise<Workflow> {
-    const response = await workflowAPI.create(data);
+    // Get organizationId from localStorage
+    const organizationId = localStorage.getItem('currentOrganizationId');
+    if (!organizationId) {
+      throw new Error('No organization selected');
+    }
+    
+    // Add organizationId to the workflow data
+    const workflowData = {
+      ...data,
+      organizationId,
+    };
+    
+    const response = await workflowAPI.create(workflowData);
     return response.data;
   }
 

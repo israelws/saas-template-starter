@@ -360,9 +360,27 @@ export const territoryAPI = {
 };
 
 export const workflowAPI = {
-  getAll: (params?: any) => api.get('/workflows', { params }),
+  getAll: (params?: any) => {
+    // Ensure we have organizationId in params
+    if (params && !params.organizationId) {
+      const orgId = getOrganizationId();
+      if (orgId) {
+        params.organizationId = orgId;
+      }
+    }
+    return api.get('/workflows', { params });
+  },
   getById: (id: string) => api.get(`/workflows/${id}`),
-  create: (data: any) => api.post('/workflows', data),
+  create: (data: any) => {
+    // Ensure organizationId is included
+    if (!data.organizationId) {
+      const orgId = getOrganizationId();
+      if (orgId) {
+        data.organizationId = orgId;
+      }
+    }
+    return api.post('/workflows', data);
+  },
   update: (id: string, data: any) => api.patch(`/workflows/${id}`, data),
   delete: (id: string) => api.delete(`/workflows/${id}`),
   execute: (id: string, input: any) => api.post(`/workflows/${id}/execute`, input),
