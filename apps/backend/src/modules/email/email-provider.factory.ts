@@ -3,6 +3,19 @@ import { ConfigService } from '@nestjs/config';
 import { IEmailService } from './interfaces/email.interface';
 import { EmailServiceProvider, EmailServiceConfig } from './entities/email-service-config.entity';
 import { SesEmailService } from './ses-email.service';
+import { GoogleWorkspaceProvider } from './providers/google-workspace.provider';
+import { Office365Provider } from './providers/office365.provider';
+import { SendGridProvider } from './providers/sendgrid.provider';
+import { TwilioProvider } from './providers/twilio.provider';
+import { SmtpProvider } from './providers/smtp.provider';
+import {
+  GoogleWorkspaceConfigDto,
+  Office365ConfigDto,
+  SendGridConfigDto,
+  TwilioConfigDto,
+  SmtpConfigDto,
+  AwsSesConfigDto,
+} from './dto/provider-configs.dto';
 
 @Injectable()
 export class EmailProviderFactory {
@@ -10,6 +23,8 @@ export class EmailProviderFactory {
 
   createProvider(config: EmailServiceConfig): IEmailService {
     switch (config.provider) {
+      case EmailServiceProvider.GOOGLE_WORKSPACE:
+        return this.createGoogleWorkspaceProvider(config);
       case EmailServiceProvider.AWS_SES:
         return this.createAwsSesProvider(config);
       case EmailServiceProvider.SENDGRID:
@@ -25,9 +40,14 @@ export class EmailProviderFactory {
     }
   }
 
+  private createGoogleWorkspaceProvider(config: EmailServiceConfig): IEmailService {
+    const googleConfig = config.config as GoogleWorkspaceConfigDto;
+    return new GoogleWorkspaceProvider(googleConfig);
+  }
+
   private createAwsSesProvider(config: EmailServiceConfig): IEmailService {
     // Use the existing SES service with the provided config
-    const sesConfig = config.config as any;
+    const sesConfig = config.config as AwsSesConfigDto;
     return new SesEmailService({
       get: (key: string) => {
         switch (key) {
@@ -49,54 +69,22 @@ export class EmailProviderFactory {
   }
 
   private createSendGridProvider(config: EmailServiceConfig): IEmailService {
-    // Placeholder for SendGrid implementation
-    const sgConfig = config.config as any;
-    return {
-      async sendEmail(dto) {
-        // This would use the SendGrid SDK in a real implementation
-        console.log('Sending email via SendGrid', dto);
-        // Mock implementation
-        return Promise.resolve();
-      },
-    };
+    const sgConfig = config.config as SendGridConfigDto;
+    return new SendGridProvider(sgConfig);
   }
 
   private createOffice365Provider(config: EmailServiceConfig): IEmailService {
-    // Placeholder for Office 365 implementation
-    const o365Config = config.config as any;
-    return {
-      async sendEmail(dto) {
-        // This would use Microsoft Graph API in a real implementation
-        console.log('Sending email via Office 365', dto);
-        // Mock implementation
-        return Promise.resolve();
-      },
-    };
+    const o365Config = config.config as Office365ConfigDto;
+    return new Office365Provider(o365Config);
   }
 
   private createTwilioProvider(config: EmailServiceConfig): IEmailService {
-    // Placeholder for Twilio implementation
-    const twilioConfig = config.config as any;
-    return {
-      async sendEmail(dto) {
-        // This would use Twilio SendGrid API in a real implementation
-        console.log('Sending email via Twilio', dto);
-        // Mock implementation
-        return Promise.resolve();
-      },
-    };
+    const twilioConfig = config.config as TwilioConfigDto;
+    return new TwilioProvider(twilioConfig);
   }
 
   private createSmtpProvider(config: EmailServiceConfig): IEmailService {
-    // Placeholder for SMTP implementation
-    const smtpConfig = config.config as any;
-    return {
-      async sendEmail(dto) {
-        // This would use nodemailer in a real implementation
-        console.log('Sending email via SMTP', dto);
-        // Mock implementation
-        return Promise.resolve();
-      },
-    };
+    const smtpConfig = config.config as SmtpConfigDto;
+    return new SmtpProvider(smtpConfig);
   }
 }

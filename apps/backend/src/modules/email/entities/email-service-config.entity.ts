@@ -11,6 +11,7 @@ import {
 import { Organization } from '../../organizations/entities/organization.entity';
 
 export enum EmailServiceProvider {
+  GOOGLE_WORKSPACE = 'google-workspace',
   OFFICE365 = 'office365',
   SENDGRID = 'sendgrid',
   TWILIO = 'twilio',

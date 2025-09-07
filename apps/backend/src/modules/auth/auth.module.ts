@@ -6,10 +6,9 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { CognitoService } from './cognito.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { DevJwtStrategy } from './strategies/dev-jwt.strategy';
 import { UsersModule } from '../users/users.module';
 import { OptionalJwtAuthGuard } from './guards/optional-jwt-auth.guard';
-import { DevJwtAuthGuard } from './guards/dev-jwt-auth.guard';
+import { CombinedAuthGuard } from './guards/combined-auth.guard';
 
 @Module({
   imports: [
@@ -18,7 +17,7 @@ import { DevJwtAuthGuard } from './guards/dev-jwt-auth.guard';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET'),
+        secret: configService.get('JWT_SECRET', 'dev-secret-key-for-local-testing'),
         signOptions: {
           expiresIn: '24h',
         },
@@ -28,7 +27,13 @@ import { DevJwtAuthGuard } from './guards/dev-jwt-auth.guard';
     UsersModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, CognitoService, JwtStrategy, DevJwtStrategy, OptionalJwtAuthGuard, DevJwtAuthGuard],
-  exports: [AuthService, CognitoService, OptionalJwtAuthGuard, DevJwtAuthGuard],
+  providers: [
+    AuthService, 
+    CognitoService, 
+    JwtStrategy,
+    OptionalJwtAuthGuard,
+    CombinedAuthGuard
+  ],
+  exports: [AuthService, CognitoService, OptionalJwtAuthGuard, CombinedAuthGuard],
 })
 export class AuthModule {}
